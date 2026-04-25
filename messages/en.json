@@ -1,0 +1,317 @@
+{
+  "common": {
+    "dialog": {
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "loading": "Loading..."
+    },
+    "toast": {
+      "success": "Success",
+      "error": "Error",
+      "warning": "Warning",
+      "info": "Info"
+    }
+  },
+  "nav": {
+    "features": "Features",
+    "about": "About",
+    "plans": "Plans",
+    "login": "Login",
+    "getStarted": "Get Started",
+    "langLabel": "EN",
+    "close": "Close menu"
+  },
+  "hero": {
+    "badge": "The Smart Order Verification Platform",
+    "headline1": "Stop Order.",
+    "headline1Highlight": "Fraud",
+    "headline2": "Before It Costs You.",
+    "subheading": "Scamurai gives your team a simple, tamper-proof way to photograph, verify, and track every delivery order — so finance always has the proof they need.",
+    "ctaPrimary": "Get Started Free",
+    "ctaSecondary": "Watch how it works",
+    "stat1Label": "Orders Verified",
+    "stat2Label": "Accuracy",
+    "stat3Label": "Report Time",
+    "trust1": "Tamper-proof records",
+    "trust2": "Under 30s review",
+    "trust3": "Real-time dashboards"
+  },
+  "socialProof": {
+    "trusted": "Trusted by brands operating across Saudi Arabia"
+  },
+  "about": {
+    "label": "About Us",
+    "heading": "We protect your revenue",
+    "body1": "Scamurai acts as a verification layer between delivery apps and your finance team. Every order is photographed, timestamped, and linked to a branch and staff member — creating an unbreakable chain of accountability.",
+    "body2": "No more disputes. No more guesswork. Just transparent, verifiable proof for every order that passes through your kitchen.",
+    "visionBadge": "Aligned with Saudi Vision 2030",
+    "cardApproved": "Approved",
+    "cardReview": "Needs Review",
+    "cardBranch": "Al Olaya Branch",
+    "cardAmount": "142.50 SAR"
+  },
+  "howItWorks": {
+    "label": "How It Works",
+    "heading": "Three Simple Steps",
+    "step1Title": "Capture",
+    "step1Desc": "Staff photographs the sealed and opened bag with one tap.",
+    "step2Title": "Review",
+    "step2Desc": "Finance reviews the order in seconds.",
+    "step3Title": "Track",
+    "step3Desc": "Admin tracks everything in real-time."
+  },
+  "values": {
+    "label": "Our Values",
+    "heading": "What We Stand For",
+    "v1Title": "Transparency",
+    "v1Desc": "Every order is documented. Every action is timestamped. Nothing is hidden.",
+    "v2Title": "Accountability",
+    "v2Desc": "Know who submitted what, when, and from which branch. Always.",
+    "v3Title": "Speed",
+    "v3Desc": "From order photo to finance review in under 30 seconds."
+  },
+  "plans": {
+    "label": "Pricing",
+    "heading": "Choose Your Plan",
+    "monthly": "Monthly",
+    "annually": "Annually",
+    "annualDiscount": "-20%",
+    "mostPopular": "Most Popular",
+    "currency": "SAR",
+    "perMonth": "/mo",
+    "starter": "Starter",
+    "starterPrice": "299",
+    "starterAnnualPrice": "239",
+    "growth": "Growth",
+    "growthPrice": "799",
+    "growthAnnualPrice": "639",
+    "enterprise": "Enterprise",
+    "enterprisePrice": "Contact Us",
+    "contactUs": "Contact Us",
+    "getStarted": "Get Started",
+    "branches": "Branches",
+    "users": "Users",
+    "orderHistory": "Order History",
+    "support": "Support",
+    "starterBranches": "Up to 3",
+    "starterUsers": "Up to 10",
+    "starterHistory": "90 days",
+    "starterSupport": "Email",
+    "growthBranches": "Up to 10",
+    "growthUsers": "Up to 50",
+    "growthHistory": "1 year",
+    "growthSupport": "Priority",
+    "enterpriseBranches": "Unlimited",
+    "enterpriseUsers": "Unlimited",
+    "enterpriseHistory": "Unlimited",
+    "enterpriseSupport": "Dedicated"
+  },
+  "apply": {
+    "pageTitle": "Apply for Scamurai",
+    "heading": "Start Your Journey",
+    "subheading": "Fill out the form below and our team will get back to you within 24 hours.",
+    "brandName": "Brand Name",
+    "brandNamePlaceholder": "Your brand name",
+    "contactEmail": "Contact Email",
+    "contactEmailPlaceholder": "you@example.com",
+    "phone": "Phone Number",
+    "phonePlaceholder": "+966 5XX XXX XXXX",
+    "phoneOptional": "Optional",
+    "selectedPlan": "Selected Plan",
+    "submitButton": "Submit Application",
+    "submitting": "Submitting...",
+    "errorGeneral": "Something went wrong. Please try again.",
+    "errRequired": "This field is required",
+    "errBrandMin": "Brand name must be at least 2 characters",
+    "errBrandMax": "Brand name must be at most 60 characters",
+    "errBrandRegex": "Brand name can only contain letters, numbers, spaces, and hyphens",
+    "errEmail": "Please enter a valid email address",
+    "errPhone": "Please enter a valid phone number",
+    "errPlan": "Please select a valid plan",
+    "errFormFix": "Please fix the form errors below",
+    "successHeading": "Application Received!",
+    "successBody": "Our team will contact you at {email} within 24 hours to discuss your plan details.",
+    "successNote": "Check your inbox including spam.",
+    "backToHome": "Back to Home",
+    "perMonth": "/mo",
+    "currency": "SAR"
+  },
+  "onboarding": {
+    "pageTitle": "Brand Setup",
+    "heading": "Set Up Your Brand",
+    "subheading": "Customize your brand appearance. You can always change these later in settings.",
+    "step1": "Brand Appearance",
+    "step2": "Complete ✓",
+    "logoTitle": "Brand Logo",
+    "logoDesc": "Upload your brand logo (PNG, SVG, or JPG — max 2MB)",
+    "logoDragDrop": "Drag & drop your logo here",
+    "logoOrBrowse": "or click to browse",
+    "logoUploading": "Uploading...",
+    "logoRemove": "Remove",
+    "colorsTitle": "Brand Colors",
+    "colorsDesc": "Pick 4 colors that define your brand experience.",
+    "colorPrimary": "Primary",
+    "colorBackground": "Background",
+    "colorSurface": "Surface",
+    "colorTextAccent": "Text Accent",
+    "preview": "Live Preview",
+    "completeSetup": "Complete Setup",
+    "completing": "Completing...",
+    "contrastWarning": "Low contrast — may be hard to read",
+    "darkWarning": "Background may be too dark for white text"
+  },
+  "footer": {
+    "tagline": "The Guardian of Your Orders",
+    "product": "Product",
+    "features": "Features",
+    "pricing": "Pricing",
+    "security": "Security",
+    "updates": "Updates",
+    "company": "Company",
+    "aboutLink": "About",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms",
+    "ctaHeading": "Try Scamurai Free",
+    "emailPlaceholder": "Enter your email",
+    "startButton": "Start",
+    "copyright": "© 2026 Scamurai. All rights reserved.",
+    "langLabel": "EN"
+  },
+  "admin": {
+    "login": {
+      "title": "Master Admin",
+      "emailPlaceholder": "Admin Email",
+      "passwordPlaceholder": "Password",
+      "signIn": "Sign In",
+      "signingIn": "Signing in...",
+      "accessDenied": "Access denied.",
+      "incomplete": "Verification incomplete.",
+      "invalid": "Invalid email or password.",
+      "errors": {
+        "emailRequired": "Email is required.",
+        "emailInvalid": "Invalid email address.",
+        "passwordRequired": "Password is required.",
+        "passwordMin": "Password must be at least 8 characters.",
+        "form_identifier_not_found": "Account not found.",
+        "form_password_incorrect": "Incorrect password.",
+        "too_many_requests": "Too many attempts. Please try again later.",
+        "general": "Something went wrong."
+      }
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "activeBrands": "Active Brands",
+      "pendingApplications": "Pending Applications",
+      "ordersThisMonth": "Orders This Month",
+      "approvalRate": "Approval Rate",
+      "applicationsOverview": "Applications Overview",
+      "totalApps": "Total Apps",
+      "pending": "Pending",
+      "quoted": "Quoted",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "orderTrends": "Order Trends",
+      "last30Days": "Last 30 Days",
+      "submitted": "Submitted",
+      "recentApplications": "Recent Applications",
+      "recentAppsSubtitle": "Latest brands joining the platform",
+      "viewAll": "View all",
+      "noRecentApps": "No recent applications found.",
+      "brand": "Brand",
+      "plan": "Plan",
+      "status": "Status",
+      "time": "Time",
+      "topPerformers": "Top Performers",
+      "topPerformersSubtitle": "Branches with highest order volume this month",
+      "noOrderData": "No order data available for this month.",
+      "orders": "orders"
+    },
+    "shell": {
+      "dashboard": "Dashboard",
+      "applications": "Applications",
+      "brands": "Brands",
+      "users": "Users",
+      "settings": "Settings",
+      "comingSoon": "Coming Soon",
+      "platformAdmin": "Platform Admin",
+      "logout": "Logout",
+      "masterAdmin": "Master Admin"
+    },
+    "applications": {
+      "title": "Applications Management",
+      "filters": {
+        "status": {
+          "all": "All",
+          "pending": "Pending",
+          "quoted": "Quoted",
+          "approved": "Approved",
+          "rejected": "Rejected"
+        },
+        "searchPlaceholder": "Search by brand or email...",
+        "sort": {
+          "newest": "Newest First",
+          "oldest": "Oldest First"
+        }
+      },
+      "status": {
+        "pending": "Pending",
+        "quoted": "Quoted",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "table": {
+        "brandName": "Brand Name",
+        "email": "Contact Email",
+        "phone": "Phone",
+        "plan": "Plan",
+        "submitted": "Submitted",
+        "status": "Status",
+        "actions": "Actions",
+        "noPhone": "No phone",
+        "emptyTitle": "No applications found",
+        "emptyDesc": "Try adjusting your filters or search query."
+      },
+      "actions": {
+        "markAsQuoted": "Mark as Quoted",
+        "approve": "Approve Brand",
+        "reject": "Reject",
+        "confirmQuoted": "Are you sure you want to mark this application as quoted?",
+        "confirmApprove": "WARNING: This will create the brand account and send an invitation. This action is irreversible. Continue?",
+        "successQuoted": "Application marked as quoted successfully.",
+        "successApproved": "Brand approved and invitation sent successfully.",
+        "successRejected": "Application rejected successfully.",
+        "error": "Failed to update status."
+      },
+      "detail": {
+        "email": "Contact Email",
+        "phone": "Phone Number",
+        "notProvided": "Not provided",
+        "plan": "Selected Plan",
+        "submitted": "Submitted On",
+        "rejectionTitle": "Rejection Reason",
+        "noFurtherActions": "No further actions available for this application."
+      },
+      "reject": {
+        "title": "Reject {name}",
+        "placeholder": "Enter rejection reason (sent to applicant)...",
+        "cancel": "Cancel",
+        "confirm": "Confirm Rejection",
+        "error": "Failed to reject application."
+      },
+      "timeline": {
+        "title": "Status History",
+        "status": {
+          "pending": "Application Submitted",
+          "quoted": "Marked as Quoted",
+          "approved": "Approved & Invited",
+          "rejected": "Rejected"
+        },
+        "by": "by"
+      },
+      "pagination": {
+        "showing": "Showing {start}–{end} of {total} applications"
+      }
+    }
+  }
+}

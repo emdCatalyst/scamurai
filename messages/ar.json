@@ -1,0 +1,318 @@
+{
+  "common": {
+    "dialog": {
+      "confirm": "تأكيد",
+      "cancel": "إلغاء",
+      "loading": "جاري التحميل..."
+    },
+    "toast": {
+      "success": "تم بنجاح",
+      "error": "خطأ",
+      "warning": "تحذير",
+      "info": "تنبيه"
+    }
+  },
+  "nav": {
+    "features": "الميزات",
+    "about": "عن سكامورائي",
+    "plans": "الخطط",
+    "login": "تسجيل الدخول",
+    "getStarted": "ابدأ الآن",
+    "langLabel": "ع",
+    "close": "إغلاق القائمة"
+  },
+  "hero": {
+    "badge": "منصة التحقق الأذكى للطلبات",
+    "headlineStar": "أكثر من فكرة!",
+    "headline1": "حل",
+    "headline1Highlight": "سعودي",
+    "headline2": "تقني بامتياز",
+    "subheading": "سكامورائي يمنح فريقك طريقة بسيطة ومضادة للتلاعب لتصوير كل طلب توصيل والتحقق منه وتتبعه — ليحصل قسم المالية دائماً على الإثبات الذي يحتاجه.",
+    "ctaPrimary": "ابدأ الآن مجاناً",
+    "ctaSecondary": "شاهد كيف يعمل",
+    "stat1Label": "طلب موثق",
+    "stat2Label": "دقة التحقق",
+    "stat3Label": "وقت الإبلاغ",
+    "trust1": "سجلات مضادة للتلاعب",
+    "trust2": "مراجعة في أقل من 30 ثانية",
+    "trust3": "لوحات تحكم فورية"
+  },
+  "socialProof": {
+    "trusted": "موثوق من قبل علامات تجارية عبر المملكة العربية السعودية"
+  },
+  "about": {
+    "label": "عن سكامورائي",
+    "heading": "نحن نحمي إيراداتك",
+    "body1": "سكامورائي يعمل كطبقة تحقق بين تطبيقات التوصيل وفريقك المالي. كل طلب يتم تصويره وختمه بالوقت وربطه بالفرع والموظف — مما يخلق سلسلة مساءلة غير قابلة للكسر.",
+    "body2": "لا مزيد من النزاعات. لا مزيد من التخمين. فقط إثبات شفاف وقابل للتحقق لكل طلب يمر عبر مطبخك.",
+    "visionBadge": "يتوافق مع رؤية 2030",
+    "cardApproved": "تمت الموافقة",
+    "cardReview": "بحاجة للمراجعة",
+    "cardBranch": "فرع العليا",
+    "cardAmount": "142.50 ر.س"
+  },
+  "howItWorks": {
+    "label": "كيف يعمل",
+    "heading": "ثلاث خطوات بسيطة",
+    "step1Title": "التقط",
+    "step1Desc": "الموظف يصور الكيس المغلق والمفتوح بنقرة واحدة.",
+    "step2Title": "راجع",
+    "step2Desc": "المالية تراجع الطلب في ثوانٍ.",
+    "step3Title": "تتبع",
+    "step3Desc": "المدير يتتبع كل شيء في الوقت الفعلي."
+  },
+  "values": {
+    "label": "قيمنا",
+    "heading": "ما نؤمن به",
+    "v1Title": "الشفافية",
+    "v1Desc": "كل طلب موثق. كل إجراء مختوم بالوقت. لا شيء مخفي.",
+    "v2Title": "المسؤولية",
+    "v2Desc": "اعرف من قدم ماذا، ومتى، ومن أي فرع. دائماً.",
+    "v3Title": "السرعة",
+    "v3Desc": "من صورة الطلب إلى مراجعة المالية في أقل من 30 ثانية."
+  },
+  "plans": {
+    "label": "الأسعار",
+    "heading": "اختر خطتك",
+    "monthly": "شهري",
+    "annually": "سنوي",
+    "annualDiscount": "-20%",
+    "mostPopular": "الأكثر شعبية",
+    "currency": "ر.س",
+    "perMonth": "/شهر",
+    "starter": "المبتدئ",
+    "starterPrice": "299",
+    "starterAnnualPrice": "239",
+    "growth": "النمو",
+    "growthPrice": "799",
+    "growthAnnualPrice": "639",
+    "enterprise": "المؤسسة",
+    "enterprisePrice": "تواصل معنا",
+    "contactUs": "تواصل معنا",
+    "getStarted": "ابدأ الآن",
+    "branches": "الفروع",
+    "users": "المستخدمون",
+    "orderHistory": "سجل الطلبات",
+    "support": "الدعم",
+    "starterBranches": "حتى 3",
+    "starterUsers": "حتى 10",
+    "starterHistory": "90 يوم",
+    "starterSupport": "بريد إلكتروني",
+    "growthBranches": "حتى 10",
+    "growthUsers": "حتى 50",
+    "growthHistory": "سنة واحدة",
+    "growthSupport": "أولوية",
+    "enterpriseBranches": "غير محدود",
+    "enterpriseUsers": "غير محدود",
+    "enterpriseHistory": "غير محدود",
+    "enterpriseSupport": "مخصص"
+  },
+  "apply": {
+    "pageTitle": "التقديم لسكامورائي",
+    "heading": "ابدأ رحلتك",
+    "subheading": "املأ النموذج أدناه وسيتواصل معك فريقنا خلال 24 ساعة.",
+    "brandName": "اسم العلامة التجارية",
+    "brandNamePlaceholder": "اسم علامتك التجارية",
+    "contactEmail": "البريد الإلكتروني",
+    "contactEmailPlaceholder": "you@example.com",
+    "phone": "رقم الهاتف",
+    "phonePlaceholder": "+966 5XX XXX XXXX",
+    "phoneOptional": "اختياري",
+    "selectedPlan": "الخطة المختارة",
+    "submitButton": "أرسل طلبك",
+    "submitting": "جاري الإرسال...",
+    "errorGeneral": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+    "errRequired": "هذا الحقل مطلوب",
+    "errBrandMin": "يجب أن يتكون اسم العلامة التجارية من حرفين على الأقل",
+    "errBrandMax": "يجب ألا يتجاوز اسم العلامة التجارية 60 حرفاً",
+    "errBrandRegex": "يمكن أن يحتوي اسم العلامة التجارية فقط على أحرف، أرقام، مسافات، وشرطات",
+    "errEmail": "يرجى إدخال عنوان بريد إلكتروني صحيح",
+    "errPhone": "يرجى إدخال رقم هاتف صحيح",
+    "errPlan": "يرجى تحديد خطة صالحة",
+    "errFormFix": "يرجى إصلاح أخطاء النموذج أدناه",
+    "successHeading": "تم استلام طلبك!",
+    "successBody": "سيتواصل معك فريقنا على {email} خلال 24 ساعة لمناقشة تفاصيل خطتك.",
+    "successNote": "تحقق من بريدك الإلكتروني بما في ذلك مجلد الرسائل غير المرغوب بها.",
+    "backToHome": "العودة إلى الرئيسية",
+    "perMonth": "/شهر",
+    "currency": "ر.س"
+  },
+  "onboarding": {
+    "pageTitle": "إعداد العلامة التجارية",
+    "heading": "أعد علامتك التجارية",
+    "subheading": "خصص مظهر علامتك التجارية. يمكنك تغيير هذه الإعدادات لاحقاً.",
+    "step1": "مظهر العلامة التجارية",
+    "step2": "اكتمل ✓",
+    "logoTitle": "شعار العلامة التجارية",
+    "logoDesc": "ارفع شعار علامتك التجارية (PNG أو SVG أو JPG — بحد أقصى 2 ميجابايت)",
+    "logoDragDrop": "اسحب وأفلت شعارك هنا",
+    "logoOrBrowse": "أو انقر للتصفح",
+    "logoUploading": "جاري الرفع...",
+    "logoRemove": "إزالة",
+    "colorsTitle": "ألوان العلامة التجارية",
+    "colorsDesc": "اختر 4 ألوان تحدد تجربة علامتك التجارية.",
+    "colorPrimary": "اللون الرئيسي",
+    "colorBackground": "خلفية لوحة التحكم",
+    "colorSurface": "خلفية البطاقات",
+    "colorTextAccent": "لون النصوص المميزة",
+    "preview": "معاينة مباشرة",
+    "completeSetup": "أكمل الإعداد",
+    "completing": "جاري الإكمال...",
+    "contrastWarning": "تباين منخفض — قد يكون صعب القراءة",
+    "darkWarning": "الخلفية قد تكون داكنة جداً للنص الأبيض"
+  },
+  "footer": {
+    "tagline": "حارس طلباتك",
+    "product": "المنتج",
+    "features": "الميزات",
+    "pricing": "الأسعار",
+    "security": "الأمان",
+    "updates": "المستجدات",
+    "company": "الشركة",
+    "aboutLink": "عن الشركة",
+    "contact": "تواصل معنا",
+    "privacy": "سياسة الخصوصية",
+    "terms": "الشروط والأحكام",
+    "ctaHeading": "جرب سكامورائي مجاناً",
+    "emailPlaceholder": "أدخل بريدك الإلكتروني",
+    "startButton": "ابدأ",
+    "copyright": "© 2026 سكامورائي. جميع الحقوق محفوظة.",
+    "langLabel": "ع"
+  },
+  "admin": {
+    "login": {
+      "title": "المدير العام",
+      "emailPlaceholder": "البريد الإلكتروني",
+      "passwordPlaceholder": "كلمة المرور",
+      "signIn": "تسجيل الدخول",
+      "signingIn": "جاري تسجيل الدخول...",
+      "accessDenied": "تم رفض الوصول.",
+      "incomplete": "التحقق غير مكتمل.",
+      "invalid": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+      "errors": {
+        "emailRequired": "البريد الإلكتروني مطلوب.",
+        "emailInvalid": "البريد الإلكتروني غير صالح.",
+        "passwordRequired": "كلمة المرور مطلوبة.",
+        "passwordMin": "كلمة المرور يجب أن تتكون من 8 أحرف على الأقل.",
+        "form_identifier_not_found": "الحساب غير موجود.",
+        "form_password_incorrect": "كلمة المرور غير صحيحة.",
+        "too_many_requests": "محاولات كثيرة جدًا. يرجى المحاولة مرة أخرى لاحقًا.",
+        "general": "حدث خطأ ما."
+      }
+    },
+    "dashboard": {
+      "title": "لوحة التحكم",
+      "activeBrands": "العلامات التجارية النشطة",
+      "pendingApplications": "الطلبات المعلقة",
+      "ordersThisMonth": "طلبات هذا الشهر",
+      "approvalRate": "معدل القبول",
+      "applicationsOverview": "نظرة عامة على الطلبات",
+      "totalApps": "إجمالي الطلبات",
+      "pending": "معلق",
+      "quoted": "مُسعّر",
+      "approved": "مقبول",
+      "rejected": "مرفوض",
+      "orderTrends": "اتجاهات الطلبات",
+      "last30Days": "آخر 30 يوماً",
+      "submitted": "مُقدم",
+      "recentApplications": "أحدث الطلبات",
+      "recentAppsSubtitle": "أحدث العلامات التجارية المنضمة للمنصة",
+      "viewAll": "عرض الكل",
+      "noRecentApps": "لا توجد طلبات حديثة.",
+      "brand": "العلامة التجارية",
+      "plan": "الخطة",
+      "status": "الحالة",
+      "time": "الوقت",
+      "topPerformers": "الأفضل أداءً",
+      "topPerformersSubtitle": "الفروع ذات أعلى حجم طلبات هذا الشهر",
+      "noOrderData": "لا توجد بيانات طلبات متاحة لهذا الشهر.",
+      "orders": "طلبات"
+    },
+    "shell": {
+      "dashboard": "لوحة التحكم",
+      "applications": "الطلبات",
+      "brands": "العلامات التجارية",
+      "users": "المستخدمون",
+      "settings": "الإعدادات",
+      "comingSoon": "قريباً",
+      "platformAdmin": "مدير المنصة",
+      "logout": "تسجيل الخروج",
+      "masterAdmin": "المدير العام"
+    },
+    "applications": {
+      "title": "إدارة الطلبات",
+      "filters": {
+        "status": {
+          "all": "الكل",
+          "pending": "قيد الانتظار",
+          "quoted": "تم التسعير",
+          "approved": "مقبول",
+          "rejected": "مرفوض"
+        },
+        "searchPlaceholder": "البحث بالاسم أو البريد...",
+        "sort": {
+          "newest": "الأحدث أولاً",
+          "oldest": "الأقدم أولاً"
+        }
+      },
+      "status": {
+        "pending": "قيد الانتظار",
+        "quoted": "تم التسعير",
+        "approved": "مقبول",
+        "rejected": "مرفوض"
+      },
+      "table": {
+        "brandName": "اسم العلامة التجارية",
+        "email": "البريد الإلكتروني",
+        "phone": "الهاتف",
+        "plan": "الخطة",
+        "submitted": "تاريخ التقديم",
+        "status": "الحالة",
+        "actions": "الإجراءات",
+        "noPhone": "لا يوجد هاتف",
+        "emptyTitle": "لم يتم العثور على طلبات",
+        "emptyDesc": "جرب تغيير الفلاتر أو كلمة البحث."
+      },
+      "actions": {
+        "markAsQuoted": "تحديد كمُسعّر",
+        "approve": "قبول العلامة",
+        "reject": "رفض",
+        "confirmQuoted": "هل أنت متأكد من تحديد هذا الطلب كمُسعّر؟",
+        "confirmApprove": "تحذير: سيؤدي هذا إلى إنشاء حساب العلامة التجارية وإرسال دعوة. هذا الإجراء غير قابل للتراجع. هل تريد الاستمرار؟",
+        "successQuoted": "تم تحديد الطلب كمُسعّر بنجاح.",
+        "successApproved": "تم قبول العلامة التجارية وإرسال الدعوة بنجاح.",
+        "successRejected": "تم رفض الطلب بنجاح.",
+        "error": "فشل تحديث الحالة."
+      },
+      "detail": {
+        "email": "البريد الإلكتروني",
+        "phone": "رقم الهاتف",
+        "notProvided": "غير متوفر",
+        "plan": "الخطة المختارة",
+        "submitted": "تاريخ التقديم",
+        "rejectionTitle": "سبب الرفض",
+        "noFurtherActions": "لا توجد إجراءات إضافية متاحة لهذا الطلب."
+      },
+      "reject": {
+        "title": "رفض {name}",
+        "placeholder": "أدخل سبب الرفض (سيتم إرساله لمقدم الطلب)...",
+        "cancel": "إلغاء",
+        "confirm": "تأكيد الرفض",
+        "error": "فشل رفض الطلب."
+      },
+      "timeline": {
+        "title": "سجل الحالة",
+        "status": {
+          "pending": "تم تقديم الطلب",
+          "quoted": "تم التحديد كمُسعّر",
+          "approved": "تم القبول والدعوة",
+          "rejected": "تم الرفض"
+        },
+        "by": "بواسطة"
+      },
+      "pagination": {
+        "showing": "عرض {start}–{end} من أصل {total} طلبات"
+      }
+    }
+  }
+}
