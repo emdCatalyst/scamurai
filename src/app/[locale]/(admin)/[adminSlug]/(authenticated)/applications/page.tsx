@@ -12,6 +12,7 @@ interface PageProps {
   params: Promise<{ locale: string; adminSlug: string }>;
   searchParams: Promise<{
     status?: string;
+    plan?: string;
     q?: string;
     page?: string;
     sort?: string;
@@ -31,6 +32,7 @@ async function ApplicationsDataWrapper({ params, searchParams }: PageProps) {
   const [{ locale, adminSlug }, sParams] = await Promise.all([params, searchParams]);
 
   const status = (sParams.status as ApplicationStatus) || 'all';
+  const plan = sParams.plan || 'all';
   const search = sParams.q || '';
   const page = parseInt(sParams.page || '1', 10);
   const sort = (sParams.sort as 'newest' | 'oldest') || 'newest';
@@ -39,6 +41,7 @@ async function ApplicationsDataWrapper({ params, searchParams }: PageProps) {
   // 2. Fetch data
   const { rows, total, counts } = await getApplications({
     status,
+    plan,
     search,
     page,
     pageSize,
@@ -51,6 +54,7 @@ async function ApplicationsDataWrapper({ params, searchParams }: PageProps) {
       total={total}
       counts={counts}
       status={status}
+      plan={plan}
       search={search}
       sort={sort}
       page={page}

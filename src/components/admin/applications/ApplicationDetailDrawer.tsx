@@ -22,6 +22,9 @@ import { updateApplicationStatus } from '@/actions/updateApplicationStatus';
 import { approveApplication } from '@/actions/approveApplication';
 import { useToast } from '@/components/ui/Toast';
 import Dialog from '@/components/ui/Dialog';
+import { enterpriseLimitsSchema, type EnterpriseLimits } from '@/lib/validations/enterpriseLimits';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 interface ApplicationDetailDrawerProps {
   application: any;
@@ -46,6 +49,12 @@ export default function ApplicationDetailDrawer({
   // Dialog states
   const [showQuotedConfirm, setShowQuotedConfirm] = useState(false);
   const [showApproveConfirm, setShowApproveConfirm] = useState(false);
+
+  // Enterprise custom limits via react-hook-form (on the fly validation)
+  const { register, handleSubmit, getValues, formState: { errors: formErrors } } = useForm<EnterpriseLimits>({
+    resolver: zodResolver(enterpriseLimitsSchema),
+    mode: 'onChange', // Validates as the user types
+  });
 
   // Consistent 'now' for relative time to avoid hydration mismatch and next-intl errors
   const now = useMemo(() => new Date(), []);
@@ -100,7 +109,7 @@ export default function ApplicationDetailDrawer({
       } else {
         toast(result.error, 'error');
       }
-    } catch (err) {
+    } catch {
       toast(tActions('error'), 'error');
     } finally {
       setIsUpdating(false);
@@ -111,7 +120,12 @@ export default function ApplicationDetailDrawer({
     setShowApproveConfirm(false);
     setIsUpdating(true);
     try {
-      const result = await approveApplication(application.id);
+      const vals = getValues();
+      const result = await approveApplication(
+        application.id, 
+        application.plan === 'enterprise' ? parseInt(vals.customMaxBranches) : undefined,
+        application.plan === 'enterprise' ? parseInt(vals.customMaxUsers) : undefined
+      );
       if (result.success) {
         toast(tActions('successApproved'), 'success');
         router.refresh();
@@ -119,10 +133,18 @@ export default function ApplicationDetailDrawer({
       } else {
         toast(result.error, 'error');
       }
-    } catch (err) {
+    } catch {
       toast(tActions('error'), 'error');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleApproveClick = () => {
+    if (application.plan === 'enterprise') {
+      handleSubmit(() => setShowApproveConfirm(true))();
+    } else {
+      setShowApproveConfirm(true);
     }
   };
 
@@ -214,6 +236,46 @@ export default function ApplicationDetailDrawer({
 
             <div className="h-px bg-slate-100" />
 
+            {/* Enterprise Limits Section */}
+            {application.plan === 'enterprise' && status === 'quoted' && (
+              <div className="bg-sky/5 border border-sky/10 rounded-xl p-5 space-y-4">
+                <div className="flex items-center gap-2 text-sky font-bold text-sm">
+                  <FileCheck size={16} />
+                  {tActions('customLimitsTitle')}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1.5">
+                      {tActions('customMaxBranches')}
+                    </label>
+                    <input
+                      type="number"
+                      {...register('customMaxBranches')}
+                      placeholder="e.g. 50"
+                      className={`w-full px-3 py-2 bg-white border ${formErrors.customMaxBranches ? 'border-red-500' : 'border-slate-200'} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky/20 focus:border-sky transition-all`}
+                    />
+                    {formErrors.customMaxBranches && (
+                      <p className="mt-1 text-[10px] text-red-500 font-medium">{tActions(formErrors.customMaxBranches.message as any)}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1.5">
+                      {tActions('customMaxUsers')}
+                    </label>
+                    <input
+                      type="number"
+                      {...register('customMaxUsers')}
+                      placeholder="e.g. 100"
+                      className={`w-full px-3 py-2 bg-white border ${formErrors.customMaxUsers ? 'border-red-500' : 'border-slate-200'} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky/20 focus:border-sky transition-all`}
+                    />
+                    {formErrors.customMaxUsers && (
+                      <p className="mt-1 text-[10px] text-red-500 font-medium">{tActions(formErrors.customMaxUsers.message as any)}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Status Timeline */}
             <StatusTimeline events={events} />
 
@@ -225,7 +287,7 @@ export default function ApplicationDetailDrawer({
                   {t('rejectionTitle')}
                 </div>
                 <p className="text-sm text-red-600 leading-relaxed italic">
-                  "{application.rejectionNote}"
+                  &quot;{application.rejectionNote}&quot;
                 </p>
               </div>
             )}
@@ -272,7 +334,7 @@ export default function ApplicationDetailDrawer({
               {status === 'quoted' && (
                 <div className="grid grid-cols-2 gap-3">
                   <button
-                    onClick={() => setShowApproveConfirm(true)}
+                    onClick={handleApproveClick}
                     disabled={isUpdating}
                     className="flex items-center justify-center gap-2 px-4 py-3 bg-navy text-white font-bold rounded-xl shadow-glow-navy hover:bg-[#1e293b] transition-all disabled:opacity-50"
                   >

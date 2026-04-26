@@ -121,6 +121,8 @@
     "submitButton": "Submit Application",
     "submitting": "Submitting...",
     "errorGeneral": "Something went wrong. Please try again.",
+    "errorTooManyRequests": "Too many requests. Please try again tomorrow.",
+    "errorEmailRegistered": "This email is already registered. Please login to your account.",
     "errRequired": "This field is required",
     "errBrandMin": "Brand name must be at least 2 characters",
     "errBrandMax": "Brand name must be at most 60 characters",
@@ -252,6 +254,9 @@
         "sort": {
           "newest": "Newest First",
           "oldest": "Oldest First"
+        },
+        "plan": {
+          "all": "All Plans"
         }
       },
       "status": {
@@ -281,7 +286,11 @@
         "successQuoted": "Application marked as quoted successfully.",
         "successApproved": "Brand approved and invitation sent successfully.",
         "successRejected": "Application rejected successfully.",
-        "error": "Failed to update status."
+        "error": "Failed to update status.",
+        "customLimitsTitle": "Enterprise Custom Limits",
+        "customMaxBranches": "Allowed Branches",
+        "customMaxUsers": "Allowed Users",
+        "invalidLimits": "Please enter valid numbers (greater than 0)."
       },
       "detail": {
         "email": "Contact Email",

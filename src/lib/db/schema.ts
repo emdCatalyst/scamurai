@@ -33,6 +33,8 @@ export const brands = pgTable(
       textAccent: string;
     }>(),
     isActive: boolean("is_active").notNull().default(true),
+    customMaxBranches: integer("custom_max_branches"),
+    customMaxUsers: integer("custom_max_users"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -137,33 +139,6 @@ export const users = pgTable(
       "users_role_values",
       sql`${table.role} IN ('master_admin', 'brand_admin', 'finance', 'staff')`
     ),
-  ]
-);
-
-// ─────────────────────────────────────────────────────────────────────────────
-// invitations
-// Tracks the pending invite link sent to a new user before they set
-// their password. Kept separate from users.
-// ─────────────────────────────────────────────────────────────────────────────
-export const invitations = pgTable(
-  "invitations",
-  {
-    id: uuid().primaryKey().defaultRandom(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    token: text().notNull().unique(),
-    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [
-    index("idx_invitations_token")
-      .on(table.token)
-      .where(sql`${table.acceptedAt} IS NULL`),
-    index("idx_invitations_user_id").on(table.userId),
   ]
 );
 
@@ -356,16 +331,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     relationName: "inviter",
   }),
   invitees: many(users, { relationName: "inviter" }),
-  invitations: many(invitations),
   submittedOrders: many(orders, { relationName: "submitter" }),
   reviewedOrders: many(orders, { relationName: "reviewer" }),
-}));
-
-export const invitationsRelations = relations(invitations, ({ one }) => ({
-  user: one(users, {
-    fields: [invitations.userId],
-    references: [users.id],
-  }),
 }));
 
 export const branchesRelations = relations(branches, ({ one, many }) => ({

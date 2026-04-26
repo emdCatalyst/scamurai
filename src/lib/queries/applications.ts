@@ -6,6 +6,7 @@ export type ApplicationStatus = 'pending' | 'quoted' | 'approved' | 'rejected' |
 
 export interface GetApplicationsParams {
   status?: ApplicationStatus;
+  plan?: string;
   search?: string;
   page?: number;
   pageSize?: number;
@@ -14,6 +15,7 @@ export interface GetApplicationsParams {
 
 export async function getApplications({
   status = 'all',
+  plan = 'all',
   search,
   page = 1,
   pageSize = 20,
@@ -25,6 +27,10 @@ export async function getApplications({
 
   if (status !== 'all') {
     whereConditions.push(eq(applications.status, status));
+  }
+
+  if (plan !== 'all') {
+    whereConditions.push(eq(applications.plan, plan));
   }
 
   if (search) {
@@ -46,11 +52,13 @@ export async function getApplications({
       .where(where)
       .orderBy(sort === 'newest' ? desc(applications.createdAt) : asc(applications.createdAt))
       .limit(pageSize)
-      .offset(offset),
+      .offset(offset)
+      .execute(),
     db
       .select({ count: count() })
       .from(applications)
-      .where(where),
+      .where(where)
+      .execute(),
     db
       .select({ 
         status: applications.status, 
@@ -58,6 +66,7 @@ export async function getApplications({
       })
       .from(applications)
       .groupBy(applications.status)
+      .execute()
   ]);
 
   const total = Number(totalResult[0]?.count || 0);

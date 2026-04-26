@@ -1,11 +1,12 @@
 'use server';
 
-import { z } from 'zod';
+import { headers } from 'next/headers';
+import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { applications } from '@/lib/db/schema';
+import { applications, users } from '@/lib/db/schema';
 import { getResend } from '@/lib/resend';
 import type { PlanKey } from '@/config/plans';
-
+import { applicationRateLimiter } from '@/lib/ratelimit';
 import { applicationSchema } from '@/lib/validations/application';
 
 export type SubmitApplicationResult =
@@ -20,23 +21,66 @@ export async function submitApplication(
     plan: PlanKey;
   }
 ): Promise<SubmitApplicationResult> {
-  // Validate input
+  // 1. Rate Limiting (IP based)
+  if (process.env.NODE_ENV === 'production') {
+    try {
+      const headerList = await headers();
+      const ip = headerList.get('x-forwarded-for') || '127.0.0.1';
+      
+      const { success } = await applicationRateLimiter.limit(ip);
+      if (!success) {
+        return {
+          success: false,
+          error: 'errorTooManyRequests',
+        };
+      }
+    } catch (err) {
+      // If Redis is down or env vars missing, we log and continue to avoid blocking valid users
+      // unless this is a strict requirement. In most cases, fail-open is better for UX.
+      console.error('[submitApplication] Rate limit check failed:', err);
+    }
+  }
+
+  // 2. Validate input
   const parsed = applicationSchema.safeParse(data);
   if (!parsed.success) {
     return {
       success: false,
-      error: 'Please fix the form errors below.',
+      error: 'errFormFix',
       fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
   const { brandName, contactEmail, phone, plan } = parsed.data;
+  const normalizedEmail = contactEmail.trim().toLowerCase();
+
+  // 3. Check if email belongs to an existing user
+  try {
+    const [existingUser] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, normalizedEmail))
+      .limit(1);
+
+    if (existingUser) {
+      return {
+        success: false,
+        error: 'errorEmailRegistered',
+      };
+    }
+  } catch (err) {
+    console.error('[submitApplication] DB user check failed:', err);
+    return {
+      success: false,
+      error: 'errorGeneral',
+    };
+  }
 
   try {
     // Insert application into DB
     await db.insert(applications).values({
       brandName: brandName.trim(),
-      contactEmail: contactEmail.trim().toLowerCase(),
+      contactEmail: normalizedEmail,
       phone: phone?.trim() || null,
       plan,
       status: 'pending',
@@ -45,7 +89,7 @@ export async function submitApplication(
     console.error('[submitApplication] DB insert failed:', err);
     return {
       success: false,
-      error: 'Something went wrong. Please try again later.',
+      error: 'errorGeneral',
     };
   }
 

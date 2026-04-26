@@ -25,14 +25,41 @@ export default function HeroSection() {
     <section
       id="hero"
       className="relative min-h-screen flex flex-col items-center justify-start overflow-hidden"
-      style={{ 
-        background: 'linear-gradient(160deg, #060f1a 0%, #0d1e35 40%, #091826 100%)',
-        backgroundImage: 'url("/assets/landing%20page.svg")',
-        backgroundSize: '1920px auto',
-        backgroundPosition: 'top center',
-        backgroundRepeat: 'no-repeat'
-      }}
+      style={{ background: 'linear-gradient(160deg, #060f1a 0%, #0d1e35 40%, #091826 100%)' }}
     >
+      {/* ── Background Image with Animation ── */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 1.08 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 2.5, ease: [0.22, 1, 0.36, 1] }}
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: 'url("/assets/landing%20page.svg")',
+          backgroundSize: '1920px auto',
+          backgroundPosition: 'top center',
+          backgroundRepeat: 'no-repeat',
+          transformOrigin: 'top center'
+        }}
+      />
+
+      {/* ── Ambient Light Sweep ── */}
+      <motion.div
+        animate={{
+          x: ['-100%', '200%'],
+        }}
+        transition={{
+          duration: 12,
+          repeat: Infinity,
+          ease: "linear",
+          repeatDelay: 3
+        }}
+        className="absolute inset-0 opacity-[0.15] pointer-events-none z-[1]"
+        style={{
+          background: 'linear-gradient(105deg, transparent 30%, rgba(79,197,223,0.2) 45%, rgba(255,255,255,0.4) 50%, rgba(79,197,223,0.2) 55%, transparent 70%)',
+          transform: 'skewX(-25deg)'
+        }}
+      />
+
       {/* ── Atmospheric glows ── */}
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         {/* Primary sky orb — top left */}

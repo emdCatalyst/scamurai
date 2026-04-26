@@ -12,6 +12,7 @@ interface ApplicationsPageContentProps {
   total: number;
   counts: Record<string, number>;
   status: string;
+  plan: string;
   search: string;
   sort: string;
   page: number;
@@ -23,6 +24,7 @@ export default function ApplicationsPageContent({
   total,
   counts,
   status,
+  plan,
   search,
   sort,
   page,
@@ -35,6 +37,7 @@ export default function ApplicationsPageContent({
       <ApplicationsFilterBar
         counts={counts}
         currentStatus={status}
+        currentPlan={plan}
         currentSearch={search}
         currentSort={sort}
       />

@@ -39,7 +39,7 @@ async function DashboardDataWrapper() {
     db.select({
       status: applications.status,
       count: count(),
-    }).from(applications).groupBy(applications.status),
+    }).from(applications).groupBy(applications.status).execute(),
     
     db.select({ count: count() })
       .from(brands)
@@ -59,7 +59,8 @@ async function DashboardDataWrapper() {
     })
     .from(applications)
     .orderBy(desc(applications.createdAt))
-    .limit(5),
+    .limit(5)
+    .execute(),
 
     db.select({
       id: branches.id,
@@ -74,6 +75,7 @@ async function DashboardDataWrapper() {
     .groupBy(branches.id, brands.name)
     .orderBy(desc(count(orders.id)))
     .limit(5)
+    .execute()
   ]);
   
   const applicationStats = { pending: 0, quoted: 0, approved: 0, rejected: 0 };

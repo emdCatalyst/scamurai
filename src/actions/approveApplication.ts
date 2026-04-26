@@ -1,6 +1,6 @@
 'use server';
 
-import { eq, sql, ilike } from 'drizzle-orm';
+import { eq, ilike } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { applications, brands, users } from '@/lib/db/schema';
 import { requireAuth } from '@/lib/auth';
@@ -11,7 +11,9 @@ export type ApproveApplicationResult =
   | { success: false; error: string };
 
 export async function approveApplication(
-  applicationId: string
+  applicationId: string,
+  customMaxBranches?: number,
+  customMaxUsers?: number
 ): Promise<ApproveApplicationResult> {
   // Protected: master_admin only
   await requireAuth(['master_admin']);
@@ -89,6 +91,8 @@ export async function approveApplication(
           name: application.brandName,
           slug,
           plan: application.plan,
+          customMaxBranches: customMaxBranches ?? null,
+          customMaxUsers: customMaxUsers ?? null,
         })
         .returning({ id: brands.id });
 

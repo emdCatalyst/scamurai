@@ -250,9 +250,7 @@ export default function AdminShell({
         <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative">
           <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-white to-transparent pointer-events-none -z-10" />
           <div className="max-w-7xl mx-auto min-w-0">
-            <Suspense fallback={<div className="animate-pulse space-y-4"><div className="h-8 bg-slate-100 rounded w-1/4"></div><div className="h-64 bg-slate-100 rounded"></div></div>}>
-              {children}
-            </Suspense>
+            {children}
           </div>
         </main>
       </div>
