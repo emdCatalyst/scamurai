@@ -3,9 +3,17 @@
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
-import { requireAuth } from "@/lib/auth";
+import { requireAuth, revokeAllSessionsForUser } from "@/lib/auth";
 import { clerkClient } from "@clerk/nextjs/server";
 import { sendEmail } from "@/lib/email";
+import {
+  renderEmail,
+  emailHeading,
+  emailParagraph,
+  emailCallout,
+  emailButton,
+  emailMutedNote,
+} from "@/lib/email-templates";
 
 function generateTempPassword() {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
@@ -56,34 +64,36 @@ export async function resetBrandUserPassword({ userId }: { userId: string }) {
       return { success: false, error: clerkError.errors?.[0]?.longMessage || "Failed to reset password" };
     }
 
+    // Force-logout: kill any active sessions so the new temp password is the
+    // only way back in. The user is bounced to login on their next request.
+    await revokeAllSessionsForUser(user.clerkUserId);
+
     // Send email via Resend
     try {
-      await sendEmail({
-        from: "Scamurai <onboarding@resend.dev>",
-        to: user.email,
-        subject: "Your Scamurai Password has been Reset",
-        html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-            <h1 style="color: #172b49;">Password Reset</h1>
-            <p>Hi ${user.fullName},</p>
-            <p>Your password for Scamurai has been reset by an administrator.</p>
-            
-            <div style="background-color: #f2f2f2; padding: 15px; border-radius: 8px; margin: 20px 0;">
-              <p style="margin: 0; font-size: 14px; color: #666;">New Temporary Password:</p>
-              <p style="margin: 5px 0 0; font-size: 20px; font-weight: bold; color: #4fc5df; letter-spacing: 1px;">${tempPassword}</p>
-            </div>
+      const appUrl = (
+        process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+      ).replace(/\/$/, "");
 
-            <p style="font-size: 14px; color: #666;">You will be required to change this password when you next log in.</p>
-            
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}" 
-               style="display: inline-block; background-color: #4fc5df; color: white; padding: 12px 24px; text-decoration: none; border-radius: 30px; font-weight: bold; margin-top: 20px;">
-              Log In to Your Dashboard
-            </a>
-            
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
-            <p style="font-size: 12px; color: #999;">If you didn't request this change, please contact your administrator immediately.</p>
-          </div>
-        `
+      const html = renderEmail({
+        preheader: "Your Scamurai password has been reset by an administrator.",
+        bodyHtml: [
+          emailHeading("Your password has been reset"),
+          emailParagraph(`Hi ${user.fullName},`),
+          emailParagraph(
+            "An administrator has reset your Scamurai password. Use the temporary password below to sign in. You'll be prompted to choose a new password on your next login."
+          ),
+          emailCallout("Temporary password", tempPassword),
+          emailButton(appUrl, "Sign in to Scamurai"),
+          emailMutedNote(
+            "If you didn't expect this change, contact your administrator immediately — your account may have been compromised."
+          ),
+        ].join("\n"),
+      });
+
+      await sendEmail({
+        to: user.email,
+        subject: "Your Scamurai password was reset",
+        html,
       });
       console.log(`[resetBrandUserPassword] Reset email sent to ${user.email}`);
     } catch (emailErr) {

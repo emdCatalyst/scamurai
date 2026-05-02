@@ -60,23 +60,34 @@ export function BrandLoginForm({ brandSlug }: BrandLoginFormProps) {
         setServerError(`Login incomplete. Status: ${result.status}`);
         setIsLoading(false);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('[BrandLoginForm] Clerk returned an error:', err);
-      
-      const clerkErrorCode = err.errors?.[0]?.code as string;
-      
+
+      const clerkErr = err as {
+        errors?: { code?: string; longMessage?: string }[];
+        longMessage?: string;
+        message?: string;
+      };
+      const clerkErrorCode = clerkErr.errors?.[0]?.code;
+
       if (clerkErrorCode === 'session_exists') {
         window.location.reload();
         return;
       }
-      
-      if (clerkErrorCode === 'form_identifier_not_found' || clerkErrorCode === 'form_password_incorrect') {
+
+      const longMessage = clerkErr.errors?.[0]?.longMessage || clerkErr.longMessage || clerkErr.message;
+      const looksBannedOrInactive =
+        clerkErrorCode === 'user_locked' ||
+        (typeof longMessage === 'string' && /deactivat|suspend|disabled|banned|locked/i.test(longMessage));
+
+      if (looksBannedOrInactive) {
+        setServerError(t('errors.inactive'));
+      } else if (clerkErrorCode === 'form_identifier_not_found' || clerkErrorCode === 'form_password_incorrect') {
         setServerError(t('errors.invalid'));
       } else if (clerkErrorCode === 'too_many_requests') {
         setServerError(t('errors.too_many_requests'));
       } else {
-        const msg = err.errors?.[0]?.longMessage || err.longMessage || err.message;
-        setServerError(msg || t('errors.invalid'));
+        setServerError(longMessage || t('errors.invalid'));
       }
       
       setIsLoading(false);

@@ -15,6 +15,7 @@ import OrdersTable from "@/components/brand/orders/OrdersTable";
 import OrdersPagination from "@/components/brand/orders/OrdersPagination";
 import OrderSummaryBar from "@/components/brand/orders/OrderSummaryBar";
 import OrderDetailDrawer from "@/components/brand/orders/OrderDetailDrawer";
+import { OrdersDrawerProvider } from "@/components/brand/orders/OrdersDrawerProvider";
 
 const PAGE_SIZE = 30;
 
@@ -104,16 +105,18 @@ export default async function OrdersPage({
       />
 
 
-      <OrdersTable orders={rows} hasActiveFilter={hasActiveFilter} />
+      <OrdersDrawerProvider initialOrderId={sp.orderId ?? null}>
+        <OrdersTable orders={rows} hasActiveFilter={hasActiveFilter} />
 
-      <OrdersPagination
-        total={total}
-        pageSize={PAGE_SIZE}
-        currentPage={currentPage}
-        locale={locale}
-      />
+        <OrdersPagination
+          total={total}
+          pageSize={PAGE_SIZE}
+          currentPage={currentPage}
+          locale={locale}
+        />
 
-      <OrderDetailDrawer />
+        <OrderDetailDrawer />
+      </OrdersDrawerProvider>
     </div>
   );
 }

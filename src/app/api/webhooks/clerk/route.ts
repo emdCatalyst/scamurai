@@ -53,6 +53,20 @@ export async function POST(req: Request) {
   const eventType = evt.type;
 
   if (eventType === 'user.created') {
+    // Only brand-admin invitation acceptances need server-side linking — every
+    // other user (finance/staff created by `createBrandUser`) is created via
+    // `client.users.createUser()` which already sets `clerk_user_id` on the
+    // DB row in the same action. Brand-admin invites pre-set `publicMetadata.role`
+    // on the invitation (see `approveApplication.ts`), so it's reliably present
+    // on the user.created event for that flow only.
+    const role = (evt.data.public_metadata as { role?: string } | undefined)?.role;
+    if (role !== 'brand_admin') {
+      console.log(
+        `[webhook] user.created skipped — not a brand admin invitation (role=${role ?? 'unset'})`
+      );
+      return new Response('', { status: 200 });
+    }
+
     const primaryEmail = evt.data.email_addresses[0]?.email_address;
 
     if (!primaryEmail) {

@@ -12,6 +12,7 @@ import { brandSetupSchema } from '@/lib/validations/brandSetup';
 
 interface BrandSetupProps {
   brandId: string;
+  brandSlug: string;
 }
 
 // Defaults to Scamurai navy/sky palette
@@ -56,7 +57,7 @@ function isTooDark(hex: string): boolean {
   return L > 0.7;
 }
 
-export default function BrandSetup({ brandId }: BrandSetupProps) {
+export default function BrandSetup({ brandId, brandSlug }: BrandSetupProps) {
   const t = useTranslations('onboarding');
   const locale = useLocale();
   const isAr = locale === 'ar';
@@ -120,7 +121,7 @@ export default function BrandSetup({ brandId }: BrandSetupProps) {
       });
 
       if (result.success) {
-        router.push('/dashboard');
+        router.push(`/${locale}/brands/${brandSlug}/dashboard`);
       } else {
         setError(result.error);
       }

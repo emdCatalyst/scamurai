@@ -161,7 +161,28 @@
     "completeSetup": "Complete Setup",
     "completing": "Completing...",
     "contrastWarning": "Low contrast — may be hard to read",
-    "darkWarning": "Background may be too dark for white text"
+    "darkWarning": "Background may be too dark for white text",
+    "invite": {
+      "title": "Welcome to Scamurai",
+      "subtitle": "Choose a password to finish setting up your account.",
+      "newPassword": "Choose a password",
+      "confirmPassword": "Confirm password",
+      "submit": "Create my account",
+      "submitting": "Creating account...",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "errors": {
+        "passwordMin": "Password must be at least 8 characters.",
+        "passwordMax": "Password is too long.",
+        "confirmRequired": "Please confirm your password.",
+        "mismatch": "Passwords do not match.",
+        "pwned": "This password has appeared in a data breach. Please pick a stronger one.",
+        "validation": "Password does not meet the security requirements.",
+        "ticketInvalid": "This invitation link is invalid or has expired. Please ask your administrator to resend it.",
+        "generic": "Could not finish setting up your account. Please try again.",
+        "initializing": "Initializing — please wait a moment..."
+      }
+    }
   },
   "footer": {
     "tagline": "The Guardian of Your Orders",

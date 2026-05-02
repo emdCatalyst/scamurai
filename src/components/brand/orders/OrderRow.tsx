@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { CheckCircle2, AlertTriangle } from "lucide-react";
 import type { OrderRow as OrderRowType } from "@/lib/queries/orders";
+import { useOrdersDrawer } from "./OrdersDrawerProvider";
 
 interface OrderRowProps {
   order: OrderRowType;
@@ -13,14 +13,9 @@ interface OrderRowProps {
 export default function OrderRow({ order }: OrderRowProps) {
   const t = useTranslations("brand.orders.imagesStatus");
   const format = useFormatter();
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const { open } = useOrdersDrawer();
 
-  const openDrawer = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("orderId", order.id);
-    router.push(`?${params.toString()}`, { scroll: false });
-  };
+  const openDrawer = () => open(order.id);
 
   const submittedAt = new Date(order.submittedAt);
   const fullTimestamp = format.dateTime(submittedAt, {

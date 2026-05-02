@@ -84,3 +84,68 @@ export async function requireAuth(allowedRoles?: UserRole[]) {
 
   return { userId, role, brandId };
 }
+
+/**
+ * Terminates every active Clerk session for a user. Use after password resets,
+ * user deactivation, or brand suspension to force a full re-auth on the next
+ * request — instead of relying on middleware to bounce a still-valid session.
+ *
+ * Failures are logged and swallowed. The caller's primary action (DB update,
+ * metadata flip) should not fail just because session revocation didn't fully
+ * succeed; middleware will catch the user on next request via metadata anyway.
+ */
+export async function revokeAllSessionsForUser(clerkUserId: string): Promise<void> {
+  try {
+    const client = await clerkClient();
+    const { data: sessions } = await client.sessions.getSessionList({
+      userId: clerkUserId,
+      status: 'active',
+    });
+    if (sessions.length === 0) return;
+
+    await Promise.all(
+      sessions.map((s) =>
+        client.sessions.revokeSession(s.id).catch((err) => {
+          console.warn(
+            `[Auth] revokeSession failed for ${s.id} (user ${clerkUserId}):`,
+            err
+          );
+        })
+      )
+    );
+  } catch (err) {
+    console.error(
+      `[Auth] revokeAllSessionsForUser failed for ${clerkUserId}:`,
+      err
+    );
+  }
+}
+
+/**
+ * Bans (or unbans) a Clerk user. A banned user is rejected by Clerk during
+ * `signIn.create()` before any session is issued — use this alongside session
+ * revocation to fully prevent access until the admin reactivates them.
+ *
+ * Pair calls: ban on deactivate/suspend, unban on activate/reinstate.
+ *
+ * Failures are logged and swallowed; the metadata-based middleware redirect
+ * remains as a fallback.
+ */
+export async function setBanForClerkUser(
+  clerkUserId: string,
+  banned: boolean
+): Promise<void> {
+  try {
+    const client = await clerkClient();
+    if (banned) {
+      await client.users.banUser(clerkUserId);
+    } else {
+      await client.users.unbanUser(clerkUserId);
+    }
+  } catch (err) {
+    console.error(
+      `[Auth] setBanForClerkUser(${clerkUserId}, banned=${banned}) failed:`,
+      err
+    );
+  }
+}

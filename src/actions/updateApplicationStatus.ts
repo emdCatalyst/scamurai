@@ -6,6 +6,13 @@ import { db } from '@/lib/db';
 import { applications } from '@/lib/db/schema';
 import { requireAuth } from '@/lib/auth';
 import { sendEmail } from '@/lib/email';
+import {
+  renderEmail,
+  emailHeading,
+  emailParagraph,
+  emailParagraphWithHighlight,
+  emailDivider,
+} from '@/lib/email-templates';
 
 const updateStatusSchema = z.object({
   id: z.string().uuid(),
@@ -63,26 +70,64 @@ export async function updateApplicationStatus(
     if (status === 'rejected') {
       try {
         console.log(`[updateApplicationStatus] Attempting to send rejection email to ${existing.contactEmail}`);
-        const note = rejectionNote || 'No specific reason provided / لم يتم تقديم سبب محدد';
+        const noteEn = rejectionNote || 'No specific reason was provided.';
+        const noteAr = rejectionNote || 'لم يتم تقديم سبب محدد.';
+
+        const html = renderEmail({
+          preheader: `Update on your application for ${existing.brandName}`,
+          bodyHtml: [
+            // English section
+            `<div dir="ltr">`,
+            emailHeading('Update on your application'),
+            emailParagraph('Hello,'),
+            emailParagraphWithHighlight({
+              before:
+                'Thank you for your interest in Scamurai. After reviewing your application for ',
+              highlight: existing.brandName,
+              after:
+                ', we are unable to move forward at this time.',
+            }),
+            emailParagraphWithHighlight({
+              before: 'Reason: ',
+              highlight: noteEn,
+              after: '',
+            }),
+            emailParagraph(
+              "We appreciate the time you took to apply and wish you success in your operations."
+            ),
+            emailParagraph('— The Scamurai Team'),
+            `</div>`,
+            emailDivider(),
+            // Arabic section
+            `<div dir="rtl">`,
+            emailHeading('تحديث بخصوص طلبك', 'rtl'),
+            emailParagraph('مرحباً،', 'rtl'),
+            emailParagraphWithHighlight({
+              before: 'شكراً لاهتمامك بسكامورائي. بعد مراجعة طلب انضمام ',
+              highlight: existing.brandName,
+              after: '، لا يمكننا المضي قدماً في الوقت الحالي.',
+              dir: 'rtl',
+            }),
+            emailParagraphWithHighlight({
+              before: 'السبب: ',
+              highlight: noteAr,
+              after: '',
+              dir: 'rtl',
+            }),
+            emailParagraph(
+              'نقدّر الوقت الذي خصصته لتقديم طلبك ونتمنى لك التوفيق في أعمالك.',
+              'rtl'
+            ),
+            emailParagraph('— فريق سكامورائي', 'rtl'),
+            `</div>`,
+          ].join('\n'),
+        });
+
         const result = await sendEmail({
-          from: 'Scamurai <onboarding@resend.dev>',
           to: [existing.contactEmail],
-          subject: 'Update on your Scamurai application / تحديث بخصوص طلب انضمامك لسكامورائي',
-          html: `
-            <div dir="ltr" style="font-family: sans-serif; margin-bottom: 20px;">
-              <p>Hello,</p>
-              <p>Thank you for your interest in Scamurai. Unfortunately, we are unable to proceed with your application for <strong>${existing.brandName}</strong> at this time.</p>
-              <p><strong>Reason:</strong> ${note}</p>
-              <p>Best regards,<br>Scamurai Team</p>
-            </div>
-            <hr>
-            <div dir="rtl" style="font-family: sans-serif; margin-top: 20px;">
-              <p>مرحباً،</p>
-              <p>شكراً لاهتمامك بسكامورائي. للأسف، لا يمكننا المضي قدماً في طلب انضمام <strong>${existing.brandName}</strong> في الوقت الحالي.</p>
-              <p><strong>السبب:</strong> ${note}</p>
-              <p>مع أطيب التحيات،<br>فريق سكامورائي</p>
-            </div>
-          `,
+          subject:
+            'Update on your Scamurai application / تحديث بخصوص طلبك في سكامورائي',
+          html,
         });
         console.log('[updateApplicationStatus] Email send result:', result);
       } catch (emailErr) {

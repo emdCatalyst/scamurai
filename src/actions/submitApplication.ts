@@ -5,6 +5,13 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { applications, users } from '@/lib/db/schema';
 import { sendEmail } from '@/lib/email';
+import {
+  renderEmail,
+  emailHeading,
+  emailParagraph,
+  emailKeyValue,
+  emailButton,
+} from '@/lib/email-templates';
 import type { PlanKey } from '@/config/plans';
 import { applicationRateLimiter } from '@/lib/ratelimit';
 import { applicationSchema } from '@/lib/validations/application';
@@ -97,20 +104,43 @@ export async function submitApplication(
   try {
     const superAdminEmail = process.env.SUPER_ADMIN_EMAIL;
     if (superAdminEmail) {
+      const appUrl = (
+        process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      ).replace(/\/$/, '');
+      const adminSlug = process.env.ADMIN_SLUG || 'admin';
+      const reviewUrl = `${appUrl}/${adminSlug}/applications`;
+      const submittedAt = new Date().toLocaleString('en-US', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: 'Asia/Riyadh',
+      });
+
+      const rows: Array<{ key: string; value: string }> = [
+        { key: 'Brand name', value: brandName },
+        { key: 'Contact email', value: contactEmail },
+      ];
+      if (phone) rows.push({ key: 'Phone', value: phone });
+      rows.push(
+        { key: 'Requested plan', value: plan },
+        { key: 'Submitted', value: submittedAt }
+      );
+
+      const html = renderEmail({
+        preheader: `${brandName} just submitted a ${plan} application.`,
+        bodyHtml: [
+          emailHeading('New brand application'),
+          emailParagraph(
+            `A new brand application was submitted just now. Review the details below and take action when ready.`
+          ),
+          emailKeyValue(rows),
+          emailButton(reviewUrl, 'Review in admin dashboard'),
+        ].join('\n'),
+      });
+
       const { data, error } = await sendEmail({
-        from: 'Scamurai <onboarding@resend.dev>', // Use Resend's testing domain by default to avoid unverified domain errors
         to: superAdminEmail,
-        subject: `New Brand Application: ${brandName}`,
-        html: `
-          <h2>New Brand Application Received</h2>
-          <table style="border-collapse:collapse;font-family:sans-serif;">
-            <tr><td style="padding:8px;font-weight:bold;">Brand Name</td><td style="padding:8px;">${brandName}</td></tr>
-            <tr><td style="padding:8px;font-weight:bold;">Contact Email</td><td style="padding:8px;">${contactEmail}</td></tr>
-            ${phone ? `<tr><td style="padding:8px;font-weight:bold;">Phone</td><td style="padding:8px;">${phone}</td></tr>` : ''}
-            <tr><td style="padding:8px;font-weight:bold;">Plan</td><td style="padding:8px;">${plan}</td></tr>
-            <tr><td style="padding:8px;font-weight:bold;">Submitted</td><td style="padding:8px;">${new Date().toISOString()}</td></tr>
-          </table>
-        `,
+        subject: `New brand application — ${brandName}`,
+        html,
       });
 
       if (error) {

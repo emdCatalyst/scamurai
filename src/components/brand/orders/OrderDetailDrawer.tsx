@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { ImageOff } from "lucide-react";
 import Drawer from "@/components/ui/Drawer";
 import ImageLightbox from "./ImageLightbox";
+import { useOrdersDrawer } from "./OrdersDrawerProvider";
 
 type DrawerOrder = {
   id: string;
@@ -37,23 +37,13 @@ type FetchResult =
 export default function OrderDetailDrawer() {
   const t = useTranslations("brand.orders.drawer");
   const format = useFormatter();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const orderId = searchParams.get("orderId");
+  const { orderId, close } = useOrdersDrawer();
 
   const [result, setResult] = useState<FetchResult | null>(null);
   const [lightboxSrc, setLightboxSrc] = useState<{
     src: string;
     alt: string;
   } | null>(null);
-
-  const close = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("orderId");
-    const qs = params.toString();
-    router.push(qs ? `?${qs}` : "?", { scroll: false });
-  };
 
   useEffect(() => {
     if (!orderId) return;

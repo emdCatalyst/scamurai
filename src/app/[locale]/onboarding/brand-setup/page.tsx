@@ -1,27 +1,40 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { auth, clerkClient } from '@clerk/nextjs/server';
-import { SignUp } from '@clerk/nextjs';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { users } from '@/lib/db/schema';
+import { users, brands } from '@/lib/db/schema';
 import BrandSetup from '@/components/onboarding/BrandSetup';
+import InviteAcceptForm from '@/components/onboarding/InviteAcceptForm';
 
 export const metadata: Metadata = {
   title: 'Brand Setup — Scamurai',
   description: 'Set up your brand appearance with logo and colors.',
 };
 
-export default async function BrandSetupPage(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+export default async function BrandSetupPage(props: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const { userId, sessionClaims } = await auth();
+  const { locale } = await props.params;
   const searchParams = await props.searchParams;
-  console.log(searchParams, userId)
+
   if (!userId) {
-    // If the URL contains a Clerk ticket, render the sign-up component so they can set their password
-    if (searchParams.__clerk_status === 'sign_up' || searchParams.__clerk_ticket) {
+    // If the URL contains a Clerk invitation ticket, render the custom
+    // set-password form so the invitee can finish account setup.
+    const ticket =
+      typeof searchParams.__clerk_ticket === 'string'
+        ? searchParams.__clerk_ticket
+        : undefined;
+
+    if (ticket) {
       return (
-        <main className="min-h-screen flex items-center justify-center p-4" style={{ background: '#060f1a' }}>
-          <SignUp routing="hash" fallbackRedirectUrl="/en/onboarding/brand-setup" />
+        <main
+          className="min-h-screen flex items-center justify-center p-4"
+          style={{ background: '#060f1a' }}
+        >
+          <InviteAcceptForm ticket={ticket} locale={locale} />
         </main>
       );
     }
@@ -44,6 +57,20 @@ export default async function BrandSetupPage(props: { searchParams: Promise<{ [k
     // If they aren't a brand admin, they shouldn't be here
     redirect('/');
   }
+
+  // Resolve the brand slug — needed to redirect into the brand's dashboard
+  // once onboarding is complete (and for the same redirect on the
+  // already-complete fast-path below).
+  const [brand] = await db
+    .select({ slug: brands.slug })
+    .from(brands)
+    .where(eq(brands.id, brandId))
+    .limit(1);
+
+  if (!brand) {
+    redirect('/');
+  }
+  const brandDashboardUrl = `/${locale}/brands/${brand.slug}/dashboard`;
 
   // Check if onboarding is already complete
   // We match by clerkUserId (provided by auth())
@@ -81,11 +108,11 @@ export default async function BrandSetupPage(props: { searchParams: Promise<{ [k
 
   if (!user) {
     // If still no user, something is wrong with the invitation/approval link
-    redirect('/dashboard');
+    redirect(brandDashboardUrl);
   }
 
   if (user.onboardingComplete) {
-    redirect('/dashboard');
+    redirect(brandDashboardUrl);
   }
 
   return (
@@ -109,7 +136,7 @@ export default async function BrandSetupPage(props: { searchParams: Promise<{ [k
       </div>
 
       <div className="relative z-10 w-full">
-        <BrandSetup brandId={brandId} />
+        <BrandSetup brandId={brandId} brandSlug={brand.slug} />
       </div>
     </main>
   );
