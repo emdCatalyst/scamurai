@@ -45,36 +45,29 @@ export async function getApplications({
   const where = whereConditions.length > 0 ? and(...whereConditions) : undefined;
 
   // Run queries sequentially to avoid connection pool exhaustion
-  let rows, totalResult, countsResult;
-  try {
-    rows = await db
-      .select()
-      .from(applications)
-      .where(where)
-      .orderBy(sort === 'newest' ? desc(applications.createdAt) : asc(applications.createdAt))
-      .limit(pageSize)
-      .offset(offset)
-      .execute();
+  const rows = await db
+    .select()
+    .from(applications)
+    .where(where)
+    .orderBy(sort === 'newest' ? desc(applications.createdAt) : asc(applications.createdAt))
+    .limit(pageSize)
+    .offset(offset)
+    .execute();
 
-    totalResult = await db
-      .select({ count: count() })
-      .from(applications)
-      .where(where)
-      .execute();
+  const totalResult = await db
+    .select({ count: count() })
+    .from(applications)
+    .where(where)
+    .execute();
 
-    countsResult = await db
-      .select({
-        status: applications.status,
-        count: count(),
-      })
-      .from(applications)
-      .groupBy(applications.status)
-      .execute();
-  } catch (err) {
-    console.error('[getApplications] DB query failed. Underlying cause:', (err as { cause?: unknown })?.cause ?? err);
-    console.error('[getApplications] Full error:', err);
-    throw err;
-  }
+  const countsResult = await db
+    .select({
+      status: applications.status,
+      count: count(),
+    })
+    .from(applications)
+    .groupBy(applications.status)
+    .execute();
 
   const total = Number(totalResult[0]?.count || 0);
   
