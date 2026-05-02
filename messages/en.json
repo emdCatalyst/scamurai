@@ -10,6 +10,11 @@
       "error": "Error",
       "warning": "Warning",
       "info": "Info"
+    },
+    "error": {
+      "title": "Something went wrong",
+      "message": "We couldn't load this page. Please try again.",
+      "retry": "Try again"
     }
   },
   "nav": {

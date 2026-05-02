@@ -60,7 +60,6 @@ export function BrandsPageContent({
         {selectedBrand && (
           <BrandDetailDrawer
             brand={selectedBrand}
-            isOpen={!!selectedBrand}
             onClose={() => setSelectedBrand(null)}
           />
         )}

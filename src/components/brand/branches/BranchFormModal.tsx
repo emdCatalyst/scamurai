@@ -44,7 +44,7 @@ export default function BranchFormModal({
     const parsed = branchSchema.safeParse({ name });
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {};
-      parsed.error.errors.forEach((err) => {
+      parsed.error.issues.forEach((err) => {
         if (err.path[0]) {
           fieldErrors[err.path[0] as string] = err.message;
         }
@@ -81,7 +81,7 @@ export default function BranchFormModal({
         );
         onClose();
       } else {
-        setErrors({ global: result.error });
+        setErrors({ global: result.error ?? tActions("error") });
       }
     } catch {
       setErrors({ global: tActions("error") });

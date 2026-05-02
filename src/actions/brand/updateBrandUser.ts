@@ -23,11 +23,11 @@ export async function updateBrandUser(
 
     const parsed = brandUserSchema.safeParse(data);
     if (!parsed.success) {
-      return { success: false, error: parsed.error.errors[0]?.message || "Invalid input" };
+      return { success: false, error: parsed.error.issues[0]?.message || "Invalid input" };
     }
 
     const { fullName, email, role } = parsed.data;
-    let branchId = parsed.data.branchId;
+    const branchId = parsed.data.branchId;
 
     const existingUser = await db.query.users.findFirst({
       where: and(eq(users.id, userId), eq(users.brandId, brandId), isNull(users.deletedAt)),
@@ -42,16 +42,22 @@ export async function updateBrandUser(
     // If email changed, update Clerk
     if (email !== existingUser.email && existingUser.clerkUserId) {
       try {
-        const emailRes = await client.emailAddresses.createEmailAddress({
+        await client.emailAddresses.createEmailAddress({
           userId: existingUser.clerkUserId,
           emailAddress: email,
           verified: true,
           primary: true,
         });
         // We might want to delete the old one, but keeping it simple for now
-      } catch (e: any) {
+      } catch (e) {
         console.error("Clerk email update failed:", e);
-        return { success: false, error: e.errors?.[0]?.longMessage || "Failed to update email in authentication provider" };
+        const clerkErr = e as { errors?: { longMessage?: string }[] };
+        return {
+          success: false,
+          error:
+            clerkErr.errors?.[0]?.longMessage ||
+            "Failed to update email in authentication provider",
+        };
       }
     }
 

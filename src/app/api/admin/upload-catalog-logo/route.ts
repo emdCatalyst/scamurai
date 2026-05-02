@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   // 2. Fallback to direct API call if metadata is missing from JWT
   if (!role) {
     const user = await currentUser();
-    role = user?.publicMetadata?.role as string | undefined;
+    role = user?.publicMetadata?.role as typeof role;
   }
 
   if (role !== 'master_admin') {

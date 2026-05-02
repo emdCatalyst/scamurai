@@ -79,14 +79,17 @@ export function OrdersOverTimeChart({ data }: OrdersOverTimeChartProps) {
               iconType="circle"
               content={({ payload }) => (
                 <div className="flex gap-4 justify-end mb-6">
-                  {payload?.map((entry: { color?: string; value: string }, index: number) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                      <span className="text-[10px] font-bold text-[var(--brand-surface-fg-muted)] uppercase tracking-wider">
-                        {t(entry.value)}
-                      </span>
-                    </div>
-                  ))}
+                  {payload?.map((entry, index: number) => {
+                    const value = typeof entry.value === "string" ? entry.value : "";
+                    return (
+                      <div key={index} className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                        <span className="text-[10px] font-bold text-[var(--brand-surface-fg-muted)] uppercase tracking-wider">
+                          {value ? t(value as Parameters<typeof t>[0]) : ""}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             />

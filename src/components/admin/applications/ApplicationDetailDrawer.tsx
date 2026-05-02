@@ -27,7 +27,17 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 interface ApplicationDetailDrawerProps {
-  application: any;
+  application: {
+    id: string;
+    brandName: string;
+    contactEmail: string;
+    phone: string | null;
+    plan: string;
+    status: string;
+    rejectionNote: string | null;
+    createdAt: Date | string;
+    updatedAt: Date | string;
+  };
   onClose: () => void;
 }
 
@@ -78,19 +88,25 @@ export default function ApplicationDetailDrawer({
   const status = application.status as ApplicationStatus;
 
   // Mock timeline events based on creation/update times
-  const events = [
-    { 
-      status: 'pending' as const, 
-      timestamp: application.createdAt, 
-      actor: 'System' 
-    }
+  type LocalTimelineEvent = {
+    status: ApplicationStatus;
+    timestamp: Date;
+    actor: string;
+    note?: string;
+  };
+  const events: LocalTimelineEvent[] = [
+    {
+      status: 'pending',
+      timestamp: new Date(application.createdAt),
+      actor: 'System',
+    },
   ];
   if (application.status !== 'pending') {
     events.push({
-      status: application.status as any,
-      timestamp: application.updatedAt,
+      status: application.status as ApplicationStatus,
+      timestamp: new Date(application.updatedAt),
       actor: 'Master Admin',
-      note: application.rejectionNote
+      note: application.rejectionNote ?? undefined,
     });
   }
 
@@ -255,7 +271,7 @@ export default function ApplicationDetailDrawer({
                       className={`w-full px-3 py-2 bg-white border ${formErrors.customMaxBranches ? 'border-red-500' : 'border-slate-200'} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky/20 focus:border-sky transition-all`}
                     />
                     {formErrors.customMaxBranches && (
-                      <p className="mt-1 text-[10px] text-red-500 font-medium">{tActions(formErrors.customMaxBranches.message as any)}</p>
+                      <p className="mt-1 text-[10px] text-red-500 font-medium">{tActions(formErrors.customMaxBranches.message as Parameters<typeof tActions>[0])}</p>
                     )}
                   </div>
                   <div>
@@ -269,7 +285,7 @@ export default function ApplicationDetailDrawer({
                       className={`w-full px-3 py-2 bg-white border ${formErrors.customMaxUsers ? 'border-red-500' : 'border-slate-200'} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky/20 focus:border-sky transition-all`}
                     />
                     {formErrors.customMaxUsers && (
-                      <p className="mt-1 text-[10px] text-red-500 font-medium">{tActions(formErrors.customMaxUsers.message as any)}</p>
+                      <p className="mt-1 text-[10px] text-red-500 font-medium">{tActions(formErrors.customMaxUsers.message as Parameters<typeof tActions>[0])}</p>
                     )}
                   </div>
                 </div>

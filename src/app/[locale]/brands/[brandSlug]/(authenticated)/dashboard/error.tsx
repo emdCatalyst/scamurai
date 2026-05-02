@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { AlertTriangle, RefreshCcw } from "lucide-react";
 
-export default function OrdersError({
+export default function DashboardError({
   error,
   reset,
 }: {
@@ -14,7 +14,7 @@ export default function OrdersError({
   const t = useTranslations("common.error");
 
   useEffect(() => {
-    console.error("[brand/orders] error:", error);
+    console.error("[brand/dashboard] error:", error);
   }, [error]);
 
   return (

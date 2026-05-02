@@ -91,7 +91,6 @@ export default function BranchesPageContent({
 
       <BranchesFilterBar
         tabCounts={tabCounts}
-        locale={locale}
       />
 
       <BranchesTable

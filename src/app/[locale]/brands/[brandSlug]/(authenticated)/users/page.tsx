@@ -58,7 +58,6 @@ export default async function BrandUsersPage({
   return (
       
       <BrandUsersPageContent
-        brandId={brand.id}
         initialData={rows}
         totalCount={total}
         tabCounts={tabCounts}

@@ -54,7 +54,7 @@ export default function BrandUserFormModal({
     const parsed = brandUserSchema.safeParse({ fullName, email, role, branchId: branchId || null });
     if (!parsed.success) {
       const newErrors: Record<string, string> = {};
-      parsed.error.errors.forEach((err) => {
+      parsed.error.issues.forEach((err) => {
         if (err.path[0]) newErrors[err.path[0].toString()] = err.message;
       });
       setErrors(newErrors);

@@ -72,7 +72,7 @@ export async function getUsers({
       id: users.id,
       fullName: users.fullName,
       email: users.email,
-      role: users.role as unknown as ("brand_admin" | "finance" | "staff"),
+      role: users.role,
       isActive: users.isActive,
       brandId: users.brandId,
       brandName: brands.name,

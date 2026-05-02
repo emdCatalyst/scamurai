@@ -90,6 +90,7 @@ export default function OrderSubmitForm({
           ]);
 
           const pendingOrder: PendingOrder = {
+            id: crypto.randomUUID(),
             brandId,
             brandSlug,
             orderNumber,

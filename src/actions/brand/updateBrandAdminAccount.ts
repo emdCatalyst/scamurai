@@ -6,7 +6,6 @@ import { users, brands } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { accountDetailsSchema } from "@/lib/validations/brandSettings";
-import { clerkClient } from "@clerk/nextjs/server";
 
 export async function updateBrandAdminAccount(data: {
   fullName: string;
@@ -17,7 +16,7 @@ export async function updateBrandAdminAccount(data: {
 
   const parsed = accountDetailsSchema.safeParse(data);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.errors[0].message };
+    return { success: false, error: parsed.error.issues[0].message };
   }
 
   try {
@@ -31,13 +30,15 @@ export async function updateBrandAdminAccount(data: {
       where: eq(brands.id, brandId),
     });
 
-    // 1. Update Clerk if email changed
+    // 1. Email changes are not supported in this flow — Clerk's updateUser no
+    // longer accepts emailAddress directly (requires the dedicated email-address
+    // endpoint with verification). Keep the DB email in sync only if it matches
+    // Clerk; otherwise the user must change email through Clerk's account UI.
     if (user.email !== data.email && user.clerkUserId) {
-      const client = await clerkClient();
-      await client.users.updateUser(user.clerkUserId, {
-        emailAddress: [data.email],
-      });
-      // Note: Clerk will handle sending verification if configured.
+      return {
+        success: false,
+        error: "Email changes are not supported yet. Please contact support to change your email.",
+      };
     }
 
     // 2. Update DB
