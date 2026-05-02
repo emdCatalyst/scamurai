@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useClerk } from '@clerk/nextjs';
+import { useEffect, useState } from 'react';
+import { useClerk, useUser } from '@clerk/nextjs';
 import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, LogIn } from 'lucide-react';
 import { verifyAdminRole } from './actions';
 import { useTranslations } from 'next-intl';
 import { z } from 'zod';
@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 
 export default function AdminLogin() {
   const { client, setActive, signOut } = useClerk();
+  const { user: clerkUser, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
   const params = useParams();
   const adminSlug = params.adminSlug as string;
@@ -35,6 +36,16 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Smart redirect: if already logged in as master_admin, skip login page
+  useEffect(() => {
+    if (isUserLoaded && clerkUser) {
+      const role = clerkUser.publicMetadata?.role;
+      if (role === 'master_admin') {
+        router.replace(`/${locale}/${adminSlug}/dashboard`);
+      }
+    }
+  }, [clerkUser, isUserLoaded, locale, adminSlug, router]);
 
   const onSubmit = async (data: LoginFormValues) => {
     if (!client) return;
@@ -176,7 +187,11 @@ export default function AdminLogin() {
             disabled={isLoading}
             className="w-full relative flex justify-center items-center h-12 bg-gradient-cta rounded-lg text-navy font-bold shadow-glow-sky hover:shadow-glow-lg active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
           >
-            {isLoading ? <Loader2 className="animate-spin" size={20} /> : t('signIn')}
+
+            {isLoading ? <Loader2 className="animate-spin" size={20} /> : ( <div className="flex items-center gap-2">
+            <LogIn size={18} className={isAr ? "rotate-180" : ""} />
+            {t('signIn')}
+          </div>)}
           </motion.button>
 
           {authError && (

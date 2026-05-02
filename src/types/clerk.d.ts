@@ -7,6 +7,8 @@ declare global {
     metadata?: {
       role?: UserRole;
       brandId?: string;
+      userIsActive?: boolean;
+      brandIsActive?: boolean;
     };
   }
 }

@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { applications } from '@/lib/db/schema';
 import { requireAuth } from '@/lib/auth';
-import { getResend } from '@/lib/resend';
+import { sendEmail } from '@/lib/email';
 
 const updateStatusSchema = z.object({
   id: z.string().uuid(),
@@ -63,9 +63,8 @@ export async function updateApplicationStatus(
     if (status === 'rejected') {
       try {
         console.log(`[updateApplicationStatus] Attempting to send rejection email to ${existing.contactEmail}`);
-        const resend = getResend();
         const note = rejectionNote || 'No specific reason provided / لم يتم تقديم سبب محدد';
-        const result = await resend.emails.send({
+        const result = await sendEmail({
           from: 'Scamurai <onboarding@resend.dev>',
           to: [existing.contactEmail],
           subject: 'Update on your Scamurai application / تحديث بخصوص طلب انضمامك لسكامورائي',

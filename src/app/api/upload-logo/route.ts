@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { getSupabase } from '@/lib/supabase';
+import { db } from '@/lib/db';
+import { users } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function POST(req: NextRequest) {
   const { userId, sessionClaims } = await auth();
@@ -9,7 +12,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const brandId = sessionClaims?.metadata?.brandId as string | undefined;
+  let brandId = sessionClaims?.metadata?.brandId as string | undefined;
+
+  // Fallback to DB if brandId is missing from session claims
+  if (!brandId) {
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkUserId, userId),
+      columns: { brandId: true },
+    });
+    brandId = user?.brandId || undefined;
+  }
+
   if (!brandId) {
     return NextResponse.json({ error: 'No brand associated' }, { status: 403 });
   }

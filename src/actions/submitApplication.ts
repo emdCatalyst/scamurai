@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { applications, users } from '@/lib/db/schema';
-import { getResend } from '@/lib/resend';
+import { sendEmail } from '@/lib/email';
 import type { PlanKey } from '@/config/plans';
 import { applicationRateLimiter } from '@/lib/ratelimit';
 import { applicationSchema } from '@/lib/validations/application';
@@ -97,7 +97,7 @@ export async function submitApplication(
   try {
     const superAdminEmail = process.env.SUPER_ADMIN_EMAIL;
     if (superAdminEmail) {
-      const { data, error } = await getResend().emails.send({
+      const { data, error } = await sendEmail({
         from: 'Scamurai <onboarding@resend.dev>', // Use Resend's testing domain by default to avoid unverified domain errors
         to: superAdminEmail,
         subject: `New Brand Application: ${brandName}`,

@@ -22,7 +22,7 @@ export default function ApplicationsPagination({
   const isAr = locale === 'ar';
 
   const totalPages = Math.ceil(total / pageSize);
-  if (totalPages <= 1) return null;
+  if (total === 0) return null;
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());

@@ -56,7 +56,7 @@ export async function completeBrandSetup(
         onboardingComplete: true,
         updatedAt: new Date(),
       })
-      .where(eq(users.email, userId));
+      .where(eq(users.clerkUserId, userId));
 
     return { success: true };
   } catch (err) {

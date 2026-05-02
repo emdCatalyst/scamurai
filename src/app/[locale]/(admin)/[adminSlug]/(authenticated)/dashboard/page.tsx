@@ -27,30 +27,22 @@ async function DashboardDataWrapper() {
   const startOfToday = new Date(now);
   startOfToday.setHours(0,0,0,0);
 
-  const [
-    appStatsRaw,
-    brandCountRow,
-    monthOrders,
-    todayOrders,
-    weekOrders,
-    recentApplicationsRaw,
-    topBranchesRaw
-  ] = await Promise.all([
-    db.select({
+  // Fetch data sequentially to avoid connection pool exhaustion
+  const appStatsRaw = await db.select({
       status: applications.status,
       count: count(),
-    }).from(applications).groupBy(applications.status).execute(),
+    }).from(applications).groupBy(applications.status).execute();
     
-    db.select({ count: count() })
+  const brandCountRow = await db.select({ count: count() })
       .from(brands)
       .where(eq(brands.isActive, true))
-      .then(res => res[0]),
+      .then(res => res[0]);
 
-    db.select({ count: count() }).from(orders).where(gte(orders.submittedAt, firstDayOfMonth)).then(res => res[0]),
-    db.select({ count: count() }).from(orders).where(gte(orders.submittedAt, startOfToday)).then(res => res[0]),
-    db.select({ count: count() }).from(orders).where(gte(orders.submittedAt, firstDayOfWeek)).then(res => res[0]),
+  const monthOrders = await db.select({ count: count() }).from(orders).where(gte(orders.submittedAt, firstDayOfMonth)).then(res => res[0]);
+  const todayOrders = await db.select({ count: count() }).from(orders).where(gte(orders.submittedAt, startOfToday)).then(res => res[0]);
+  const weekOrders = await db.select({ count: count() }).from(orders).where(gte(orders.submittedAt, firstDayOfWeek)).then(res => res[0]);
 
-    db.select({
+  const recentApplicationsRaw = await db.select({
       id: applications.id,
       brandName: applications.brandName,
       plan: applications.plan,
@@ -60,9 +52,9 @@ async function DashboardDataWrapper() {
     .from(applications)
     .orderBy(desc(applications.createdAt))
     .limit(5)
-    .execute(),
+    .execute();
 
-    db.select({
+  const topBranchesRaw = await db.select({
       id: branches.id,
       branchName: branches.name,
       brandName: brands.name,
@@ -75,8 +67,7 @@ async function DashboardDataWrapper() {
     .groupBy(branches.id, brands.name)
     .orderBy(desc(count(orders.id)))
     .limit(5)
-    .execute()
-  ]);
+    .execute();
   
   const applicationStats = { pending: 0, quoted: 0, approved: 0, rejected: 0 };
   appStatsRaw.forEach(row => {

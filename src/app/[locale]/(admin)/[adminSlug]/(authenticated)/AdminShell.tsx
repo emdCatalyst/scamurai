@@ -14,6 +14,7 @@ import {
   Bell,
   PanelLeftClose,
   PanelLeftOpen,
+  Smartphone,
 } from 'lucide-react';
 import { useClerk } from '@clerk/nextjs';
 import { useTranslations } from 'next-intl';
@@ -71,8 +72,9 @@ export default function AdminShell({
   const NAV_ITEMS = [
     { id: 'dashboard', icon: LayoutDashboard, href: '/dashboard', active: true },
     { id: 'applications', icon: FileText, href: '/applications', active: true },
-    { id: 'brands', icon: Building2, href: '/brands', active: false },
-    { id: 'users', icon: Users, href: '/users', active: false },
+    { id: 'brands', icon: Building2, href: '/brands', active: true },
+    { id: 'users', icon: Users, href: '/users', active: true },
+    { id: 'delivery-apps', icon: Smartphone, href: '/delivery-apps', active: true },
     { id: 'settings', icon: Settings, href: '/settings', active: false },
   ];
   

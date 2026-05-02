@@ -23,6 +23,7 @@
   },
   "hero": {
     "badge": "The Smart Order Verification Platform",
+    "headlineStar": "An idea!",
     "headline1": "Stop Order.",
     "headline1Highlight": "Fraud",
     "headline2": "Before It Costs You.",
@@ -180,6 +181,18 @@
     "copyright": "© 2026 Scamurai. All rights reserved.",
     "langLabel": "EN"
   },
+  "suspended": {
+    "title": "Account Suspended",
+    "message": "Your brand account has been suspended. Please contact our support team to resolve this issue.",
+    "contactSupport": "Contact Support",
+    "backToLogin": "Back to Login"
+  },
+  "inactive": {
+    "title": "Account Inactive",
+    "message": "Your account has been deactivated. Please contact your brand administrator or our support team.",
+    "contactSupport": "Contact Support",
+    "backToLogin": "Back to Login"
+  },
   "admin": {
     "login": {
       "title": "Master Admin",
@@ -234,6 +247,7 @@
       "applications": "Applications",
       "brands": "Brands",
       "users": "Users",
+      "delivery-apps": "Delivery Apps",
       "settings": "Settings",
       "comingSoon": "Coming Soon",
       "platformAdmin": "Platform Admin",
@@ -321,6 +335,667 @@
       "pagination": {
         "showing": "Showing {start}–{end} of {total} applications"
       }
+    },
+    "brands": {
+      "title": "Brands Management",
+      "filters": {
+        "status": {
+          "all": "All",
+          "active": "Active",
+          "suspended": "Suspended"
+        },
+        "searchPlaceholder": "Search by name or slug...",
+        "sort": {
+          "newest": "Newest First",
+          "oldest": "Oldest First",
+          "name_asc": "Name A→Z",
+          "name_desc": "Name Z→A"
+        },
+        "plan": {
+          "all": "All Plans"
+        }
+      },
+      "table": {
+        "brand": "Brand",
+        "plan": "Plan",
+        "adminEmail": "Admin Email",
+        "branches": "Branches",
+        "onboarding": "Onboarding",
+        "status": "Status",
+        "created": "Created",
+        "actions": "Actions",
+        "onboardingComplete": "Complete",
+        "onboardingPending": "Pending",
+        "statusActive": "Active",
+        "statusSuspended": "Suspended",
+        "emptyTitle": "No brands found",
+        "emptyDesc": "Try adjusting your filters or search query."
+      },
+      "actions": {
+        "suspend": "Suspend",
+        "activate": "Activate",
+        "viewDetails": "View Details",
+        "confirmSuspend": "Are you sure you want to suspend this brand? This will prevent all users under this brand from accessing the platform immediately.",
+        "confirmActivate": "Are you sure you want to reactivate this brand?",
+        "successSuspended": "Brand suspended successfully.",
+        "successActivated": "Brand activated successfully.",
+        "error": "Failed to update brand status."
+      },
+      "detail": {
+        "slug": "Slug",
+        "info": "Brand Info",
+        "admin": "Brand Admin",
+        "colors": "Brand Colors",
+        "dangerZone": "Danger Zone",
+        "created": "Created Date",
+        "branches": "Active Branches",
+        "users": "Active Users",
+        "limits": "Max {branches} branches, {users} users",
+        "onboarding": "Onboarding Status",
+        "joined": "Joined Date",
+        "invitePending": "Invite pending",
+        "primary": "Primary",
+        "background": "Background",
+        "surface": "Surface",
+        "textAccent": "Text Accent",
+        "copySlug": "Copy slug"
+      },
+      "pagination": {
+        "showing": "Showing {start}–{end} of {total} brands"
+      },
+      "email": {
+        "suspensionSubject": "Important: Your Scamurai account has been suspended",
+        "activationSubject": "Your Scamurai account has been reactivated",
+        "suspensionBody": "We are writing to inform you that your Scamurai brand account ({brandName}) has been suspended. All users under this account will no longer be able to access the platform. Please contact our support team to resolve this issue.",
+        "activationBody": "Great news! Your Scamurai brand account ({brandName}) has been reactivated. You and your team can now access the platform again."
+      }
+    },
+    "users": {
+      "title": "Users Management",
+      "filters": {
+        "status": {
+          "all": "All",
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "searchPlaceholder": "Search by name or email...",
+        "sort": {
+          "newest": "Newest First",
+          "oldest": "Oldest First",
+          "name_asc": "Name A→Z",
+          "name_desc": "Name Z→A"
+        },
+        "role": {
+          "all": "All Roles",
+          "brand_admin": "Brand Admin",
+          "finance": "Finance",
+          "staff": "Staff"
+        },
+        "brand": {
+          "all": "All Brands"
+        }
+      },
+      "table": {
+        "user": "User",
+        "role": "Role",
+        "brand": "Brand",
+        "branch": "Branch",
+        "joined": "Joined",
+        "status": "Status",
+        "actions": "Actions",
+        "allBranches": "All branches",
+        "invitePending": "Invite pending",
+        "statusActive": "Active",
+        "statusInactive": "Inactive",
+        "emptyTitle": "No users found",
+        "emptyDesc": "Try adjusting your filters or search query."
+      },
+      "actions": {
+        "deactivate": "Deactivate",
+        "activate": "Activate",
+        "viewDetails": "View Details",
+        "confirmDeactivate": "Are you sure you want to deactivate this user? they will immediately lose access to the platform.",
+        "confirmActivate": "Are you sure you want to reactivate this user?",
+        "successDeactivated": "User deactivated successfully.",
+        "successActivated": "User activated successfully.",
+        "error": "Failed to update user status."
+      },
+      "detail": {
+        "info": "Account Info",
+        "access": "Brand & Access",
+        "dangerZone": "Danger Zone",
+        "email": "Email Address",
+        "joined": "Joined Date",
+        "created": "Created Date",
+        "brand": "Brand",
+        "branch": "Branch",
+        "onboarding": "Onboarding Status",
+        "copyEmail": "Copy email"
+      },
+      "pagination": {
+        "showing": "Showing {start}–{end} of {total} users"
+      },
+      "email": {
+        "deactivationSubject": "Your Scamurai account has been deactivated",
+        "activationSubject": "Your Scamurai account has been restored",
+        "deactivationBody": "Hi {name}, we are writing to inform you that your Scamurai account has been deactivated. You will no longer be able to access the platform. If you believe this is an error, please contact your brand administrator or our support team.",
+        "activationBody": "Hi {name}, great news! Your Scamurai account has been restored. You can now access the platform again."
+      }
+    },
+    "deliveryApps": {
+      "title": "Delivery Applications",
+      "filters": {
+        "status": {
+          "all": "All",
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "searchPlaceholder": "Search platforms...",
+        "sort": {
+          "name_asc": "Name A→Z",
+          "name_desc": "Name Z→A",
+          "newest": "Recently Added",
+          "most_used": "Most Used"
+        },
+        "btnAdd": "Add Platform"
+      },
+      "table": {
+        "platform": "Platform",
+        "status": "Status",
+        "usedBy": "Used By",
+        "added": "Added",
+        "actions": "Actions",
+        "statusActive": "Active",
+        "statusInactive": "Inactive",
+        "emptyTitle": "No platforms found",
+        "emptyDesc": "Try adjusting your filters or search query."
+      },
+      "form": {
+        "createTitle": "Add New Platform",
+        "editTitle": "Edit Platform",
+        "fieldName": "Platform Name",
+        "namePlaceholder": "e.g. Jahez, HungerStation",
+        "fieldLogo": "Platform Logo",
+        "btnCreate": "Create Platform",
+        "btnUpdate": "Update Platform",
+        "submitting": "Saving...",
+        "successCreated": "Platform added to catalog successfully.",
+        "successUpdated": "Platform updated successfully.",
+        "errorNameMin": "Name must be at least 2 characters",
+        "errorGeneral": "Something went wrong. Please try again."
+      },
+      "detail": {
+        "brandsUsingTitle": "Brands Using This Platform",
+        "noBrands": "No brands have enabled this platform yet.",
+        "dangerZone": "Danger Zone"
+      },
+      "actions": {
+        "edit": "Edit",
+        "deactivate": "Deactivate",
+        "activate": "Activate",
+        "delete": "Delete",
+        "confirmDeactivate": "Are you sure you want to deactivate this platform? It will be hidden from all brand configurations.",
+        "confirmActivate": "Are you sure you want to reactivate this platform?",
+        "confirmDelete": "Are you sure you want to delete this platform permanently? This action cannot be undone.",
+        "successActivated": "Platform activated successfully.",
+        "successDeactivated": "Platform deactivated successfully.",
+        "successDeleted": "Platform deleted successfully.",
+        "deleteDisabledHint": "Cannot delete platform while it is enabled by one or more brands.",
+        "error": "Failed to update platform."
+      },
+      "pagination": {
+        "showing": "Showing {start}–{end} of {total} platforms"
+      }
+    }
+  },
+  "brand": {
+    "shell": {
+      "dashboard": "Dashboard",
+      "orders": "Orders",
+      "branches": "Branches",
+      "users": "Team",
+      "team": "Team",
+      "delivery-apps": "Delivery Apps",
+      "settings": "Settings",
+      "comingSoon": "Coming Soon",
+      "logout": "Log Out",
+      "brand_admin": "Brand Admin",
+      "finance": "Finance",
+      "staff": "Staff"
+    },
+    "login": {
+      "title": "Brand Member Sign In",
+      "email": "Email",
+      "password": "Password",
+      "signIn": "Sign In",
+      "signingIn": "Signing in...",
+      "forgotPassword": "Forgot password?",
+      "initializing": "System initializing. Please wait a moment...",
+      "loading": "Initializing...",
+      "fixErrors": "Fix errors to sign in",
+      "fillFields": "Fill all fields",
+      "noAccount": "This account does not belong to this brand.",
+      "errors": {
+        "emailRequired": "Email is required.",
+        "emailInvalid": "Invalid email address.",
+        "passwordRequired": "Password is required.",
+        "passwordMin": "Password must be at least 8 characters.",
+        "invalid": "Invalid email or password.",
+        "suspended": "This brand account is currently suspended.",
+        "inactive": "Your user account is inactive.",
+        "Unauthorized": "Session could not be established. Please try again.",
+        "too_many_requests": "Too many attempts. Please try again later."
+      },
+      "poweredBy": "Powered by"
+    },
+    "dashboard": {
+      "title": "Brand Dashboard",
+      "statOrders": "Orders Today",
+      "statReview": "Awaiting Review",
+      "statRevenue": "Revenue Approved (Month)",
+      "statBranches": "Branches",
+      "charts": {
+        "overTime": "Orders Over Time",
+        "byApp": "Orders by Delivery App",
+        "submitted": "Submitted",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "last30Days": "Last 30 Days"
+      },
+      "branchPanel": {
+        "title": "Orders by Branch",
+        "subtitle": "Order volume for the current month",
+        "orders": "orders",
+        "viewAll": "View orders"
+      },
+      "teamPanel": {
+        "title": "Team Overview",
+        "brand_admin": "Brand Admins",
+        "finance": "Finance",
+        "staff": "Staff",
+        "active": "active",
+        "manageTeam": "Manage team"
+      }
+    },
+    "branches": {
+      "title": "Branches Management",
+      "usage": "{active} / {limit} branches",
+      "addBranch": "Add Branch",
+      "planLimitReached": "Plan limit reached",
+      "filters": {
+        "status": {
+          "all": "All",
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "searchPlaceholder": "Search by branch name...",
+        "sort": {
+          "newest": "Newest First",
+          "oldest": "Oldest First",
+          "name_asc": "Name A→Z",
+          "name_desc": "Name Z→A",
+          "most_orders": "Most Orders"
+        }
+      },
+      "table": {
+        "name": "Branch Name",
+        "status": "Status",
+        "staff": "Staff",
+        "orders": "Orders (Month)",
+        "created": "Created",
+        "actions": "Actions",
+        "statusActive": "Active",
+        "statusInactive": "Inactive",
+        "emptyTitle": "No branches found",
+        "emptyDesc": "Try adjusting your filters or search query."
+      },
+      "actions": {
+        "edit": "Edit",
+        "disable": "Disable",
+        "enable": "Enable",
+        "delete": "Delete",
+        "confirmDisable": "Are you sure you want to disable this branch? Staff assigned to this branch will be unable to submit orders.",
+        "confirmEnable": "Are you sure you want to enable this branch?",
+        "successCreated": "Branch created successfully.",
+        "successUpdated": "Branch updated successfully.",
+        "successStatus": "Branch status updated successfully.",
+        "successDeleted": "Branch deleted successfully.",
+        "error": "Failed to update branch."
+      },
+      "form": {
+        "createTitle": "Add New Branch",
+        "editTitle": "Edit Branch",
+        "fieldName": "Branch Name",
+        "namePlaceholder": "e.g. Al Olaya Main",
+        "btnCreate": "Create Branch",
+        "btnUpdate": "Update Branch",
+        "submitting": "Saving...",
+        "errorNameMin": "Name must be at least 2 characters",
+        "errorNameMax": "Name must be at most 60 characters"
+      },
+      "detail": {
+        "info": "Branch Info",
+        "staffTitle": "Assigned Staff",
+        "noStaff": "No staff assigned to this branch yet.",
+        "ordersMonth": "Orders this month",
+        "ordersTotal": "Total orders all time",
+        "created": "Created Date",
+        "viewStaff": "View staff"
+      },
+      "delete": {
+        "simpleTitle": "Delete Branch?",
+        "simpleDesc": "Delete {name}? This cannot be undone.",
+        "conflictTitle": "Resolve Staff Conflicts",
+        "conflictDesc": "{count} staff member(s) are assigned to this branch. Choose what to do with each before deleting.",
+        "reassign": "Reassign to:",
+        "deactivate": "Deactivate this user",
+        "selectResolution": "Select a resolution",
+        "btnConfirm": "Confirm Deletion",
+        "btnCancel": "Cancel",
+        "deleting": "Deleting...",
+        "checkingConflicts": "Checking for conflicts...",
+        "errorConflict": "Please resolve all staff conflicts before deleting."
+      },
+      "pagination": {
+        "showing": "Showing {start}–{end} of {total} branches"
+      }
+    },
+    "users": {
+      "title": "Team",
+      "addMember": "Add Member",
+      "usage": "{count} / {limit} users",
+      "planLimitReached": "You've reached your plan's user limit. Contact us to upgrade.",
+      "notLoggedIn": "Not logged in yet",
+      "roles": {
+        "finance": "Finance",
+        "staff": "Staff"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "password": {
+        "temporary": "Temporary",
+        "set": "Set"
+      },
+      "limit": {
+        "title": "User Limit Reached",
+        "description": "You have reached the limit of {limit} users on your current plan. Please contact support to upgrade."
+      },
+      "filters": {
+        "role": {
+          "all": "All",
+          "finance": "Finance",
+          "staff": "Staff"
+        },
+        "status": {
+          "all": "All Status",
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "branch": {
+          "all": "All Branches"
+        },
+        "searchPlaceholder": "Search by name or email...",
+        "sort": {
+          "newest": "Newest First",
+          "oldest": "Oldest First",
+          "name_asc": "Name A-Z",
+          "name_desc": "Name Z-A"
+        }
+      },
+      "table": {
+        "emptyTitle": "No team members found",
+        "emptyDesc": "Add members to your team to help manage orders.",
+        "member": "Member",
+        "role": "Role",
+        "branch": "Branch",
+        "status": "Status",
+        "password": "Password",
+        "joined": "Joined",
+        "actions": "Actions"
+      },
+      "detail": {
+        "info": "Member Info",
+        "email": "Email",
+        "branch": "Branch",
+        "passwordStatus": "Password Status",
+        "joined": "Joined",
+        "copyEmail": "Copy email"
+      },
+      "actions": {
+        "edit": "Edit",
+        "disable": "Disable",
+        "enable": "Enable",
+        "delete": "Delete",
+        "resetPassword": "Reset Password",
+        "successStatus": "Status updated successfully.",
+        "error": "Failed to update member."
+      },
+      "form": {
+        "createTitle": "Add New Member",
+        "editTitle": "Edit Member",
+        "fieldName": "Full Name",
+        "namePlaceholder": "e.g. John Doe",
+        "fieldEmail": "Email Address",
+        "emailPlaceholder": "john@example.com",
+        "fieldRole": "Role",
+        "roleFinance": "Finance",
+        "roleStaff": "Staff",
+        "fieldBranch": "Branch",
+        "branchPlaceholder": "Select a branch",
+        "btnCreate": "Add Member",
+        "btnUpdate": "Update Member",
+        "btnCancel": "Cancel",
+        "submitting": "Saving...",
+        "successCreated": "Member added successfully. A temporary password was emailed.",
+        "successUpdated": "Member updated successfully.",
+        "errorLimit": "Plan limit reached.",
+        "error": "Failed to save member."
+      },
+      "disable": {
+        "title": "Disable Member?",
+        "desc": "Are you sure you want to disable {name}? They will be immediately logged out and unable to access the platform.",
+        "btnCancel": "Cancel"
+      },
+      "enable": {
+        "title": "Enable Member?",
+        "desc": "Are you sure you want to re-enable {name}? They will regain access to the platform."
+      },
+      "delete": {
+        "title": "Delete Member?",
+        "confirmTitle": "Permanently Remove",
+        "confirmDesc": "Are you sure you want to delete {name}? This permanently removes them from your team and cannot be undone.",
+        "btnConfirm": "Delete Member",
+        "btnCancel": "Cancel",
+        "deleting": "Deleting...",
+        "successDeleted": "Member deleted successfully.",
+        "errorDeleted": "Failed to delete member."
+      },
+      "resetPassword": {
+        "title": "Reset Password",
+        "confirmTitle": "Generate Temporary Password",
+        "confirmDesc": "A new temporary password will be generated and emailed to {email}. The user will be forced to change it on their next login.",
+        "btnConfirm": "Reset Password",
+        "btnCancel": "Cancel",
+        "resetting": "Resetting...",
+        "successReset": "Password reset. Sent to {email}.",
+        "errorReset": "Failed to reset password."
+      }
+    },
+    "settings": {
+      "title": "Settings",
+      "identity": {
+        "title": "Brand Identity",
+        "name": "Brand Name",
+        "nameWarning": "Changing your brand name updates how it appears across the platform. Your login URL does not change.",
+        "loginUrl": "Login URL: {url} — cannot be changed",
+        "logoTitle": "Brand Logo",
+        "logoDesc": "Upload your brand logo (PNG, SVG, or JPG — max 2MB)",
+        "colorsTitle": "Brand Colors",
+        "colorsDesc": "Pick 4 colors that define your brand experience.",
+        "resetDefaults": "Reset to defaults",
+        "save": "Save Brand Identity",
+        "saving": "Saving..."
+      },
+      "account": {
+        "title": "Account Details",
+        "fullName": "Full Name",
+        "email": "Email Address",
+        "save": "Save Account Details",
+        "saving": "Saving..."
+      },
+      "password": {
+        "title": "Change Password",
+        "message": "Password management will be available here soon.",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm Password",
+        "save": "Update Password"
+      },
+      "plan": {
+        "title": "Plan & Limits",
+        "currentPlan": "Current Plan",
+        "branchesUsed": "{used} of {limit} branches used",
+        "usersUsed": "{used} of {limit} users used",
+        "upgradeMessage": "Need more capacity? Contact us to upgrade.",
+        "unlimited": "Unlimited"
+      },
+      "success": "Settings updated successfully.",
+      "error": "Failed to update settings."
+    },
+    "deliveryApps": {
+      "title": "Delivery Apps",
+      "subtitle": "Choose which platforms your staff can submit orders for.",
+      "status": {
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "unavailable": "Unavailable"
+      },
+      "empty": {
+        "title": "No platforms available",
+        "subtitle": "No delivery platforms are available yet. Contact support to get started."
+      },
+      "errors": {
+        "toggleFailed": "Failed to update platform status. Please try again."
+      }
+    },
+    "orders": {
+      "title": "Orders",
+      "countBadge": "{count, plural, =0 {No orders} one {1 order} other {# orders}}",
+      "filters": {
+        "searchPlaceholder": "Search by order # or staff name...",
+        "allBranches": "All Branches",
+        "allApps": "All Apps",
+        "sort": {
+          "newest": "Newest",
+          "oldest": "Oldest",
+          "amount_high": "Amount ↓",
+          "amount_low": "Amount ↑"
+        },
+        "presets": {
+          "today": "Today",
+          "thisWeek": "This Week",
+          "thisMonth": "This Month",
+          "clear": "Clear"
+        },
+        "dateFrom": "From",
+        "dateTo": "To"
+      },
+      "table": {
+        "orderNumber": "Order #",
+        "branch": "Branch",
+        "deliveryApp": "Delivery App",
+        "submittedBy": "Submitted By",
+        "amount": "Amount",
+        "submitted": "Submitted",
+        "images": "Images",
+        "emptyTitle": "No orders found",
+        "emptyDescNoFilter": "Orders submitted by your staff will appear here.",
+        "emptyDescFiltered": "Try adjusting your filters to see more orders."
+      },
+      "imagesStatus": {
+        "present": "Both photos uploaded",
+        "missing": "Photo missing"
+      },
+      "summary": {
+        "orders": "{count, plural, =0 {No orders} one {1 order} other {# orders}}",
+        "total": "Total: {amount}",
+        "branches": "Across {count, plural, =0 {0 branches} one {1 branch} other {# branches}}"
+      },
+      "drawer": {
+        "branch": "Branch",
+        "deliveryApp": "Delivery App",
+        "submittedBy": "Submitted By",
+        "submittedAt": "Submitted At",
+        "amount": "Amount",
+        "notes": "Notes",
+        "sealedPhoto": "Sealed Bag",
+        "openedPhoto": "Opened Bag",
+        "imageUnavailable": "Image unavailable",
+        "loading": "Loading order details...",
+        "failedToLoad": "Failed to load order details."
+      },
+      "pagination": {
+        "showing": "Showing {start}–{end} of {total} orders"
+      },
+      "loadError": "Could not load orders. Please try again."
+    },
+    "changePassword": {
+      "title": "Change Password",
+      "subtitle": "For security reasons, you must change your temporary password before continuing.",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "submit": "Update Password",
+      "submitting": "Updating...",
+      "successToast": "Password updated successfully.",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "errors": {
+        "currentRequired": "Current password is required.",
+        "newRequired": "New password is required.",
+        "confirmRequired": "Please confirm your new password.",
+        "passwordMin": "Password must be at least 8 characters.",
+        "passwordMax": "Password is too long.",
+        "mismatch": "Passwords do not match.",
+        "same": "New password must be different from your current password.",
+        "currentIncorrect": "Current password is incorrect.",
+        "pwned": "This password has appeared in a data breach. Please pick a stronger one.",
+        "validation": "Password does not meet the security requirements.",
+        "metadata": "Password updated, but we could not finalize your account state. Please log in again.",
+        "notAuthenticated": "You are not signed in.",
+        "reverificationCancelled": "Verification cancelled — password was not changed.",
+        "generic": "Could not change your password. Please try again."
+      }
+    },
+    "submit": {
+      "noBranchTitle": "No Branch Assigned",
+      "noBranchDesc": "Please ask your administrator to assign you to a branch.",
+      "signOut": "Sign Out",
+      "processing": "Processing...",
+      "submitOrder": "Submit Order",
+      "orderSubmitted": "Order Submitted",
+      "uploadingImages": "Uploading images...",
+      "reference": "Ref",
+      "sealedBag": "Sealed Bag",
+      "openedBag": "Opened Bag",
+      "deliveryApp": "Delivery App",
+      "orderNumber": "Order Number",
+      "orderNumberPlaceholder": "Enter order number...",
+      "amount": "Amount",
+      "amountPlaceholder": "0.00",
+      "currency": "SAR",
+      "notes": "Notes",
+      "notesOptional": "optional",
+      "notesPlaceholder": "Add any internal notes...",
+      "retake": "Retake",
+      "errorGeneral": "Something went wrong. Please try again.",
+      "pendingUploads": "{count} Pending Upload | {count} Pending Uploads",
+      "syncNow": "Sync Now",
+      "syncing": "Syncing...",
+      "offlineWarning": "Offline or failed earlier.",
+      "syncSuccess": "Successfully uploaded {count} pending order | Successfully uploaded {count} pending orders.",
+      "syncError": "Failed to upload {count} order | Failed to upload {count} orders. Still in queue."
     }
   }
 }

@@ -124,16 +124,27 @@ export async function approveApplication(
     // 4. Outside transaction: Send Clerk invite
     try {
       const clerk = await clerkClient();
+      const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+      const redirectUrl = `${baseUrl}/en/onboarding/brand-setup`;
+      
+      console.log(`[approveApplication] Sending Clerk invite to ${application.contactEmail} with redirect ${redirectUrl}`);
+      
       await clerk.invitations.createInvitation({
         emailAddress: application.contactEmail,
-        redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL || ''}/onboarding/brand-setup`,
+        redirectUrl,
         publicMetadata: {
           role: 'brand_admin',
           brandId: brandId,
+          userIsActive: true,
+          brandIsActive: true,
         },
       });
+      console.log(`[approveApplication] Clerk invite sent successfully.`);
     } catch (clerkErr: any) {
       console.error('[approveApplication] Clerk invitation failed:', clerkErr);
+      if (clerkErr.errors) {
+        console.error('[approveApplication] Clerk API Errors:', JSON.stringify(clerkErr.errors, null, 2));
+      }
       // We don't return failure here if DB is done, but maybe toast warning? 
       // For now, let's just log it. The brand is created.
     }

@@ -47,6 +47,15 @@ export const brands = pgTable(
     index("idx_brands_slug")
       .on(table.slug)
       .where(sql`${table.deletedAt} IS NULL`),
+    index("idx_brands_is_active")
+      .on(table.isActive)
+      .where(sql`${table.deletedAt} IS NULL`),
+    index("idx_brands_plan")
+      .on(table.plan)
+      .where(sql`${table.deletedAt} IS NULL`),
+    index("idx_brands_name")
+      .on(table.name)
+      .where(sql`${table.deletedAt} IS NULL`),
     check(
       "brands_slug_format",
       sql`${table.slug} ~ '^[a-z0-9-]+$'`
@@ -104,6 +113,7 @@ export const users = pgTable(
     id: uuid().primaryKey().defaultRandom(),
     email: text().notNull().unique(),
     fullName: text("full_name").notNull(),
+    clerkUserId: text("clerk_user_id").unique(),
     role: text().notNull(),
     brandId: uuid("brand_id").references(() => brands.id, {
       onDelete: "set null",
@@ -134,6 +144,9 @@ export const users = pgTable(
       .where(sql`${table.deletedAt} IS NULL`),
     index("idx_users_branch")
       .on(table.branchId)
+      .where(sql`${table.deletedAt} IS NULL`),
+    index("idx_users_clerk_id")
+      .on(table.clerkUserId)
       .where(sql`${table.deletedAt} IS NULL`),
     check(
       "users_role_values",
@@ -173,17 +186,14 @@ export const branches = pgTable(
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// delivery_apps
-// Delivery platforms configured per brand (Jahez, HungerStation, Talabat, etc.)
+// delivery_app_catalog
+// Platform-level catalog managed by master admin.
 // ─────────────────────────────────────────────────────────────────────────────
-export const deliveryApps = pgTable(
-  "delivery_apps",
+export const deliveryAppCatalog = pgTable(
+  "delivery_app_catalog",
   {
     id: uuid().primaryKey().defaultRandom(),
-    brandId: uuid("brand_id")
-      .notNull()
-      .references(() => brands.id, { onDelete: "cascade" }),
-    name: text().notNull(),
+    name: text().notNull().unique(),
     logoUrl: text("logo_url"),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -195,10 +205,41 @@ export const deliveryApps = pgTable(
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => [
-    unique("delivery_apps_brand_id_name_unique").on(table.brandId, table.name),
-    index("idx_delivery_apps_brand")
-      .on(table.brandId)
+    index("idx_catalog_apps_active")
+      .on(table.isActive)
       .where(sql`${table.deletedAt} IS NULL`),
+  ]
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// brand_delivery_apps
+// Represents which catalog platforms a brand has enabled.
+// ─────────────────────────────────────────────────────────────────────────────
+export const brandDeliveryApps = pgTable(
+  "brand_delivery_apps",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    brandId: uuid("brand_id")
+      .notNull()
+      .references(() => brands.id, { onDelete: "cascade" }),
+    catalogAppId: uuid("catalog_app_id")
+      .notNull()
+      .references(() => deliveryAppCatalog.id, { onDelete: "restrict" }),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique("brand_delivery_apps_brand_id_catalog_app_id_unique").on(
+      table.brandId,
+      table.catalogAppId
+    ),
+    index("idx_brand_delivery_apps_brand").on(table.brandId),
+    index("idx_brand_delivery_apps_catalog").on(table.catalogAppId),
   ]
 );
 
@@ -219,7 +260,7 @@ export const orders = pgTable(
       .references(() => branches.id),
     deliveryAppId: uuid("delivery_app_id")
       .notNull()
-      .references(() => deliveryApps.id),
+      .references(() => brandDeliveryApps.id),
     submittedBy: uuid("submitted_by")
       .notNull()
       .references(() => users.id),
@@ -303,7 +344,7 @@ export const orderImages = pgTable(
 export const brandsRelations = relations(brands, ({ many }) => ({
   users: many(users),
   branches: many(branches),
-  deliveryApps: many(deliveryApps),
+  deliveryApps: many(brandDeliveryApps),
   orders: many(orders),
   orderImages: many(orderImages),
   applications: many(applications),
@@ -344,12 +385,23 @@ export const branchesRelations = relations(branches, ({ one, many }) => ({
   orders: many(orders),
 }));
 
-export const deliveryAppsRelations = relations(
-  deliveryApps,
+export const deliveryAppCatalogRelations = relations(
+  deliveryAppCatalog,
+  ({ many }) => ({
+    brandApps: many(brandDeliveryApps),
+  })
+);
+
+export const brandDeliveryAppsRelations = relations(
+  brandDeliveryApps,
   ({ one, many }) => ({
     brand: one(brands, {
-      fields: [deliveryApps.brandId],
+      fields: [brandDeliveryApps.brandId],
       references: [brands.id],
+    }),
+    catalogApp: one(deliveryAppCatalog, {
+      fields: [brandDeliveryApps.catalogAppId],
+      references: [deliveryAppCatalog.id],
     }),
     orders: many(orders),
   })
@@ -364,9 +416,9 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     fields: [orders.branchId],
     references: [branches.id],
   }),
-  deliveryApp: one(deliveryApps, {
+  deliveryApp: one(brandDeliveryApps, {
     fields: [orders.deliveryAppId],
-    references: [deliveryApps.id],
+    references: [brandDeliveryApps.id],
   }),
   submitter: one(users, {
     fields: [orders.submittedBy],
