@@ -79,12 +79,12 @@ export default async function OrdersPage({
     pageSize: PAGE_SIZE,
   };
 
-  const [{ rows, total }, summary, branchOptions, appOptions] = await Promise.all([
-    getOrders(queryParams),
-    getOrdersSummary(queryParams),
-    getActiveBranchOptions(brand.id),
-    getEnabledDeliveryAppOptions(brand.id),
-  ]);
+  // Sequential awaits — concurrent dispatch on max:1 + Supavisor transaction
+  // pool surfaces as `error in input stream` and intermittent skeleton hangs.
+  const { rows, total } = await getOrders(queryParams);
+  const summary = await getOrdersSummary(queryParams);
+  const branchOptions = await getActiveBranchOptions(brand.id);
+  const appOptions = await getEnabledDeliveryAppOptions(brand.id);
 
   const hasActiveFilter = Boolean(
     sp.q || sp.branch || sp.app || sp.date_from || sp.date_to

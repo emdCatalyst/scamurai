@@ -16,14 +16,14 @@ export default async function BrandSettingsPage({
   // 1. Auth & Data Fetching
   const { userId, brandId: authBrandId } = await requireAuth(["brand_admin"]);
   
-  const [brand, user, branchCount, branchLimit, userCount, userLimit] = await Promise.all([
-    getBrandBySlug(brandSlug),
-    getUserByClerkId(userId),
-    countAllBranches(authBrandId!),
-    getBrandBranchLimit(authBrandId!),
-    countNonDeletedUsers(authBrandId!),
-    getBrandUserLimit(authBrandId!),
-  ]);
+  // Sequential awaits — concurrent dispatch on max:1 + Supavisor transaction
+  // pool surfaces as `error in input stream` and intermittent skeleton hangs.
+  const brand = await getBrandBySlug(brandSlug);
+  const user = await getUserByClerkId(userId);
+  const branchCount = await countAllBranches(authBrandId!);
+  const branchLimit = await getBrandBranchLimit(authBrandId!);
+  const userCount = await countNonDeletedUsers(authBrandId!);
+  const userLimit = await getBrandUserLimit(authBrandId!);
 
   if (!brand || brand.id !== authBrandId || !user) {
     notFound();

@@ -41,25 +41,24 @@ async function UsersDataWrapper({ params, searchParams }: PageProps) {
   const page = parseInt(sp.page || "1", 10);
   const pageSize = 20;
 
-  const [
-    { rows: userRows, total, counts },
-    brandRows
-  ] = await Promise.all([
-    getUsers({
-      search,
-      status: status as any,
-      role: role as any,
-      brandId: brandId === "all" ? undefined : brandId,
-      sort: sort as any,
-      page,
-      pageSize,
-    }),
-    db.select({ id: brands.id, name: brands.name })
-      .from(brands)
-      .where(isNull(brands.deletedAt))
-      .orderBy(asc(brands.name))
-      .execute()
-  ]);
+  // Sequential awaits — concurrent dispatch on max:1 + Supavisor transaction
+  // pool surfaces as `error in input stream`. Same pattern as dashboard/page.tsx.
+  const { rows: userRows, total, counts } = await getUsers({
+    search,
+    status: status as any,
+    role: role as any,
+    brandId: brandId === "all" ? undefined : brandId,
+    sort: sort as any,
+    page,
+    pageSize,
+  });
+
+  const brandRows = await db
+    .select({ id: brands.id, name: brands.name })
+    .from(brands)
+    .where(isNull(brands.deletedAt))
+    .orderBy(asc(brands.name))
+    .execute();
 
   return (
     <UsersPageContent
