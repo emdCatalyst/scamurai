@@ -11,6 +11,7 @@ import { setUserStatus } from '@/actions/setUserStatus';
 import { useToast } from '@/components/ui/Toast';
 import Dialog from '@/components/ui/Dialog';
 import { Link } from '@/i18n/navigation';
+import { useParams } from 'next/navigation';
 
 interface UserRowProps {
   user: UserRowType;
@@ -20,6 +21,7 @@ interface UserRowProps {
 export function UserRow({ user, onViewDetails }: UserRowProps) {
   const t = useTranslations('admin.users');
   const { toast } = useToast();
+  const { adminSlug } = useParams();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -74,7 +76,7 @@ export function UserRow({ user, onViewDetails }: UserRowProps) {
         <td className="py-4 px-4">
           {user.brandName ? (
             <Link 
-              href={`/brands?q=${user.brandSlug}`}
+              href={`/${adminSlug}/brands?q=${user.brandSlug}`}
               onClick={(e) => e.stopPropagation()}
               className="text-sm font-medium text-slate-600 hover:text-sky transition-colors"
             >
