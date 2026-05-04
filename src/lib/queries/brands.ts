@@ -116,24 +116,25 @@ export async function getBrands({
       break;
   }
 
-  // Count query for all/active/suspended
-  const countsResult = await db
-    .select({
-      isActive: brands.isActive,
-      count: count(),
-    })
-    .from(brands)
-    .where(isNull(brands.deletedAt))
-    .groupBy(brands.isActive)
-    .execute();
+  const [countsResult, rows, countRows] = await Promise.all([
+    db
+      .select({
+        isActive: brands.isActive,
+        count: count(),
+      })
+      .from(brands)
+      .where(isNull(brands.deletedAt))
+      .groupBy(brands.isActive)
+      .execute(),
+    query.limit(pageSize).offset(offset).execute(),
+    db
+      .select({ count: count() })
+      .from(brands)
+      .where(whereClause)
+      .execute(),
+  ]);
 
-  const rows = await query.limit(pageSize).offset(offset).execute();
-
-  const [countResult] = await db
-    .select({ count: count() })
-    .from(brands)
-    .where(whereClause)
-    .execute();
+  const countResult = countRows[0];
 
   const counts: Record<string, number> = {
     all: 0,

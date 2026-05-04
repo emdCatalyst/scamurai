@@ -104,24 +104,25 @@ export async function getUsers({
       break;
   }
 
-  const rows = await query.limit(pageSize).offset(offset).execute();
+  const [rows, countRows, statsResult] = await Promise.all([
+    query.limit(pageSize).offset(offset).execute(),
+    db
+      .select({ count: count() })
+      .from(users)
+      .where(whereClause)
+      .execute(),
+    db
+      .select({
+        isActive: users.isActive,
+        count: count(),
+      })
+      .from(users)
+      .where(and(isNull(users.deletedAt), ne(users.role, "master_admin")))
+      .groupBy(users.isActive)
+      .execute(),
+  ]);
 
-  const [countResult] = await db
-    .select({ count: count() })
-    .from(users)
-    .where(whereClause)
-    .execute();
-
-  // Stats query
-  const statsResult = await db
-    .select({
-      isActive: users.isActive,
-      count: count(),
-    })
-    .from(users)
-    .where(and(isNull(users.deletedAt), ne(users.role, "master_admin")))
-    .groupBy(users.isActive)
-    .execute();
+  const countResult = countRows[0];
 
   const counts: Record<string, number> = {
     all: 0,

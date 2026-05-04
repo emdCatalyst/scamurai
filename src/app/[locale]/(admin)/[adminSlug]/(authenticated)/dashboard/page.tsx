@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import DashboardClient from './DashboardClient';
 import { db } from '@/lib/db';
 import { applications, brands, orders, branches } from '@/lib/db/schema';
-import { eq, count, desc, gte } from 'drizzle-orm';
+import { eq, count, desc, gte, sql } from 'drizzle-orm';
 import { getTranslations, getFormatter } from 'next-intl/server';
 
 export default async function AdminDashboardPage() {
@@ -27,47 +27,90 @@ async function DashboardDataWrapper() {
   const startOfToday = new Date(now);
   startOfToday.setHours(0,0,0,0);
 
-  // Fetch data sequentially to avoid connection pool exhaustion
-  const appStatsRaw = await db.select({
+  // Inclusive 30-day window ending today (29 days back + today = 30 days).
+  const trendsStart = new Date(startOfToday);
+  trendsStart.setDate(trendsStart.getDate() - 29);
+
+  const [
+    appStatsRaw,
+    brandCountRow,
+    monthOrders,
+    todayOrders,
+    weekOrders,
+    recentApplicationsRaw,
+    topBranchesRaw,
+    orderTrendsRaw,
+  ] = await Promise.all([
+    db.select({
       status: applications.status,
       count: count(),
-    }).from(applications).groupBy(applications.status).execute();
-    
-  const brandCountRow = await db.select({ count: count() })
+    }).from(applications).groupBy(applications.status).execute(),
+
+    db.select({ count: count() })
       .from(brands)
       .where(eq(brands.isActive, true))
-      .then(res => res[0]);
+      .then(res => res[0]),
 
-  const monthOrders = await db.select({ count: count() }).from(orders).where(gte(orders.submittedAt, firstDayOfMonth)).then(res => res[0]);
-  const todayOrders = await db.select({ count: count() }).from(orders).where(gte(orders.submittedAt, startOfToday)).then(res => res[0]);
-  const weekOrders = await db.select({ count: count() }).from(orders).where(gte(orders.submittedAt, firstDayOfWeek)).then(res => res[0]);
+    db.select({ count: count() }).from(orders).where(gte(orders.submittedAt, firstDayOfMonth)).then(res => res[0]),
+    db.select({ count: count() }).from(orders).where(gte(orders.submittedAt, startOfToday)).then(res => res[0]),
+    db.select({ count: count() }).from(orders).where(gte(orders.submittedAt, firstDayOfWeek)).then(res => res[0]),
 
-  const recentApplicationsRaw = await db.select({
+    db.select({
       id: applications.id,
       brandName: applications.brandName,
       plan: applications.plan,
       status: applications.status,
       submittedAt: applications.createdAt,
     })
-    .from(applications)
-    .orderBy(desc(applications.createdAt))
-    .limit(5)
-    .execute();
+      .from(applications)
+      .orderBy(desc(applications.createdAt))
+      .limit(5)
+      .execute(),
 
-  const topBranchesRaw = await db.select({
+    db.select({
       id: branches.id,
       branchName: branches.name,
       brandName: brands.name,
       orderCount: count(orders.id),
     })
-    .from(branches)
-    .innerJoin(brands, eq(branches.brandId, brands.id))
-    .leftJoin(orders, eq(orders.branchId, branches.id))
-    .where(gte(orders.submittedAt, firstDayOfMonth))
-    .groupBy(branches.id, brands.name)
-    .orderBy(desc(count(orders.id)))
-    .limit(5)
-    .execute();
+      .from(branches)
+      .innerJoin(brands, eq(branches.brandId, brands.id))
+      .leftJoin(orders, eq(orders.branchId, branches.id))
+      .where(gte(orders.submittedAt, firstDayOfMonth))
+      .groupBy(branches.id, brands.name)
+      .orderBy(desc(count(orders.id)))
+      .limit(5)
+      .execute(),
+
+    db.select({
+      day: sql<string>`to_char(date_trunc('day', ${orders.submittedAt}), 'YYYY-MM-DD')`.as('day'),
+      submitted: sql<number>`COUNT(*)::int`.as('submitted'),
+      approved: sql<number>`COUNT(*) FILTER (WHERE ${orders.status} = 'approved')::int`.as('approved'),
+      rejected: sql<number>`COUNT(*) FILTER (WHERE ${orders.status} = 'rejected')::int`.as('rejected'),
+    })
+      .from(orders)
+      .where(gte(orders.submittedAt, trendsStart))
+      .groupBy(sql`date_trunc('day', ${orders.submittedAt})`)
+      .execute(),
+  ]);
+
+  // Fill missing days so the line chart renders a continuous 30-day window
+  // even on days with no orders.
+  const trendsByDay = new Map(
+    orderTrendsRaw.map((r) => [r.day, r])
+  );
+  const orderTrends = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(trendsStart);
+    d.setDate(trendsStart.getDate() + i);
+    const key = d.toISOString().slice(0, 10);
+    const row = trendsByDay.get(key);
+    return {
+      date: key,
+      submitted: row ? Number(row.submitted) : 0,
+      approved: row ? Number(row.approved) : 0,
+      rejected: row ? Number(row.rejected) : 0,
+    };
+  });
   
   const applicationStats = { pending: 0, quoted: 0, approved: 0, rejected: 0 };
   appStatsRaw.forEach(row => {
@@ -113,10 +156,11 @@ async function DashboardDataWrapper() {
         <StatCard title={t('approvalRate')} value={`${approvalRate}%`} icon={TrendingUp} color={parseFloat(approvalRate) >= 50 ? 'mint' : 'red'} />
       </div>
 
-      <DashboardClient 
-        applicationStats={applicationStats} 
-        recentApplications={recentApplications} 
-        topBranches={topBranches} 
+      <DashboardClient
+        applicationStats={applicationStats}
+        recentApplications={recentApplications}
+        topBranches={topBranches}
+        orderTrends={orderTrends}
       />
     </div>
   );

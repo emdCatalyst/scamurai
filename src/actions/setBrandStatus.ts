@@ -106,7 +106,7 @@ export async function setBrandStatus({
           : t("suspensionBody", { brandName: brand.name });
 
         const appUrl = (
-          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+          process.env.APP_URL || "http://localhost:3000"
         ).replace(/\/$/, "");
         const ctaHref = isActive
           ? `${appUrl}/brands/${brand.slug}/login`

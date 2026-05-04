@@ -124,7 +124,7 @@ export async function approveApplication(
     // 4. Outside transaction: Send Clerk invite
     try {
       const clerk = await clerkClient();
-      const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+      const baseUrl = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
       const redirectUrl = `${baseUrl}/en/onboarding/brand-setup`;
       
       console.log(`[approveApplication] Sending Clerk invite to ${application.contactEmail} with redirect ${redirectUrl}`);

@@ -102,30 +102,31 @@ export async function getBrandUsers({
       break;
   }
 
-  const dbRows = await query.limit(pageSize).offset(offset).execute();
-
-  const [countResult] = await db
-    .select({ count: count() })
-    .from(users)
-    .where(whereClause)
-    .execute();
-
-  // Tab counts
-  const tabCountsResult = await db
-    .select({
-      role: users.role,
-      count: count(),
-    })
-    .from(users)
-    .where(
-      and(
-        eq(users.brandId, brandId),
-        isNull(users.deletedAt),
-        inArray(users.role, ["finance", "staff"])
+  const [dbRows, countRows, tabCountsResult] = await Promise.all([
+    query.limit(pageSize).offset(offset).execute(),
+    db
+      .select({ count: count() })
+      .from(users)
+      .where(whereClause)
+      .execute(),
+    db
+      .select({
+        role: users.role,
+        count: count(),
+      })
+      .from(users)
+      .where(
+        and(
+          eq(users.brandId, brandId),
+          isNull(users.deletedAt),
+          inArray(users.role, ["finance", "staff"])
+        )
       )
-    )
-    .groupBy(users.role)
-    .execute();
+      .groupBy(users.role)
+      .execute(),
+  ]);
+
+  const countResult = countRows[0];
 
   const tabCounts = {
     all: 0,

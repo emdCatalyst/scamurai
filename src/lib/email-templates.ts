@@ -15,7 +15,7 @@ const COMPANY = {
   tagline: "The Smart Order Verification Platform",
   supportEmail: "support@scamurai.com",
   websiteUrl: (
-    process.env.NEXT_PUBLIC_APP_URL || "https://scamurai.com"
+    process.env.APP_URL || "https://scamurai.com"
   ).replace(/\/$/, ""),
 };
 

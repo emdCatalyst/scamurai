@@ -21,6 +21,7 @@ export default function DashboardClient({
   applicationStats,
   recentApplications,
   topBranches,
+  orderTrends,
 }: any) {
   const params = useParams();
   const adminSlug = params.adminSlug as string;
@@ -35,13 +36,10 @@ export default function DashboardClient({
     { name: t('rejected'), value: applicationStats.rejected || 0, color: '#ef4444' },
   ];
 
-  // For the demo we keep the mock line data until a real query aggregates it
-  const lineData = Array.from({ length: 30 }).map((_, i) => ({
-    date: `Day ${i + 1}`,
-    submitted: Math.floor(Math.random() * 50) + 10,
-    approved: Math.floor(Math.random() * 30) + 5,
-    rejected: Math.floor(Math.random() * 10),
-  }));
+  const lineData = orderTrends ?? [];
+  const hasOrderTrends = lineData.some(
+    (d: { submitted: number }) => d.submitted > 0
+  );
 
   const maxBranchVolume = Math.max(...(topBranches.length ? topBranches.map((b: any) => b.orderCount) : [1]));
   const totalApps = pieData.reduce((a, b) => a + b.value, 0);
@@ -104,27 +102,33 @@ export default function DashboardClient({
             <span className="text-xs font-semibold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">{t('last30Days')}</span>
           </div>
           <div className="h-72 relative z-10 min-w-0" dir="ltr">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={lineData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorSubmitted" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0f172a" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#0f172a" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="date" hide />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 500 }} dy={-4} orientation={isAr ? 'right' : 'left'} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', padding: '12px 16px', direction: isAr ? 'rtl' : 'ltr' }}
-                  labelStyle={{ display: 'none' }}
-                  itemStyle={{ fontWeight: 600, fontSize: '13px' }}
-                />
-                <Line type="monotone" name={t('submitted')} dataKey="submitted" stroke="#0f172a" strokeWidth={3} dot={false} activeDot={{ r: 6, strokeWidth: 0, fill: '#0f172a' }} />
-                <Line type="monotone" name={t('approved')} dataKey="approved" stroke="#10b981" strokeWidth={3} dot={false} activeDot={{ r: 6, strokeWidth: 0, fill: '#10b981' }} />
-                <Line type="monotone" name={t('rejected')} dataKey="rejected" stroke="#ef4444" strokeWidth={3} dot={false} activeDot={{ r: 6, strokeWidth: 0, fill: '#ef4444' }} />
-              </LineChart>
-            </ResponsiveContainer>
+            {hasOrderTrends ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={lineData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorSubmitted" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#0f172a" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#0f172a" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="date" hide />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 500 }} dy={-4} orientation={isAr ? 'right' : 'left'} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', padding: '12px 16px', direction: isAr ? 'rtl' : 'ltr' }}
+                    labelStyle={{ display: 'none' }}
+                    itemStyle={{ fontWeight: 600, fontSize: '13px' }}
+                  />
+                  <Line type="monotone" name={t('submitted')} dataKey="submitted" stroke="#0f172a" strokeWidth={3} dot={false} activeDot={{ r: 6, strokeWidth: 0, fill: '#0f172a' }} />
+                  <Line type="monotone" name={t('approved')} dataKey="approved" stroke="#10b981" strokeWidth={3} dot={false} activeDot={{ r: 6, strokeWidth: 0, fill: '#10b981' }} />
+                  <Line type="monotone" name={t('rejected')} dataKey="rejected" stroke="#ef4444" strokeWidth={3} dot={false} activeDot={{ r: 6, strokeWidth: 0, fill: '#ef4444' }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-slate-400 font-medium">
+                {t('noOrderData')}
+              </div>
+            )}
           </div>
           <div className="flex flex-wrap justify-center gap-4 md:gap-6 mt-8 relative z-10">
             <div className="flex items-center gap-2.5">

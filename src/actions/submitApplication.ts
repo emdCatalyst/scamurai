@@ -105,7 +105,7 @@ export async function submitApplication(
     const superAdminEmail = process.env.SUPER_ADMIN_EMAIL;
     if (superAdminEmail) {
       const appUrl = (
-        process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        process.env.APP_URL || 'http://localhost:3000'
       ).replace(/\/$/, '');
       const adminSlug = process.env.ADMIN_SLUG || 'admin';
       const reviewUrl = `${appUrl}/${adminSlug}/applications`;

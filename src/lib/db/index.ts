@@ -9,18 +9,24 @@ const globalForDb = globalThis as unknown as {
   conn: postgres.Sql | undefined;
 };
 
+// Direct connection to Postgres (port 5432, host db.<ref>.supabase.co).
+// We deliberately do not use Supavisor's transaction pooler (port 6543) —
+// the `prepare:false` constraint plus stuck-socket bugs caused intermittent
+// page hangs that did not surface as errors. With direct connection,
+// prepared statements work normally and stuck queries are bounded by
+// `statement_timeout`.
 const client = globalForDb.conn ?? postgres(connectionString, {
-  max: 1,
+  max: 3,
   ssl: 'require',
   connect_timeout: 30,
   idle_timeout: 20,
-  // Recycle connections before Supavisor's idle reaper closes them from its
-  // side. Without this, the cached client holds a Sql instance whose underlying
-  // socket has been killed by the pooler — next query either hangs forever or
-  // surfaces as `error in input stream`.
-  max_lifetime: 60 * 10,
-  prepare: false,
   onnotice: () => {},
+  // Server-side timeout: if any single query takes longer than 10s, Postgres
+  // cancels it and the connection returns to the pool. This is the safety net
+  // that prevents a single hung query from pinning a connection forever.
+  connection: {
+    statement_timeout: 10_000,
+  },
 });
 
 if (process.env.NODE_ENV !== 'production') globalForDb.conn = client;
