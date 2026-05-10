@@ -42,6 +42,10 @@ export default function ChangePasswordPage() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [serverError, setServerError] = useState("");
+  // Stays true from the moment the password is saved until the destination
+  // page actually renders (this component unmounts). Prevents the homepage /
+  // dashboard from flashing during the redirect chain through middleware.
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const {
     register,
@@ -95,6 +99,10 @@ export default function ChangePasswordPage() {
       }
 
       toast(t("successToast"), "success");
+
+      // Cover the redirect transition (this page → middleware → destination)
+      // with a full-screen loader so the user doesn't see other pages flash.
+      setIsRedirecting(true);
 
       const role = user.publicMetadata.role as string | undefined;
       const dest =
@@ -152,6 +160,23 @@ export default function ChangePasswordPage() {
         isAr ? "font-arabic" : "font-sans"
       )}
     >
+      {isRedirecting && (
+        <div
+          className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 bg-[var(--brand-background)]/95 backdrop-blur-sm"
+          role="status"
+          aria-live="polite"
+        >
+          <Loader2
+            className="animate-spin text-[var(--brand-primary)]"
+            size={36}
+            strokeWidth={1.5}
+          />
+          <span className="text-sm font-medium text-[var(--brand-surface-fg-muted)]">
+            {t("redirecting")}
+          </span>
+        </div>
+      )}
+
       <div
         className="absolute inset-x-0 top-0 h-72 pointer-events-none opacity-30"
         style={{

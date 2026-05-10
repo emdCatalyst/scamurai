@@ -87,6 +87,13 @@ function buildOrdersWhere(params: GetOrdersParams): SQL | undefined {
   const filters: SQL[] = [
     eq(orders.brandId, params.brandId),
     isNull(orders.deletedAt),
+    // Exclude orders whose image upload never completed. The `upload-urls`
+    // endpoint inserts the order row before storage upload; an order without
+    // both images is an abandoned in-flight submission, not a real order.
+    sql`(
+      SELECT COUNT(*) FROM ${orderImages}
+      WHERE ${orderImages.orderId} = ${orders.id}
+    ) >= 2`,
   ];
 
   if (params.branchId) {

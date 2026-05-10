@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import {
   LayoutDashboard,
@@ -15,10 +15,12 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Smartphone,
+  Loader2,
 } from 'lucide-react';
 import { useClerk } from '@clerk/nextjs';
 import { useTranslations } from 'next-intl';
 import { Suspense } from 'react';
+import LocaleSwitcher from '@/components/ui/LocaleSwitcher';
 
 export default function AdminShell({
   children,
@@ -35,11 +37,11 @@ export default function AdminShell({
 }) {
   const pathname = usePathname();
   const { signOut } = useClerk();
-  const router = useRouter();
   const t = useTranslations('admin.shell');
   
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -84,18 +86,40 @@ export default function AdminShell({
   ) || NAV_ITEMS[0];
 
   const handleLogout = async () => {
-    await signOut();
-    router.push(`/${locale}`);
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    // Send Clerk straight to the admin login so the user doesn't see a flash
+    // of the marketing root or `/en` mid-redirect.
+    await signOut({ redirectUrl: `/${locale}/${adminSlug}/login` });
   };
 
   const isAr = locale === 'ar';
 
   return (
-    <div 
-      className={`flex h-screen w-full bg-[#f8fafc] font-sans text-slate-800 overflow-hidden ${isAr ? 'font-arabic' : 'font-sans'}`} 
+    <div
+      className={`flex h-screen w-full bg-[#f8fafc] font-sans text-slate-800 overflow-hidden ${isAr ? 'font-arabic' : 'font-sans'}`}
       dir={isAr ? 'rtl' : 'ltr'}
       suppressHydrationWarning
     >
+      {/* Sign-out loader — covers the screen while Clerk clears the session
+          and redirects, so the user doesn't see a flash of `/en` mid-redirect. */}
+      {isLoggingOut && (
+        <div
+          className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 bg-white/95 backdrop-blur-sm"
+          role="status"
+          aria-live="polite"
+        >
+          <Loader2
+            className="animate-spin text-sky"
+            size={36}
+            strokeWidth={1.5}
+          />
+          <span className="text-sm font-medium text-slate-500">
+            {t('signingOut')}
+          </span>
+        </div>
+      )}
+
       {/* Mobile overlay */}
       {!isCollapsed && (
         <div 
@@ -240,7 +264,8 @@ export default function AdminShell({
               {t(currentNav.id as any)}
             </h1>
           </div>
-          <div className="flex items-center space-x-6 space-x-reverse">
+          <div className="flex items-center gap-4">
+            <LocaleSwitcher />
             <button className="relative text-slate-400 hover:text-slate-700 transition-colors">
               <Bell size={22} strokeWidth={1.5} />
               <span className={`absolute top-0 ${isAr ? 'left-0' : 'right-0'} w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full`}></span>

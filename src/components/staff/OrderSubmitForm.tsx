@@ -76,7 +76,7 @@ export default function OrderSubmitForm({
     try {
       // 1. Show success state immediately (optimistic)
       setShowSuccess(true);
-      
+
       // 2. Background task: Compress and Queue
       const processSubmission = async () => {
         setIsBackgroundUploading(true);
@@ -85,8 +85,8 @@ export default function OrderSubmitForm({
         try {
           // Compress images in parallel
           const [sealedBlob, openedBlob] = await Promise.all([
-            compressImage(sealedPhoto),
-            compressImage(openedPhoto),
+            compressImage(sealedPhoto!),
+            compressImage(openedPhoto!),
           ]);
 
           const pendingOrder: PendingOrder = {
@@ -106,7 +106,7 @@ export default function OrderSubmitForm({
 
           // Try immediate upload
           const result = await uploadOrder(pendingOrder);
-          
+
           if (!result.success) {
             // If failed, enqueue for background retry
             await imageQueue.enqueue(pendingOrder);
@@ -114,8 +114,6 @@ export default function OrderSubmitForm({
           }
         } catch (err) {
           console.error("Background processing failed:", err);
-          // Fallback: save raw images if compression failed? 
-          // For now, we just fail and the worker might need to retry if it's critical.
         } finally {
           setIsBackgroundUploading(false);
           // Keep success overlay for 1.5s total
@@ -126,7 +124,6 @@ export default function OrderSubmitForm({
       };
 
       processSubmission();
-
     } catch (err) {
       console.error("Submission error:", err);
       setError(t('errorGeneral'));

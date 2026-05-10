@@ -5,85 +5,138 @@ import { orders, orderImages, users } from "@/lib/db/schema";
 import { getSupabase } from "@/lib/supabase";
 import { eq, and, isNull } from "drizzle-orm";
 
+const BUCKET = "order-images";
+
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
+  const { orderId } = await params;
+  const LOG = `[POST /api/orders/${orderId}/confirm]`;
+
   try {
     const { userId: clerkUserId, brandId } = await requireAuth(["staff"]);
-    const { orderId } = await params;
+    if (!brandId) {
+      return NextResponse.json({ error: "User has no brand" }, { status: 403 });
+    }
 
     const body = await req.json();
-    const { sealedStoragePath, openedStoragePath } = body;
+    const { sealedStoragePath, openedStoragePath } = body as {
+      sealedStoragePath?: string;
+      openedStoragePath?: string;
+    };
 
-    // 1. Get user details from DB
+    if (!sealedStoragePath || !openedStoragePath) {
+      return NextResponse.json(
+        { error: "sealedStoragePath and openedStoragePath are required" },
+        { status: 400 }
+      );
+    }
+
     const user = await db.query.users.findFirst({
       where: and(eq(users.clerkUserId, clerkUserId), isNull(users.deletedAt)),
     });
-
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // 2. Verify order belongs to this brand and was created by this user
     const order = await db.query.orders.findFirst({
       where: and(
         eq(orders.id, orderId),
-        eq(orders.brandId, brandId as string),
+        eq(orders.brandId, brandId),
         eq(orders.submittedBy, user.id)
       ),
     });
-
     if (!order) {
-      return NextResponse.json({ error: "Order not found or unauthorized" }, { status: 404 });
+      console.error(`${LOG} order not found or unauthorized for user=${user.id} brand=${brandId}`);
+      return NextResponse.json(
+        { error: "Order not found or unauthorized" },
+        { status: 404 }
+      );
     }
 
-    // 3. Create order_images entries
+    // Idempotency: if images already inserted (e.g. confirm was retried), succeed.
+    const existing = await db.query.orderImages.findMany({
+      where: eq(orderImages.orderId, orderId),
+      columns: { id: true },
+    });
+    if (existing.length >= 2) {
+      console.log(`${LOG} already confirmed (${existing.length} images present), no-op`);
+      return NextResponse.json({ success: true, alreadyConfirmed: true });
+    }
+
+    // Verify both files actually exist in storage before writing DB rows.
+    // This prevents a phantom-image row when the PUT silently failed.
     const supabase = getSupabase();
-    
-    const getPublicUrl = (path: string) => {
-      const { data } = supabase.storage.from('order-images').getPublicUrl(path);
-      // NOTE: GEMINI.md says images should be served via signed URLs, but 
-      // the schema has storageUrl. For now we use public URL if bucket is public,
-      // or we might need a different strategy if it's private.
-      // GEMINI.md says: "Private bucket — images served via signed URLs (1-hour expiry), never public."
-      // So storageUrl should probably be a signed URL or we generate it on the fly in queries.
-      // For now, let's store the path and a dummy URL or the public one if it exists.
-      return data.publicUrl;
+    const verifyExists = async (path: string) => {
+      // list() with limit=1 + exact filename gives a cheap existence check.
+      const lastSlash = path.lastIndexOf("/");
+      const dir = lastSlash >= 0 ? path.slice(0, lastSlash) : "";
+      const name = lastSlash >= 0 ? path.slice(lastSlash + 1) : path;
+      const { data, error } = await supabase.storage
+        .from(BUCKET)
+        .list(dir, { limit: 1, search: name });
+      if (error) throw new Error(`storage list failed for ${path}: ${error.message}`);
+      return !!data && data.some((f) => f.name === name);
     };
 
-    // We insert the images
-    await db.insert(orderImages).values([
-      {
-        brandId: brandId as string,
-        orderId,
-        type: 'sealed',
-        storagePath: sealedStoragePath,
-        storageUrl: getPublicUrl(sealedStoragePath),
-      },
-      {
-        brandId: brandId as string,
-        orderId,
-        type: 'opened',
-        storagePath: openedStoragePath,
-        storageUrl: getPublicUrl(openedStoragePath),
-      }
+    const [sealedOk, openedOk] = await Promise.all([
+      verifyExists(sealedStoragePath),
+      verifyExists(openedStoragePath),
     ]);
 
-    // 4. Update order submitted_at to confirm completion
-    await db.update(orders)
-      .set({ 
-        submittedAt: new Date(),
-        updatedAt: new Date() 
-      })
+    if (!sealedOk || !openedOk) {
+      const missing = [
+        !sealedOk ? sealedStoragePath : null,
+        !openedOk ? openedStoragePath : null,
+      ].filter(Boolean);
+      console.error(`${LOG} missing in storage:`, missing);
+      return NextResponse.json(
+        { error: `Uploaded files not found in storage: ${missing.join(", ")}` },
+        { status: 422 }
+      );
+    }
+
+    // Bucket is private — images are served via signed URLs at read time.
+    // We persist only the storagePath; storageUrl is kept as an empty string
+    // because the column is NOT NULL but the URL is generated on demand.
+    try {
+      await db.insert(orderImages).values([
+        {
+          brandId,
+          orderId,
+          type: "sealed",
+          storagePath: sealedStoragePath,
+          storageUrl: "",
+        },
+        {
+          brandId,
+          orderId,
+          type: "opened",
+          storagePath: openedStoragePath,
+          storageUrl: "",
+        },
+      ]);
+    } catch (dbErr) {
+      console.error(`${LOG} order_images insert failed:`, dbErr);
+      return NextResponse.json(
+        { error: "Failed to record uploaded images" },
+        { status: 500 }
+      );
+    }
+
+    await db
+      .update(orders)
+      .set({ submittedAt: new Date(), updatedAt: new Date() })
       .where(eq(orders.id, orderId));
 
+    console.log(`${LOG} success`);
     return NextResponse.json({ success: true });
-
   } catch (err) {
-    console.error('[PATCH /api/orders/[orderId]/confirm] Error:', err);
-    return NextResponse.json({ 
-      error: err instanceof Error ? err.message : "Internal Server Error" 
-    }, { status: 500 });
+    console.error(`${LOG} Error:`, err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

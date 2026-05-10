@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import { users, brands } from "@/lib/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
 import { requireAuth } from "@/lib/auth";
 import { countNonDeletedUsers, getBrandUserLimit } from "@/lib/queries/brandUsers";
@@ -120,6 +120,16 @@ export async function createBrandUser(data: {
         process.env.APP_URL || "http://localhost:3000"
       ).replace(/\/$/, "");
 
+      // Resolve brand slug so the sign-in link points at the brand's login,
+      // not the app root.
+      const brandRow = await db.query.brands.findFirst({
+        where: eq(brands.id, brandId),
+        columns: { slug: true },
+      });
+      const loginUrl = brandRow?.slug
+        ? `${appUrl}/en/brands/${brandRow.slug}/login`
+        : appUrl;
+
       const html = renderEmail({
         preheader: `Your Scamurai account is ready. Temporary password inside.`,
         bodyHtml: [
@@ -129,7 +139,7 @@ export async function createBrandUser(data: {
             "Your Scamurai account has been created. Use the temporary password below to sign in. You'll be prompted to set a permanent password on your first login."
           ),
           emailCallout("Temporary password", tempPassword),
-          emailButton(appUrl, "Sign in to Scamurai"),
+          emailButton(loginUrl, "Sign in to Scamurai"),
           emailMutedNote(
             "If you weren't expecting this email, please contact your brand administrator. Treat this password like cash — never share it with anyone."
           ),

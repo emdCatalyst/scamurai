@@ -39,6 +39,16 @@ export default function InviteAcceptForm({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [serverError, setServerError] = useState("");
+  // Stays true from successful signUp until the browser navigates away.
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  // Silently drop any active sessions without triggering Clerk's default
+  // post-signOut navigation to "/" (which causes a visible flash of the
+  // home page before the invite flow continues).
+  const clearActiveSessions = async () => {
+    const sessions = client?.sessions ?? [];
+    await Promise.all(sessions.map((s) => s.remove().catch(() => {})));
+  };
 
   const {
     register,
@@ -61,6 +71,13 @@ export default function InviteAcceptForm({
     }
 
     try {
+      // If the browser already has an active Clerk session (a stale brand
+      // owner, a master admin in the same browser, etc.) the ticket-based
+      // signUp.create will fail because Clerk only allows one active
+      // session at a time. Silently remove existing sessions instead of
+      // calling signOut() (which navigates to "/" and causes a flash).
+      await clearActiveSessions();
+
       const result = await client.signUp.create({
         strategy: "ticket",
         ticket,
@@ -73,9 +90,13 @@ export default function InviteAcceptForm({
       }
 
       await setActive({ session: result.createdSessionId });
+      // Show the loader BEFORE the hard navigation so the user doesn't see
+      // any blank/home flash while cookies propagate and brand-setup loads.
+      setIsRedirecting(true);
       // Drop the ticket params and let the now-signed-in flow proceed
       // into the BrandSetup wizard.
       window.location.replace(`/${locale}/onboarding/brand-setup`);
+      return;
     } catch (err) {
       const clerkErr = err as ClerkErrorShape;
       const code = clerkErr.errors?.[0]?.code;
@@ -110,6 +131,23 @@ export default function InviteAcceptForm({
         isAr ? "font-arabic" : "font-sans"
       )}
     >
+      {isRedirecting && (
+        <div
+          className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 bg-[#0A1628]/95 backdrop-blur-sm"
+          role="status"
+          aria-live="polite"
+        >
+          <Loader2
+            className="animate-spin text-[#4fc5df]"
+            size={36}
+            strokeWidth={1.5}
+          />
+          <span className="text-sm font-medium text-white/70">
+            {t("redirecting")}
+          </span>
+        </div>
+      )}
+
       <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl">
         <div className="w-16 h-16 bg-[#4fc5df]/15 text-[#4fc5df] rounded-2xl flex items-center justify-center mb-6 mx-auto">
           <ShieldCheck size={32} strokeWidth={1.5} />

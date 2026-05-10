@@ -19,6 +19,9 @@ export type BrandRow = {
   brandColors: BrandColors | null;
   createdAt: Date;
   branchCount: number;
+  userCount: number;
+  customMaxBranches: number | null;
+  customMaxUsers: number | null;
   brandAdminEmail: string | null;
   brandAdminJoinedAt: Date | null;
   onboardingComplete: boolean | null;
@@ -68,14 +71,25 @@ export async function getBrands({
   const branchCountSub = db
     .select({
       brandId: branches.brandId,
-      count: count(branches.id).as("count"),
+      count: count(branches.id).as("branch_count"),
     })
     .from(branches)
     .where(isNull(branches.deletedAt))
     .groupBy(branches.brandId)
     .as("branch_counts");
 
-  // Query for brands joined with brand admin and branch count
+  // Subquery for user count (non-deleted users per brand).
+  const userCountSub = db
+    .select({
+      brandId: users.brandId,
+      count: count(users.id).as("user_count"),
+    })
+    .from(users)
+    .where(isNull(users.deletedAt))
+    .groupBy(users.brandId)
+    .as("user_counts");
+
+  // Query for brands joined with brand admin and counts
   const query = db
     .select({
       id: brands.id,
@@ -87,6 +101,9 @@ export async function getBrands({
       brandColors: brands.brandColors,
       createdAt: brands.createdAt,
       branchCount: sql<number>`COALESCE(${branchCountSub.count}, 0)`,
+      userCount: sql<number>`COALESCE(${userCountSub.count}, 0)`,
+      customMaxBranches: brands.customMaxBranches,
+      customMaxUsers: brands.customMaxUsers,
       brandAdminEmail: users.email,
       brandAdminJoinedAt: users.joinedAt,
       onboardingComplete: users.onboardingComplete,
@@ -97,6 +114,7 @@ export async function getBrands({
       and(eq(users.brandId, brands.id), eq(users.role, "brand_admin"))
     )
     .leftJoin(branchCountSub, eq(branchCountSub.brandId, brands.id))
+    .leftJoin(userCountSub, eq(userCountSub.brandId, brands.id))
     .where(whereClause);
 
   // Sorting
@@ -156,6 +174,7 @@ export async function getBrands({
     rows: rows.map(row => ({
       ...row,
       branchCount: Number(row.branchCount),
+      userCount: Number(row.userCount),
     })) as BrandRow[],
     total: Number(countResult.count),
     counts,

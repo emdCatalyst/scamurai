@@ -7,9 +7,9 @@ import { eq, and, isNull } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { LogOut } from "lucide-react";
-import { SignOutButton } from "@clerk/nextjs";
+import StaffSignOutButton from "@/components/staff/StaffSignOutButton";
 import OrderSubmitForm from "@/components/staff/OrderSubmitForm";
-import OfflineQueueBanner from "@/components/staff/OfflineQueueBanner";
+import LocaleSwitcher from "@/components/ui/LocaleSwitcher";
 import { deriveBrandTokens, DEFAULT_BRAND_COLORS } from "@/lib/brandTokens";
 
 export default async function StaffSubmitPage({
@@ -58,11 +58,12 @@ export default async function StaffSubmitPage({
         <p className="text-[var(--brand-surface-fg-muted)] mb-6">
           {t('noBranchDesc')}
         </p>
-        <SignOutButton signOutOptions={{ redirectUrl: `/${locale}/brands/${brandSlug}/login` }}>
-          <button className="text-[var(--brand-primary)] font-semibold">
-            {t('signOut')}
-          </button>
-        </SignOutButton>
+        <StaffSignOutButton
+          redirectUrl={`/${locale}/brands/${brandSlug}/login`}
+          className="text-[var(--brand-primary)] font-semibold"
+        >
+          {t('signOut')}
+        </StaffSignOutButton>
       </div>
     );
   }
@@ -105,14 +106,16 @@ export default async function StaffSubmitPage({
           </div>
         </div>
 
-        <SignOutButton signOutOptions={{ redirectUrl: `/${locale}/brands/${brandSlug}/login` }}>
-          <button className="rounded-full p-2 text-[var(--brand-background-fg-muted)] hover:bg-[var(--brand-background-active)] hover:text-[var(--brand-background-fg)] transition-colors">
+        <div className="flex items-center gap-2">
+          <LocaleSwitcher className="border-[var(--brand-border)] bg-[var(--brand-background)]/40 text-[var(--brand-background-fg-muted)] hover:text-[var(--brand-background-fg)]" />
+          <StaffSignOutButton
+            redirectUrl={`/${locale}/brands/${brandSlug}/login`}
+            className="rounded-full p-2 text-[var(--brand-background-fg-muted)] hover:bg-[var(--brand-background-active)] hover:text-[var(--brand-background-fg)] transition-colors"
+          >
             <LogOut className="h-5 w-5" />
-          </button>
-        </SignOutButton>
+          </StaffSignOutButton>
+        </div>
       </header>
-
-      <OfflineQueueBanner />
 
       <main className="mx-auto max-w-md">
         <OrderSubmitForm 

@@ -20,24 +20,29 @@ export default async function BrandSetupPage(props: {
   const { locale } = await props.params;
   const searchParams = await props.searchParams;
 
-  if (!userId) {
-    // If the URL contains a Clerk invitation ticket, render the custom
-    // set-password form so the invitee can finish account setup.
-    const ticket =
-      typeof searchParams.__clerk_ticket === 'string'
-        ? searchParams.__clerk_ticket
-        : undefined;
+  // If the URL contains a Clerk invitation ticket, ALWAYS render the custom
+  // set-password form. We do this even if a different Clerk session already
+  // exists in the browser (e.g. a master admin signed in in the same browser,
+  // or a stale session from an old invite) — otherwise the invitee gets
+  // misidentified as the existing user and bounced to '/'. The form itself
+  // signs the existing session out before consuming the ticket.
+  const ticket =
+    typeof searchParams.__clerk_ticket === 'string'
+      ? searchParams.__clerk_ticket
+      : undefined;
 
-    if (ticket) {
-      return (
-        <main
-          className="min-h-screen flex items-center justify-center p-4"
-          style={{ background: '#060f1a' }}
-        >
-          <InviteAcceptForm ticket={ticket} locale={locale} />
-        </main>
-      );
-    }
+  if (ticket) {
+    return (
+      <main
+        className="min-h-screen flex items-center justify-center p-4"
+        style={{ background: '#060f1a' }}
+      >
+        <InviteAcceptForm ticket={ticket} locale={locale} />
+      </main>
+    );
+  }
+
+  if (!userId) {
     // No login and no ticket? Send them home.
     redirect('/');
   }
@@ -45,16 +50,114 @@ export default async function BrandSetupPage(props: {
   let role = sessionClaims?.metadata?.role as string | undefined;
   let brandId = sessionClaims?.metadata?.brandId as string | undefined;
 
-  // Fallback: the session claims might not have updated yet right after signing up
+  // 1st fallback: session JWT claims may not have refreshed yet right after
+  // signing up. Pull straight from Clerk's user record.
   if (!role || !brandId) {
-    const clerk = await clerkClient();
-    const clerkUser = await clerk.users.getUser(userId);
-    role = clerkUser.publicMetadata?.role as string | undefined;
-    brandId = clerkUser.publicMetadata?.brandId as string | undefined;
+    try {
+      const clerk = await clerkClient();
+      const clerkUser = await clerk.users.getUser(userId);
+      role = (clerkUser.publicMetadata?.role as string | undefined) ?? role;
+      brandId = (clerkUser.publicMetadata?.brandId as string | undefined) ?? brandId;
+    } catch (err) {
+      console.warn('[brand-setup] Clerk getUser fallback failed:', err);
+    }
+  }
+
+  // 2nd fallback: trust our own DB. `approveApplication` writes the
+  // brand_admin row + brand id BEFORE the Clerk invite is sent, so by the
+  // time the invitee lands here we always have an authoritative row. If
+  // Clerk's invitation→user metadata transfer hasn't happened (or Clerk's
+  // webhook hasn't linked clerkUserId yet) we self-heal both sides instead
+  // of bouncing them to '/'.
+  if (role !== 'brand_admin' || !brandId) {
+    try {
+      const clerk = await clerkClient();
+      const clerkUser = await clerk.users.getUser(userId);
+      const email = clerkUser.emailAddresses[0]?.emailAddress?.toLowerCase();
+
+      let dbUser:
+        | {
+            id: string;
+            role: string;
+            brandId: string | null;
+            isActive: boolean;
+            clerkUserId: string | null;
+          }
+        | undefined;
+
+      // Match by clerkUserId first (set by the user.created webhook), then
+      // by email (set by approveApplication, before the webhook fires).
+      const [byClerk] = await db
+        .select({
+          id: users.id,
+          role: users.role,
+          brandId: users.brandId,
+          isActive: users.isActive,
+          clerkUserId: users.clerkUserId,
+        })
+        .from(users)
+        .where(eq(users.clerkUserId, userId))
+        .limit(1);
+      dbUser = byClerk;
+
+      if (!dbUser && email) {
+        const [byEmail] = await db
+          .select({
+            id: users.id,
+            role: users.role,
+            brandId: users.brandId,
+            isActive: users.isActive,
+            clerkUserId: users.clerkUserId,
+          })
+          .from(users)
+          .where(eq(users.email, email))
+          .limit(1);
+        dbUser = byEmail;
+      }
+
+      if (dbUser?.role === 'brand_admin' && dbUser.brandId && dbUser.isActive) {
+        role = 'brand_admin';
+        brandId = dbUser.brandId;
+
+        // Heal Clerk's publicMetadata so subsequent requests have the role
+        // in the JWT and the proxy / requireAuth fast-paths work.
+        try {
+          await clerk.users.updateUser(userId, {
+            publicMetadata: {
+              ...clerkUser.publicMetadata,
+              role: 'brand_admin',
+              brandId: dbUser.brandId,
+              userIsActive: true,
+              brandIsActive: true,
+            },
+          });
+        } catch (healErr) {
+          console.warn('[brand-setup] Failed to heal Clerk publicMetadata:', healErr);
+        }
+
+        // Heal the DB row's clerkUserId link if the webhook hasn't yet.
+        if (!dbUser.clerkUserId) {
+          try {
+            await db
+              .update(users)
+              .set({ clerkUserId: userId, joinedAt: new Date() })
+              .where(eq(users.id, dbUser.id));
+          } catch (linkErr) {
+            console.warn('[brand-setup] Failed to link clerkUserId on DB row:', linkErr);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[brand-setup] DB-based role recovery failed:', err);
+    }
   }
 
   if (role !== 'brand_admin' || !brandId) {
-    // If they aren't a brand admin, they shouldn't be here
+    console.warn('[brand-setup] redirect to / — could not resolve brand_admin context', {
+      userId,
+      role,
+      brandId,
+    });
     redirect('/');
   }
 

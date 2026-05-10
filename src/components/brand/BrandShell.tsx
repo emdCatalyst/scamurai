@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import {
   LayoutDashboard,
@@ -15,9 +15,11 @@ import {
   Bell,
   PanelLeftClose,
   PanelLeftOpen,
+  Loader2,
 } from 'lucide-react';
 import { useClerk } from '@clerk/nextjs';
 import { useTranslations } from 'next-intl';
+import LocaleSwitcher from '@/components/ui/LocaleSwitcher';
 
 export default function BrandShell({
   children,
@@ -40,10 +42,10 @@ export default function BrandShell({
 }) {
   const pathname = usePathname();
   const { signOut } = useClerk();
-  const router = useRouter();
   const t = useTranslations('brand.shell');
   
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('scamurai_brand_sidebar_collapsed');
@@ -86,18 +88,40 @@ export default function BrandShell({
   ) || visibleNavItems[0];
 
   const handleLogout = async () => {
-    await signOut();
-    router.push(`/${locale}/brands/${brandSlug}/login`);
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    // Pass redirectUrl directly so Clerk navigates to the brand login instead
+    // of its default `/`, eliminating the homepage flash.
+    await signOut({ redirectUrl: `/${locale}/brands/${brandSlug}/login` });
   };
 
   const isAr = locale === 'ar';
 
   return (
-    <div 
-      className={`flex h-screen w-full bg-[var(--brand-background)] font-sans text-[var(--brand-surface-fg)] overflow-hidden ${isAr ? 'font-arabic' : 'font-sans'}`} 
+    <div
+      className={`flex h-screen w-full bg-[var(--brand-background)] font-sans text-[var(--brand-surface-fg)] overflow-hidden ${isAr ? 'font-arabic' : 'font-sans'}`}
       dir={isAr ? 'rtl' : 'ltr'}
       suppressHydrationWarning
     >
+      {/* Sign-out loader — covers the screen while Clerk clears the session
+          and redirects, so the user doesn't see a flash of the homepage. */}
+      {isLoggingOut && (
+        <div
+          className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 bg-[var(--brand-background)]/95 backdrop-blur-sm"
+          role="status"
+          aria-live="polite"
+        >
+          <Loader2
+            className="animate-spin text-[var(--brand-primary)]"
+            size={36}
+            strokeWidth={1.5}
+          />
+          <span className="text-sm font-medium text-[var(--brand-surface-fg-muted)]">
+            {t('signingOut')}
+          </span>
+        </div>
+      )}
+
       {/* Mobile overlay */}
       {!isCollapsed && (
         <div 
@@ -266,10 +290,11 @@ export default function BrandShell({
               {t(currentNav.id as Parameters<typeof t>[0])}
             </h1>
           </div>
-          <div className="flex items-center space-x-6 space-x-reverse">
+          <div className="flex items-center gap-4">
+            <LocaleSwitcher className="border-[var(--brand-border)] bg-[var(--brand-surface)] text-[var(--brand-surface-fg-muted)] hover:text-[var(--brand-surface-fg)]" />
             <button className="relative text-[var(--brand-surface-fg-muted)] hover:text-[var(--brand-surface-fg)] transition-colors">
               <Bell size={22} strokeWidth={1.5} />
-              <span 
+              <span
                 className={`absolute top-0 ${isAr ? 'left-0' : 'right-0'} w-2.5 h-2.5 border-2 border-[var(--brand-surface)] rounded-full`}
                 style={{ backgroundColor: 'var(--brand-danger)' }}
               ></span>

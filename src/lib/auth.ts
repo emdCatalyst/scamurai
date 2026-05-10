@@ -3,6 +3,12 @@ import { redirect } from 'next/navigation';
 
 export type UserRole = 'master_admin' | 'brand_admin' | 'finance' | 'staff';
 
+// Tracks whether we've already warned about missing metadata claims in this
+// server process. Without this, requireAuth spams the console once per
+// request whenever Clerk's session token isn't configured to include
+// `metadata` — see the docstring on requireAuth for the dashboard fix.
+let metadataClaimWarningEmitted = false;
+
 /**
  * Helper to fetch a user from Clerk with exponential backoff retry.
  * Handles transient 429 (Rate Limit) and 5xx errors.
@@ -37,9 +43,26 @@ async function getUserWithRetry(userId: string, retries = 3, delay = 500) {
   throw new Error('Clerk retry exhausted'); // Should not be reached due to throw in loop
 }
 
+/**
+ * Resolves the current user's role + brandId, preferring fast session-claim
+ * lookup with a Clerk API fallback.
+ *
+ * For best performance, configure Clerk's session token to include the
+ * user's public metadata (Clerk Dashboard → Sessions → Customize session
+ * token):
+ *
+ *   {
+ *     "metadata": "{{user.public_metadata}}",
+ *     "email": "{{user.primary_email_address}}",
+ *     "image": "{{user.image_url}}"
+ *   }
+ *
+ * Without that, every request hits Clerk's API for the user record and we
+ * emit a one-time warning on server start.
+ */
 export async function requireAuth(allowedRoles?: UserRole[]) {
   const { userId, sessionClaims } = await auth();
-  
+
   if (!userId) {
     redirect('/sign-in');
   }
@@ -49,11 +72,14 @@ export async function requireAuth(allowedRoles?: UserRole[]) {
 
   // Fallback to direct API if session claims are missing metadata
   if (!role) {
-    console.warn(`[Auth] Metadata missing from session claims for user ${userId}. Falling back to Clerk API.`, {
-      hasClaims: !!sessionClaims,
-      claimsKeys: sessionClaims ? Object.keys(sessionClaims) : [],
-      metadataKeys: sessionClaims?.metadata ? Object.keys(sessionClaims.metadata) : []
-    });
+    if (!metadataClaimWarningEmitted) {
+      metadataClaimWarningEmitted = true;
+      console.warn(
+        '[Auth] Session token does not include `metadata` claims; falling back to Clerk API on every authenticated request. ' +
+          'Fix by adding `"metadata": "{{user.public_metadata}}"` to the Clerk session-token template ' +
+          '(Dashboard → Sessions → Customize session token). This warning will only print once per server process.'
+      );
+    }
 
     try {
       const user = await getUserWithRetry(userId);

@@ -174,6 +174,7 @@
       "confirmPassword": "Confirm password",
       "submit": "Create my account",
       "submitting": "Creating account...",
+      "redirecting": "Setting things up...",
       "showPassword": "Show password",
       "hidePassword": "Hide password",
       "errors": {
@@ -226,6 +227,7 @@
       "passwordPlaceholder": "Password",
       "signIn": "Sign In",
       "signingIn": "Signing in...",
+      "redirecting": "Loading dashboard...",
       "accessDenied": "Access denied.",
       "incomplete": "Verification incomplete.",
       "invalid": "Invalid email or password.",
@@ -278,6 +280,7 @@
       "comingSoon": "Coming Soon",
       "platformAdmin": "Platform Admin",
       "logout": "Logout",
+      "signingOut": "Signing out...",
       "masterAdmin": "Master Admin"
     },
     "applications": {
@@ -401,11 +404,27 @@
         "suspend": "Suspend",
         "activate": "Activate",
         "viewDetails": "View Details",
+        "adjustLimits": "Adjust Limits",
         "confirmSuspend": "Are you sure you want to suspend this brand? This will prevent all users under this brand from accessing the platform immediately.",
         "confirmActivate": "Are you sure you want to reactivate this brand?",
         "successSuspended": "Brand suspended successfully.",
         "successActivated": "Brand activated successfully.",
         "error": "Failed to update brand status."
+      },
+      "limits": {
+        "title": "Adjust Limits",
+        "plan": "Plan",
+        "branches": "Branches",
+        "users": "Users",
+        "branchesLabel": "branches",
+        "usersLabel": "users",
+        "inUse": "In use",
+        "planDefault": "Plan default",
+        "useDefault": "Use plan default",
+        "belowUsage": "below current usage",
+        "save": "Save Changes",
+        "saved": "Brand limits updated.",
+        "error": "Failed to update brand limits."
       },
       "detail": {
         "slug": "Slug",
@@ -585,6 +604,7 @@
       "settings": "Settings",
       "comingSoon": "Coming Soon",
       "logout": "Log Out",
+      "signingOut": "Signing out...",
       "brand_admin": "Brand Admin",
       "finance": "Finance",
       "staff": "Staff"
@@ -606,11 +626,39 @@
         "emailInvalid": "Invalid email address.",
         "passwordRequired": "Password is required.",
         "passwordMin": "Password must be at least 8 characters.",
+        "passwordMax": "Password is too long.",
+        "confirmRequired": "Please confirm your password.",
+        "mismatch": "Passwords do not match.",
+        "codeInvalid": "Enter the 6-digit code from your email.",
         "invalid": "Invalid email or password.",
         "suspended": "This brand account is currently suspended.",
         "inactive": "Your user account is inactive.",
         "Unauthorized": "Session could not be established. Please try again.",
         "too_many_requests": "Too many attempts. Please try again later."
+      },
+      "forgot": {
+        "title": "Reset your password",
+        "subtitle": "Enter your email and we'll send you a 6-digit code.",
+        "email": "Email",
+        "sendCode": "Send code",
+        "sending": "Sending...",
+        "verifyTitle": "Enter the code",
+        "verifySubtitle": "We sent a 6-digit code to {email}. Enter it below along with your new password.",
+        "code": "6-digit code",
+        "newPassword": "New password",
+        "confirmPassword": "Confirm new password",
+        "submit": "Reset password",
+        "submitting": "Resetting...",
+        "resend": "Resend code",
+        "resending": "Resending...",
+        "resentToast": "A new code has been sent.",
+        "back": "Back to sign in",
+        "errors": {
+          "emailNotFound": "We couldn't find an account with that email.",
+          "codeIncorrect": "That code is incorrect or expired.",
+          "passwordPwned": "This password is too weak. Please choose a stronger",
+          "generic": "Something went wrong. Please try again."
+        }
       },
       "poweredBy": "Powered by"
     },
@@ -873,10 +921,12 @@
       },
       "password": {
         "title": "Change Password",
-        "message": "Password management will be available here soon.",
+        "message": "Choose a new password. You'll be asked to confirm your current one for security. Other active sessions will be signed out.",
         "newPassword": "New Password",
         "confirmPassword": "Confirm Password",
-        "save": "Update Password"
+        "save": "Update Password",
+        "saving": "Updating...",
+        "successToast": "Password updated successfully."
       },
       "plan": {
         "title": "Plan & Limits",
@@ -975,6 +1025,7 @@
       "submit": "Update Password",
       "submitting": "Updating...",
       "successToast": "Password updated successfully.",
+      "redirecting": "Setting things up...",
       "showPassword": "Show password",
       "hidePassword": "Hide password",
       "errors": {

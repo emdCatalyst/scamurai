@@ -7,6 +7,8 @@ export interface UploadResponse {
   error?: string;
 }
 
+const LOG = "[uploadOrder]";
+
 /**
  * Handles the full background upload flow for an order.
  * 1. Request presigned URLs from API
@@ -16,6 +18,7 @@ export interface UploadResponse {
 export async function uploadOrder(order: PendingOrder): Promise<UploadResponse> {
   try {
     // 1. Get presigned URLs
+    console.log(`${LOG} step 1: requesting upload URLs for orderNumber=${order.orderNumber}`);
     const urlResponse = await fetch('/api/orders/upload-urls', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -30,31 +33,43 @@ export async function uploadOrder(order: PendingOrder): Promise<UploadResponse> 
     });
 
     if (!urlResponse.ok) {
-      const errorData = await urlResponse.json();
-      throw new Error(errorData.error || 'Failed to get upload URLs');
+      const errorData = await urlResponse.json().catch(() => ({}));
+      const msg = errorData.error || `upload-urls returned ${urlResponse.status}`;
+      console.error(`${LOG} step 1 failed:`, msg, errorData);
+      throw new Error(msg);
     }
 
     const { orderId, orderNumber, sealedUploadUrl, openedUploadUrl } = await urlResponse.json();
+    console.log(`${LOG} step 1 ok: orderId=${orderId}`);
 
     // 2. Parallel upload directly to Supabase Storage
-    const uploadFile = async (url: string, blob: Blob) => {
+    const uploadFile = async (label: string, url: string, blob: Blob) => {
+      console.log(`${LOG} step 2 (${label}): PUT to storage, size=${blob.size}`);
       const res = await fetch(url, {
         method: 'PUT',
         body: blob,
         headers: {
           'Content-Type': 'image/jpeg',
           'cache-control': '3600',
+          'x-upsert': 'true',
         },
       });
-      if (!res.ok) throw new Error('Storage upload failed');
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        const msg = `Storage PUT (${label}) failed: ${res.status} ${res.statusText} ${text}`.trim();
+        console.error(`${LOG} step 2 (${label}) failed:`, msg);
+        throw new Error(msg);
+      }
+      console.log(`${LOG} step 2 (${label}) ok`);
     };
 
     await Promise.all([
-      uploadFile(sealedUploadUrl, order.sealedBlob),
-      uploadFile(openedUploadUrl, order.openedBlob),
+      uploadFile('sealed', sealedUploadUrl, order.sealedBlob),
+      uploadFile('opened', openedUploadUrl, order.openedBlob),
     ]);
 
     // 3. Confirm submission
+    console.log(`${LOG} step 3: confirming order ${orderId}`);
     const confirmResponse = await fetch(`/api/orders/${orderId}/confirm`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -65,13 +80,17 @@ export async function uploadOrder(order: PendingOrder): Promise<UploadResponse> 
     });
 
     if (!confirmResponse.ok) {
-      const errorData = await confirmResponse.json();
-      throw new Error(errorData.error || 'Failed to confirm order');
+      const errorData = await confirmResponse.json().catch(() => ({}));
+      const msg = errorData.error || `confirm returned ${confirmResponse.status}`;
+      console.error(`${LOG} step 3 failed:`, msg, errorData);
+      throw new Error(msg);
     }
+    console.log(`${LOG} step 3 ok: order ${orderId} confirmed`);
 
     return { success: true, orderId, orderNumber };
   } catch (err) {
-    console.error('[uploadOrder] Error:', err);
-    return { success: false, error: err instanceof Error ? err.message : 'Unknown upload error' };
+    const message = err instanceof Error ? err.message : 'Unknown upload error';
+    console.error(`${LOG} aborted:`, message);
+    return { success: false, error: message };
   }
 }
