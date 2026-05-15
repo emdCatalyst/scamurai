@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { users, brands } from "@/lib/db/schema";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { requireAuth } from "@/lib/auth";
 import { countNonDeletedUsers, getBrandUserLimit } from "@/lib/queries/brandUsers";
 import { clerkClient } from "@clerk/nextjs/server";
@@ -60,9 +60,12 @@ export async function createBrandUser(data: {
       columns: { id: true }
     });
 
-    // Check DB for existing user
+    // Check DB for existing user. The `email` column has a plain UNIQUE
+    // constraint, so soft-deleted rows still occupy the email. Match the
+    // constraint exactly to avoid creating an orphan Clerk user that the
+    // subsequent insert will reject.
     const existingDbUser = await db.query.users.findFirst({
-      where: and(eq(users.email, email), isNull(users.deletedAt)),
+      where: eq(users.email, email),
     });
     if (existingDbUser) {
       return { success: false, error: "User with this email already exists" };
@@ -111,6 +114,13 @@ export async function createBrandUser(data: {
       console.error("DB user insertion failed:", e);
       // Rollback clerk creation
       await client.users.deleteUser(clerkUser.id).catch(console.error);
+      // Postgres unique_violation — almost always the email constraint.
+      const pgCode =
+        (e as { code?: string; cause?: { code?: string } })?.code ??
+        (e as { cause?: { code?: string } })?.cause?.code;
+      if (pgCode === "23505") {
+        return { success: false, error: "User with this email already exists" };
+      }
       return { success: false, error: "Database error while creating user" };
     }
 
