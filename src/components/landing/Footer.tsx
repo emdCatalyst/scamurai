@@ -47,8 +47,8 @@ export default function Footer() {
           {/* Brand */}
           <div className="flex flex-col gap-5 lg:col-span-1">
             <div className="flex items-center gap-1.5">
-              <Image src="/logos/secondy logo 2.svg" alt="Scamurai" width={38} height={38} className="opacity-80" />
-              <Image src="/logos/primary logo 2.svg" alt="SCAMURAI" width={100} height={16} className="opacity-70" />
+              <Image src="/logos/secondy logo 2.svg" alt="Scamurai" width={38} height={38} className="opacity-80" style={{ height: 'auto' }} />
+              <Image src="/logos/primary logo 2.svg" alt="SCAMURAI" width={100} height={16} className="opacity-70" style={{ height: 'auto' }} />
             </div>
 
             <p className={`text-sm leading-relaxed text-white/35 ${isAr ? 'font-arabic' : ''}`}>

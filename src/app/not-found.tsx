@@ -2,7 +2,7 @@ import { poppins } from '@/lib/fonts';
 
 export default function NotFound() {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body className={poppins.className}>
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#f8fafc] p-4 text-center">
           <h2 className="text-4xl font-black text-[#172b49] mb-4 tracking-tighter">404</h2>

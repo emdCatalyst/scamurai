@@ -43,7 +43,7 @@ export function OrdersOverTimeChart({ data }: OrdersOverTimeChartProps) {
       </div>
 
       <div className="flex-1 w-full min-h-0">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <LineChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--brand-border)" opacity={0.5} />
             <XAxis 

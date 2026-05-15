@@ -59,7 +59,7 @@ export default function DashboardClient({
               </span>
               <span className="text-xs font-medium text-slate-400 uppercase tracking-widest mt-1">{t('totalApps')}</span>
             </div>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <PieChart>
                 <Pie
                   data={pieData}
@@ -103,7 +103,7 @@ export default function DashboardClient({
           </div>
           <div className="h-72 relative z-10 min-w-0" dir="ltr">
             {hasOrderTrends ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart data={lineData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorSubmitted" x1="0" y1="0" x2="0" y2="1">

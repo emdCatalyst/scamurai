@@ -146,6 +146,7 @@ export default function AdminShell({
               width={32}
               height={32}
               className="object-contain drop-shadow-[0_0_8px_rgba(79,197,223,0.4)]"
+              priority
             />
           </div>
           <div

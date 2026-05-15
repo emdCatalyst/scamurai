@@ -50,6 +50,7 @@ export default function SocialProofBar() {
             width={64}
             height={32}
             className="opacity-30"
+            style={{ height: 'auto' }}
           />
         </div>
       </div>

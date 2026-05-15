@@ -39,6 +39,7 @@ export default async function LocaleLayout({
       lang={locale}
       dir={locale === 'ar' ? 'rtl' : 'ltr'}
       className={`${poppins.variable} ${mono.variable} antialiased`}
+      data-scroll-behavior="smooth"
     >
       <body className="min-h-screen flex flex-col">
         <ClerkProvider>

@@ -23,6 +23,7 @@ export default function Vision2030Strip() {
           width={160}
           height={64}
           className="opacity-60 shrink-0"
+          style={{ height: 'auto' }}
         />
         <div className="h-px flex-1 bg-gradient-to-l from-transparent to-navy/10" />
       </div>
