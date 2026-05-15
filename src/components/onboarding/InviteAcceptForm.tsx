@@ -191,6 +191,8 @@ export default function InviteAcceptForm({
             </div>
           )}
 
+          <div id="clerk-captcha" className="flex justify-center empty:hidden" />
+
           <button
             type="submit"
             disabled={!isValid || isSubmitting}
