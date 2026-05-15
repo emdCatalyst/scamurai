@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Building2, Users, Settings2, RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -33,6 +34,11 @@ export default function BrandLimitsDialog({
     brand.customMaxUsers
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Reset local state whenever a different brand is opened.
   useEffect(() => {
@@ -79,7 +85,9 @@ export default function BrandLimitsDialog({
     }
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -204,7 +212,8 @@ export default function BrandLimitsDialog({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 
