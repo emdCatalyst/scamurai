@@ -46,6 +46,9 @@ export default function OrdersTable({ orders, hasActiveFilter }: OrdersTableProp
                 {t("submittedBy")}
               </th>
               <th className="text-start px-6 py-5 text-xs font-bold text-[var(--brand-surface-fg-muted)] uppercase tracking-wider">
+                {t("submittedByEmail")}
+              </th>
+              <th className="text-start px-6 py-5 text-xs font-bold text-[var(--brand-surface-fg-muted)] uppercase tracking-wider">
                 {t("amount")}
               </th>
               <th className="text-start px-6 py-5 text-xs font-bold text-[var(--brand-surface-fg-muted)] uppercase tracking-wider">

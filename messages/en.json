@@ -982,6 +982,7 @@
         "branch": "Branch",
         "deliveryApp": "Delivery App",
         "submittedBy": "Submitted By",
+        "submittedByEmail": "Email",
         "amount": "Amount",
         "submitted": "Submitted",
         "images": "Images",

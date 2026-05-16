@@ -64,6 +64,9 @@ export default function OrderRow({ order }: OrderRowProps) {
       <td className="px-6 py-4 text-sm text-[var(--brand-surface-fg)]">
         {order.submittedByName}
       </td>
+      <td className="px-6 py-4 text-sm text-[var(--brand-surface-fg-muted)]">
+        {order.submittedByEmail}
+      </td>
       <td className="px-6 py-4 text-sm font-semibold text-[var(--brand-surface-fg)] tabular-nums">
         {amountFormatted}
       </td>
