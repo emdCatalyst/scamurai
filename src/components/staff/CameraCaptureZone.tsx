@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef } from "react";
-import { Camera, RefreshCw } from "lucide-react";
+import { useRef, useState } from "react";
+import { Camera, RefreshCw, Eye } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import ImageLightbox from "@/components/brand/orders/ImageLightbox";
 
 import { useTranslations } from "next-intl";
 
@@ -22,6 +23,7 @@ export default function CameraCaptureZone({
 }: CameraCaptureZoneProps) {
   const t = useTranslations("brand.submit");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [reviewing, setReviewing] = useState(false);
 
   const handleClick = () => {
     fileInputRef.current?.click();
@@ -35,57 +37,76 @@ export default function CameraCaptureZone({
   };
 
   return (
-    <div
-      onClick={handleClick}
-      className={cn(
-        "relative flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all",
-        previewUrl 
-          ? "border-mint bg-mint/5" 
-          : "border-[var(--brand-border)] bg-[var(--brand-surface)] hover:bg-[var(--brand-background-active)]/5",
-        className
-      )}
-    >
-      <input
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-      />
+    <>
+      <div
+        onClick={previewUrl ? undefined : handleClick}
+        className={cn(
+          "relative flex h-32 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all",
+          previewUrl
+            ? "border-mint bg-mint/5"
+            : "cursor-pointer border-[var(--brand-border)] bg-[var(--brand-surface)] hover:bg-[var(--brand-background-active)]/5",
+          className
+        )}
+      >
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+        />
 
-      {previewUrl ? (
-        <div className="relative h-full w-full overflow-hidden rounded-lg">
-          <Image
-            src={previewUrl}
-            alt={label}
-            fill
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-black/20" />
-          <div className="absolute bottom-2 end-2">
-            <button
-              type="button"
-              className="flex items-center gap-1 rounded-full bg-[var(--brand-surface)]/90 px-3 py-1 text-xs font-medium text-[var(--brand-surface-fg)] shadow-sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleClick();
-              }}
-            >
-              <RefreshCw className="h-3 w-3" />
-              {t('retake')}
-            </button>
+        {previewUrl ? (
+          <div className="relative h-full w-full overflow-hidden rounded-lg">
+            <Image
+              src={previewUrl}
+              alt={label}
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-black/20" />
+            <div className="absolute bottom-2 end-2 flex items-center gap-2">
+              <button
+                type="button"
+                className="flex items-center gap-1 rounded-full bg-[var(--brand-surface)]/90 px-3 py-1 text-xs font-medium text-[var(--brand-surface-fg)] shadow-sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setReviewing(true);
+                }}
+              >
+                <Eye className="h-3 w-3" />
+                {t('review')}
+              </button>
+              <button
+                type="button"
+                className="flex items-center gap-1 rounded-full bg-[var(--brand-surface)]/90 px-3 py-1 text-xs font-medium text-[var(--brand-surface-fg)] shadow-sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClick();
+                }}
+              >
+                <RefreshCw className="h-3 w-3" />
+                {t('retake')}
+              </button>
+            </div>
+            <div className="absolute start-3 top-3 rounded-md bg-black/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+              {label}
+            </div>
           </div>
-          <div className="absolute start-3 top-3 rounded-md bg-black/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-            {label}
+        ) : (
+          <div className="flex flex-col items-center gap-2 text-[var(--brand-surface-fg-muted)]">
+            <Camera className="h-8 w-8" />
+            <span className="text-sm font-medium">{label}</span>
           </div>
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-2 text-[var(--brand-surface-fg-muted)]">
-          <Camera className="h-8 w-8" />
-          <span className="text-sm font-medium">{label}</span>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+
+      <ImageLightbox
+        src={reviewing && previewUrl ? previewUrl : null}
+        alt={label}
+        onClose={() => setReviewing(false)}
+      />
+    </>
   );
 }

@@ -1067,6 +1067,7 @@
       "notesOptional": "optional",
       "notesPlaceholder": "Add any internal notes...",
       "retake": "Retake",
+      "review": "Review",
       "errorGeneral": "Something went wrong. Please try again.",
       "pendingUploads": "{count} Pending Upload | {count} Pending Uploads",
       "syncNow": "Sync Now",
