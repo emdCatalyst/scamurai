@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
@@ -35,7 +34,7 @@ export default function ImageLightbox({ src, alt, onClose }: ImageLightboxProps)
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="absolute top-4 end-4 text-white/80 hover:text-white p-2 rounded-full bg-white/10 transition-colors"
+            className="absolute top-4 end-4 z-10 text-white/80 hover:text-white p-2 rounded-full bg-white/10 transition-colors"
           >
             <X size={24} />
           </button>
@@ -44,16 +43,17 @@ export default function ImageLightbox({ src, alt, onClose }: ImageLightboxProps)
             animate={{ scale: 1 }}
             exit={{ scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="relative w-full h-full max-w-5xl max-h-[90vh]"
+            className="relative flex w-full h-full max-w-5xl max-h-[90vh] items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <Image
+            {/* Use a plain <img> rather than next/image — the same component is
+                used by the staff capture screen with blob: URLs, which next/image
+                rejects even with `unoptimized`. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={src}
               alt={alt}
-              fill
-              sizes="100vw"
-              className="object-contain"
-              unoptimized
+              className="max-w-full max-h-full object-contain"
             />
           </motion.div>
         </motion.div>
