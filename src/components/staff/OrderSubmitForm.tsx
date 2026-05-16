@@ -44,13 +44,18 @@ export default function OrderSubmitForm({
   const [lastOrderNumber, setLastOrderNumber] = useState<string>("");
   const [error, setError] = useState<string>("");
 
-  // Clear previews on unmount
+  // Revoke each preview's blob URL when it's replaced or on unmount. Keep the
+  // two effects separate so capturing one photo doesn't fire a cleanup that
+  // also revokes the other (still-in-state) preview.
   useEffect(() => {
-    return () => {
-      if (sealedPreview) URL.revokeObjectURL(sealedPreview);
-      if (openedPreview) URL.revokeObjectURL(openedPreview);
-    };
-  }, [sealedPreview, openedPreview]);
+    if (!sealedPreview) return;
+    return () => URL.revokeObjectURL(sealedPreview);
+  }, [sealedPreview]);
+
+  useEffect(() => {
+    if (!openedPreview) return;
+    return () => URL.revokeObjectURL(openedPreview);
+  }, [openedPreview]);
 
   const handleCaptureSealed = (file: File) => {
     setSealedPhoto(file);
