@@ -68,6 +68,9 @@ export default function DateRangePicker({
           size={14}
           className="text-[var(--brand-surface-fg-muted)] shrink-0"
         />
+        <span className="text-xs font-semibold uppercase tracking-wider text-[var(--brand-surface-fg-muted)] shrink-0">
+          {t("dateFrom")}
+        </span>
         <input
           type="date"
           value={dateFrom}
@@ -75,7 +78,9 @@ export default function DateRangePicker({
           aria-label={t("dateFrom")}
           className="bg-transparent text-sm text-[var(--brand-surface-fg)] focus:outline-none min-w-0 w-full"
         />
-        <span className="text-[var(--brand-surface-fg-muted)] text-sm shrink-0">–</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-[var(--brand-surface-fg-muted)] shrink-0">
+          {t("dateTo")}
+        </span>
         <input
           type="date"
           value={dateTo}
