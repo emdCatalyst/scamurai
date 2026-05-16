@@ -187,19 +187,19 @@ export default function OrderDetailDrawer() {
 
             <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <PhotoSlot
-                label={t("sealedPhoto")}
-                images={signedUrls.sealed}
-                missingLabel={t("imageUnavailable")}
-                onOpen={(src) =>
-                  setLightboxSrc({ src, alt: t("sealedPhoto") })
-                }
-              />
-              <PhotoSlot
                 label={t("openedPhoto")}
                 images={signedUrls.opened}
                 missingLabel={t("imageUnavailable")}
                 onOpen={(src) =>
                   setLightboxSrc({ src, alt: t("openedPhoto") })
+                }
+              />
+              <PhotoSlot
+                label={t("sealedPhoto")}
+                images={signedUrls.sealed}
+                missingLabel={t("imageUnavailable")}
+                onOpen={(src) =>
+                  setLightboxSrc({ src, alt: t("sealedPhoto") })
                 }
               />
             </section>

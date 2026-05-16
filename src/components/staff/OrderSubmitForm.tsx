@@ -157,16 +157,16 @@ export default function OrderSubmitForm({
 
       <div className="grid grid-cols-1 gap-4">
         <CameraCaptureZone
-          label={t('sealedBag')}
-          onCapture={handleCaptureSealed}
-          previewUrl={sealedPreview}
-          className={cn(!sealedPhoto && isSubmitting && "border-[var(--brand-danger)]")}
-        />
-        <CameraCaptureZone
           label={t('openedBag')}
           onCapture={handleCaptureOpened}
           previewUrl={openedPreview}
           className={cn(!openedPhoto && isSubmitting && "border-[var(--brand-danger)]")}
+        />
+        <CameraCaptureZone
+          label={t('sealedBag')}
+          onCapture={handleCaptureSealed}
+          previewUrl={sealedPreview}
+          className={cn(!sealedPhoto && isSubmitting && "border-[var(--brand-danger)]")}
         />
       </div>
 
