@@ -74,6 +74,8 @@ export async function GET(
         currency: order.currency,
         notes: order.notes,
         submittedAt: order.submittedAt,
+        status: order.status,
+        rejectionReason: order.rejectionReason,
       },
       images: {
         sealed: sealedSet,

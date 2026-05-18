@@ -71,65 +71,76 @@ export default function OrderSubmitForm({
     if (!canSubmit) return;
 
     setIsSubmitting(true);
+    setIsBackgroundUploading(true);
     setError("");
 
-    try {
-      // 1. Show success state immediately (optimistic)
-      setShowSuccess(true);
+    const processSubmission = async () => {
+      try {
+        // Compress images in parallel
+        const [sealedBlob, openedBlob] = await Promise.all([
+          compressImage(sealedPhoto!),
+          compressImage(openedPhoto!),
+        ]);
 
-      // 2. Background task: Compress and Queue
-      const processSubmission = async () => {
-        setIsBackgroundUploading(true);
-        setLastOrderNumber(orderNumber); // Set immediately for overlay
+        const pendingOrder: PendingOrder = {
+          id: crypto.randomUUID(),
+          brandId,
+          brandSlug,
+          orderNumber,
+          deliveryAppId,
+          subtotal: amount,
+          currency: "SAR",
+          notes: notes || undefined,
+          sealedBlob,
+          openedBlob,
+          createdAt: Date.now(),
+          attempts: 0,
+        };
 
-        try {
-          // Compress images in parallel
-          const [sealedBlob, openedBlob] = await Promise.all([
-            compressImage(sealedPhoto!),
-            compressImage(openedPhoto!),
-          ]);
+        // Attempt upload — block on the result so we only claim success
+        // when the server has accepted the order (or the failure is
+        // transient enough to queue).
+        const result = await uploadOrder(pendingOrder);
 
-          const pendingOrder: PendingOrder = {
-            id: crypto.randomUUID(),
-            brandId,
-            brandSlug,
-            orderNumber,
-            deliveryAppId,
-            subtotal: amount,
-            currency: "SAR",
-            notes: notes || undefined,
-            sealedBlob,
-            openedBlob,
-            createdAt: Date.now(),
-            attempts: 0,
-          };
-
-          // Try immediate upload
-          const result = await uploadOrder(pendingOrder);
-
-          if (!result.success) {
-            // If failed, enqueue for background retry
-            await imageQueue.enqueue(pendingOrder);
-            console.warn("Upload failed, enqueued for retry:", result.error);
-          }
-        } catch (err) {
-          console.error("Background processing failed:", err);
-        } finally {
+        if (result.success) {
+          setLastOrderNumber(orderNumber);
+          setShowSuccess(true);
           setIsBackgroundUploading(false);
-          // Keep success overlay for 1.5s total
-          setTimeout(() => {
-            resetForm();
-          }, 1500);
+          setTimeout(() => resetForm(), 1500);
+          return;
         }
-      };
 
-      processSubmission();
-    } catch (err) {
-      console.error("Submission error:", err);
-      setError(t('errorGeneral'));
-      setIsSubmitting(false);
-      setShowSuccess(false);
-    }
+        if (result.retryable) {
+          // Network / server hiccup — queue and let the background retry
+          // loop handle it. From the staff's perspective the order is in.
+          await imageQueue.enqueue(pendingOrder);
+          console.warn("Upload failed, enqueued for retry:", result.error);
+          setLastOrderNumber(orderNumber);
+          setShowSuccess(true);
+          setIsBackgroundUploading(false);
+          setTimeout(() => resetForm(), 1500);
+          return;
+        }
+
+        // Permanent rejection (4xx) — show the error so the staff can fix it.
+        const message =
+          result.errorCode === "duplicate_order_number"
+            ? t("errorDuplicateOrderNumber")
+            : result.error || t("errorGeneral");
+        setError(message);
+        setIsSubmitting(false);
+        setIsBackgroundUploading(false);
+        setShowSuccess(false);
+      } catch (err) {
+        console.error("Submission error:", err);
+        setError(t("errorGeneral"));
+        setIsSubmitting(false);
+        setIsBackgroundUploading(false);
+        setShowSuccess(false);
+      }
+    };
+
+    processSubmission();
   };
 
   const resetForm = () => {

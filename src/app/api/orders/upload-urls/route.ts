@@ -53,18 +53,25 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Duplicate order number check (per branch)
+    // 3. Duplicate order number check — unique per (branch + delivery app).
+    //    The same order number can be reused across different delivery apps
+    //    on the same branch (e.g. order "4" on Jahez and "4" on HungerStation),
+    //    but not twice within the same branch+app.
     const existing = await db.query.orders.findFirst({
       where: and(
         eq(orders.brandId, brandId),
         eq(orders.branchId, user.branchId),
+        eq(orders.deliveryAppId, deliveryAppId),
         eq(orders.orderNumber, orderNumber),
         isNull(orders.deletedAt)
       ),
     });
     if (existing) {
       return NextResponse.json(
-        { error: "Order number already exists for this branch" },
+        {
+          error: "Order number already exists for this branch on this delivery app",
+          code: "duplicate_order_number",
+        },
         { status: 400 }
       );
     }

@@ -1,10 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useFormatter, useTranslations } from "next-intl";
-import { ImageOff } from "lucide-react";
+import { ImageOff, Check, X } from "lucide-react";
 import Drawer from "@/components/ui/Drawer";
+import { useToast } from "@/components/ui/Toast";
+import { reviewOrder } from "@/actions/brand/reviewOrder";
+import type { OrderStatus } from "@/lib/queries/orders";
 import ImageLightbox from "./ImageLightbox";
 import { useOrdersDrawer } from "./OrdersDrawerProvider";
 
@@ -20,6 +24,8 @@ type DrawerOrder = {
   currency: string;
   notes: string | null;
   submittedAt: string;
+  status: OrderStatus;
+  rejectionReason: string | null;
 };
 
 type ImageSet = { thumb: string; full: string };
@@ -36,7 +42,11 @@ type FetchResult =
 
 export default function OrderDetailDrawer() {
   const t = useTranslations("brand.orders.drawer");
+  const tStatus = useTranslations("brand.orders.status");
+  const tReview = useTranslations("brand.orders.review");
   const format = useFormatter();
+  const router = useRouter();
+  const { toast } = useToast();
   const { orderId, close } = useOrdersDrawer();
 
   const [result, setResult] = useState<FetchResult | null>(null);
@@ -44,6 +54,24 @@ export default function OrderDetailDrawer() {
     src: string;
     alt: string;
   } | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [rejectMode, setRejectMode] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [reasonError, setReasonError] = useState<string | null>(null);
+  const [pendingDecision, setPendingDecision] = useState<
+    "approve" | "reject" | null
+  >(null);
+  const [isPending, startTransition] = useTransition();
+
+  // Reset reject UI whenever a different order is opened. Using the
+  // "store previous value during render" pattern instead of a useEffect.
+  const [prevOrderId, setPrevOrderId] = useState(orderId);
+  if (prevOrderId !== orderId) {
+    setPrevOrderId(orderId);
+    setRejectMode(false);
+    setRejectionReason("");
+    setReasonError(null);
+  }
 
   useEffect(() => {
     if (!orderId) return;
@@ -76,7 +104,7 @@ export default function OrderDetailDrawer() {
     return () => {
       cancelled = true;
     };
-  }, [orderId, t]);
+  }, [orderId, refreshKey, t]);
 
   // Display only data that matches the current orderId — discard stale results.
   const current = result && result.orderId === orderId ? result : null;
@@ -99,6 +127,57 @@ export default function OrderDetailDrawer() {
         })
       : "—";
 
+  const handleAccept = () => {
+    if (!order || isPending) return;
+    setPendingDecision("approve");
+    startTransition(async () => {
+      const res = await reviewOrder({
+        orderId: order.id,
+        decision: "approve",
+      });
+      if (res.success) {
+        toast(tReview("acceptedToast"), "success");
+        setRefreshKey((k) => k + 1);
+        router.refresh();
+      } else {
+        toast(tReview("errorToast"), "error");
+      }
+      setPendingDecision(null);
+    });
+  };
+
+  const handleRejectConfirm = () => {
+    if (!order || isPending) return;
+    const trimmed = rejectionReason.trim();
+    if (!trimmed) {
+      setReasonError(tReview("reasonRequired"));
+      return;
+    }
+    if (trimmed.length > 500) {
+      setReasonError(tReview("reasonTooLong"));
+      return;
+    }
+    setReasonError(null);
+    setPendingDecision("reject");
+    startTransition(async () => {
+      const res = await reviewOrder({
+        orderId: order.id,
+        decision: "reject",
+        rejectionReason: trimmed,
+      });
+      if (res.success) {
+        toast(tReview("rejectedToast"), "success");
+        setRejectMode(false);
+        setRejectionReason("");
+        setRefreshKey((k) => k + 1);
+        router.refresh();
+      } else {
+        toast(tReview("errorToast"), "error");
+      }
+      setPendingDecision(null);
+    });
+  };
+
   return (
     <>
       <Drawer
@@ -120,6 +199,10 @@ export default function OrderDetailDrawer() {
 
         {order && (
           <>
+            <div className="flex">
+              <StatusPill status={order.status} label={tStatus(order.status)} />
+            </div>
+
             <section className="space-y-3">
               <DetailRow label={t("branch")}>
                 <span className="text-[var(--brand-surface-fg)]">
@@ -185,6 +268,17 @@ export default function OrderDetailDrawer() {
               </section>
             )}
 
+            {order.status === "rejected" && order.rejectionReason && (
+              <section>
+                <div className="text-xs uppercase tracking-wider text-[var(--brand-surface-fg-muted)] mb-2">
+                  {tReview("rejectionReasonLabel")}
+                </div>
+                <p className="text-sm text-[var(--brand-surface-fg)] whitespace-pre-wrap leading-relaxed bg-[var(--brand-danger)]/5 border border-[var(--brand-danger)]/20 rounded-xl px-4 py-3">
+                  {order.rejectionReason}
+                </p>
+              </section>
+            )}
+
             <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <PhotoSlot
                 label={t("sealedPhoto")}
@@ -203,6 +297,84 @@ export default function OrderDetailDrawer() {
                 }
               />
             </section>
+
+            {order.status === "needs_review" && (
+              <section className="border-t border-[var(--brand-border)] pt-6">
+                {!rejectMode ? (
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={handleAccept}
+                      disabled={isPending}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      <Check size={18} />
+                      {pendingDecision === "approve"
+                        ? tReview("accepting")
+                        : tReview("accept")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRejectMode(true)}
+                      disabled={isPending}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[var(--brand-danger)] hover:opacity-90 text-white text-sm font-semibold transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      <X size={18} />
+                      {tReview("reject")}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider text-[var(--brand-surface-fg-muted)] mb-2">
+                        {tReview("reasonLabel")}
+                      </label>
+                      <textarea
+                        value={rejectionReason}
+                        onChange={(e) => {
+                          setRejectionReason(e.target.value);
+                          if (reasonError) setReasonError(null);
+                        }}
+                        placeholder={tReview("reasonPlaceholder")}
+                        maxLength={500}
+                        rows={4}
+                        autoFocus
+                        className="w-full px-4 py-3 rounded-xl bg-[var(--brand-surface-fg)]/5 border border-[var(--brand-border)] text-sm text-[var(--brand-surface-fg)] placeholder:text-[var(--brand-surface-fg-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/40 resize-none"
+                      />
+                      {reasonError && (
+                        <p className="mt-1 text-xs text-[var(--brand-danger)]">
+                          {reasonError}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRejectMode(false);
+                          setRejectionReason("");
+                          setReasonError(null);
+                        }}
+                        disabled={isPending}
+                        className="flex-1 px-4 py-3 rounded-xl border border-[var(--brand-border)] text-sm font-semibold text-[var(--brand-surface-fg)] hover:bg-[var(--brand-surface-fg)]/5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {tReview("cancel")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRejectConfirm}
+                        disabled={isPending}
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[var(--brand-danger)] hover:opacity-90 text-white text-sm font-semibold transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {pendingDecision === "reject"
+                          ? tReview("rejecting")
+                          : tReview("confirm")}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
           </>
         )}
       </Drawer>
@@ -213,6 +385,30 @@ export default function OrderDetailDrawer() {
         onClose={() => setLightboxSrc(null)}
       />
     </>
+  );
+}
+
+function StatusPill({
+  status,
+  label,
+}: {
+  status: OrderStatus;
+  label: string;
+}) {
+  const styles: Record<OrderStatus, string> = {
+    needs_review:
+      "bg-amber-500/10 text-amber-600 border-amber-500/30",
+    approved:
+      "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
+    rejected:
+      "bg-[var(--brand-danger)]/10 text-[var(--brand-danger)] border-[var(--brand-danger)]/30",
+  };
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${styles[status]}`}
+    >
+      {label}
+    </span>
   );
 }
 

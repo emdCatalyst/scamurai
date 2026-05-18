@@ -283,10 +283,11 @@ export const orders = pgTable(
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => [
-    unique("orders_brand_id_order_number_branch_id_unique").on(
+    unique("orders_brand_branch_app_order_number_unique").on(
       table.brandId,
-      table.orderNumber,
-      table.branchId
+      table.branchId,
+      table.deliveryAppId,
+      table.orderNumber
     ),
     index("idx_orders_brand")
       .on(table.brandId, table.status)

@@ -52,6 +52,9 @@ export default function OrdersTable({ orders, hasActiveFilter }: OrdersTableProp
                 {t("submitted")}
               </th>
               <th className="text-start px-6 py-5 text-xs font-bold text-[var(--brand-surface-fg-muted)] uppercase tracking-wider">
+                {t("status")}
+              </th>
+              <th className="text-start px-6 py-5 text-xs font-bold text-[var(--brand-surface-fg-muted)] uppercase tracking-wider">
                 {t("images")}
               </th>
             </tr>

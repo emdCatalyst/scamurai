@@ -68,6 +68,8 @@ export interface GetOrdersParams {
   pageSize?: number;
 }
 
+export type OrderStatus = "needs_review" | "approved" | "rejected";
+
 export type OrderRow = {
   id: string;
   orderNumber: string;
@@ -80,6 +82,8 @@ export type OrderRow = {
   currency: string;
   notes: string | null;
   submittedAt: Date;
+  status: OrderStatus;
+  rejectionReason: string | null;
   hasBothImages: boolean;
 };
 
@@ -154,6 +158,8 @@ export async function getOrders(params: GetOrdersParams) {
       currency: orders.currency,
       notes: orders.notes,
       submittedAt: orders.submittedAt,
+      status: orders.status,
+      rejectionReason: orders.rejectionReason,
       imageCount: sql<number>`COALESCE(${imageCountSub.cnt}, 0)`,
     })
     .from(orders)
@@ -205,6 +211,8 @@ export async function getOrders(params: GetOrdersParams) {
       currency: row.currency,
       notes: row.notes,
       submittedAt: row.submittedAt,
+      status: row.status as OrderStatus,
+      rejectionReason: row.rejectionReason,
       hasBothImages: Number(row.imageCount) >= 2,
     })) as OrderRow[],
     total: Number(totalResult.count),
@@ -319,6 +327,8 @@ export async function getOrderDetail(
       currency: orders.currency,
       notes: orders.notes,
       submittedAt: orders.submittedAt,
+      status: orders.status,
+      rejectionReason: orders.rejectionReason,
     })
     .from(orders)
     .innerJoin(branches, eq(branches.id, orders.branchId))
@@ -348,6 +358,7 @@ export async function getOrderDetail(
 
   return {
     ...row,
+    status: row.status as OrderStatus,
     hasBothImages: images.length >= 2,
     images: images.map((i) => ({
       type: i.type as "sealed" | "opened",

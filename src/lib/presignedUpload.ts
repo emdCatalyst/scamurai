@@ -5,6 +5,14 @@ export interface UploadResponse {
   orderId?: string;
   orderNumber?: string;
   error?: string;
+  /** Stable code for client-side mapping (e.g. "duplicate_order_number"). */
+  errorCode?: string;
+  /**
+   * Whether the failure is worth queuing for retry. 4xx validation errors
+   * (duplicate, missing branch, app not enabled) will fail forever, so the
+   * caller should surface them to the user instead of enqueuing.
+   */
+  retryable?: boolean;
 }
 
 const LOG = "[uploadOrder]";
@@ -36,7 +44,15 @@ export async function uploadOrder(order: PendingOrder): Promise<UploadResponse> 
       const errorData = await urlResponse.json().catch(() => ({}));
       const msg = errorData.error || `upload-urls returned ${urlResponse.status}`;
       console.error(`${LOG} step 1 failed:`, msg, errorData);
-      throw new Error(msg);
+      // 4xx = client/validation error — won't get better on retry.
+      // 5xx / network = transient — safe to queue.
+      const retryable = urlResponse.status >= 500;
+      return {
+        success: false,
+        error: msg,
+        errorCode: errorData.code,
+        retryable,
+      };
     }
 
     const { orderId, orderNumber, sealedUploadUrl, openedUploadUrl } = await urlResponse.json();
@@ -89,8 +105,10 @@ export async function uploadOrder(order: PendingOrder): Promise<UploadResponse> 
 
     return { success: true, orderId, orderNumber };
   } catch (err) {
+    // Reached when step 2 (storage PUT) or step 3 (confirm) throws —
+    // network/server hiccups, safe to retry.
     const message = err instanceof Error ? err.message : 'Unknown upload error';
     console.error(`${LOG} aborted:`, message);
-    return { success: false, error: message };
+    return { success: false, error: message, retryable: true };
   }
 }

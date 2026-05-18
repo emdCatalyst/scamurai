@@ -985,6 +985,7 @@
         "amount": "المبلغ",
         "submitted": "وقت التقديم",
         "images": "الصور",
+        "status": "الحالة",
         "emptyTitle": "لا توجد طلبات",
         "emptyDescNoFilter": "ستظهر الطلبات التي يقدمها فريقك هنا.",
         "emptyDescFiltered": "حاول تعديل عوامل التصفية لعرض المزيد من الطلبات."
@@ -992,6 +993,29 @@
       "imagesStatus": {
         "present": "تم رفع الصورتين",
         "missing": "صورة مفقودة"
+      },
+      "status": {
+        "needs_review": "بانتظار المراجعة",
+        "approved": "مقبول",
+        "rejected": "مرفوض",
+        "label": "الحالة"
+      },
+      "review": {
+        "accept": "قبول",
+        "reject": "رفض",
+        "accepting": "جاري القبول...",
+        "rejecting": "جاري الرفض...",
+        "confirmReject": "هل تريد رفض هذا الطلب؟",
+        "reasonLabel": "سبب الرفض",
+        "reasonPlaceholder": "اذكر للمُقدِّم سبب رفض هذا الطلب...",
+        "reasonRequired": "يرجى تقديم سبب.",
+        "reasonTooLong": "السبب طويل جداً (500 حرف كحد أقصى).",
+        "cancel": "إلغاء",
+        "confirm": "تأكيد الرفض",
+        "acceptedToast": "تم قبول الطلب.",
+        "rejectedToast": "تم رفض الطلب.",
+        "errorToast": "تعذر تحديث الطلب. يرجى المحاولة مرة أخرى.",
+        "rejectionReasonLabel": "سبب الرفض"
       },
       "summary": {
         "orders": "{count, plural, =0 {لا توجد طلبات} one {طلب واحد} two {طلبان} few {# طلبات} many {# طلباً} other {# طلب}}",
@@ -1067,6 +1091,7 @@
       "notesPlaceholder": "أضف أي ملاحظات داخلية...",
       "retake": "إعادة التقاط",
       "errorGeneral": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+      "errorDuplicateOrderNumber": "رقم الطلب هذا مستخدم بالفعل لهذا الفرع على تطبيق التوصيل هذا. يرجى إدخال رقم مختلف.",
       "pendingUploads": "{count} طلب بانتظار الرفع",
       "syncNow": "مزامنة الآن",
       "syncing": "جاري المزامنة...",

@@ -3,7 +3,10 @@
 import Image from "next/image";
 import { useFormatter, useTranslations } from "next-intl";
 import { CheckCircle2, AlertTriangle } from "lucide-react";
-import type { OrderRow as OrderRowType } from "@/lib/queries/orders";
+import type {
+  OrderRow as OrderRowType,
+  OrderStatus,
+} from "@/lib/queries/orders";
 import { useOrdersDrawer } from "./OrdersDrawerProvider";
 
 interface OrderRowProps {
@@ -12,6 +15,7 @@ interface OrderRowProps {
 
 export default function OrderRow({ order }: OrderRowProps) {
   const t = useTranslations("brand.orders.imagesStatus");
+  const tStatus = useTranslations("brand.orders.status");
   const format = useFormatter();
   const { open } = useOrdersDrawer();
 
@@ -71,6 +75,9 @@ export default function OrderRow({ order }: OrderRowProps) {
         <span title={fullTimestamp}>{relative}</span>
       </td>
       <td className="px-6 py-4">
+        <StatusPill status={order.status} label={tStatus(order.status)} />
+      </td>
+      <td className="px-6 py-4">
         {order.hasBothImages ? (
           <span
             className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--brand-primary)]"
@@ -90,5 +97,27 @@ export default function OrderRow({ order }: OrderRowProps) {
         )}
       </td>
     </tr>
+  );
+}
+
+function StatusPill({
+  status,
+  label,
+}: {
+  status: OrderStatus;
+  label: string;
+}) {
+  const styles: Record<OrderStatus, string> = {
+    needs_review: "bg-amber-500/10 text-amber-600 border-amber-500/30",
+    approved: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
+    rejected:
+      "bg-[var(--brand-danger)]/10 text-[var(--brand-danger)] border-[var(--brand-danger)]/30",
+  };
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${styles[status]}`}
+    >
+      {label}
+    </span>
   );
 }
