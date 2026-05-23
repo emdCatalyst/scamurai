@@ -1092,6 +1092,7 @@
       "retake": "Retake",
       "errorGeneral": "Something went wrong. Please try again.",
       "errorDuplicateOrderNumber": "This order number is already used for this branch on this delivery app. Please enter a different number.",
+      "errorImageTooLarge": "Image is too large ({sizeMb} MB). Please choose a photo under {maxMb} MB.",
       "pendingUploads": "{count} Pending Upload | {count} Pending Uploads",
       "syncNow": "Sync Now",
       "syncing": "Syncing...",

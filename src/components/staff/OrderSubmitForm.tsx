@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import CameraCaptureZone from "./CameraCaptureZone";
 import DeliveryAppPicker from "./DeliveryAppPicker";
 import SubmitSuccessOverlay from "./SubmitSuccessOverlay";
-import { compressImage } from "@/lib/compressImage";
+import { compressImage, MAX_RAW_UPLOAD_BYTES } from "@/lib/compressImage";
 import { imageQueue, PendingOrder } from "@/lib/imageQueue";
 import { uploadOrder } from "@/lib/presignedUpload";
 
@@ -52,13 +52,27 @@ export default function OrderSubmitForm({
     };
   }, [sealedPreview, openedPreview]);
 
+  const validatePhotoSize = (file: File): boolean => {
+    if (file.size > MAX_RAW_UPLOAD_BYTES) {
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      const maxMb = Math.round(MAX_RAW_UPLOAD_BYTES / (1024 * 1024));
+      setError(t("errorImageTooLarge", { sizeMb, maxMb }));
+      return false;
+    }
+    return true;
+  };
+
   const handleCaptureSealed = (file: File) => {
+    if (!validatePhotoSize(file)) return;
+    setError("");
     setSealedPhoto(file);
     if (sealedPreview) URL.revokeObjectURL(sealedPreview);
     setSealedPreview(URL.createObjectURL(file));
   };
 
   const handleCaptureOpened = (file: File) => {
+    if (!validatePhotoSize(file)) return;
+    setError("");
     setOpenedPhoto(file);
     if (openedPreview) URL.revokeObjectURL(openedPreview);
     setOpenedPreview(URL.createObjectURL(file));
