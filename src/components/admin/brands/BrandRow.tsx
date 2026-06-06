@@ -5,12 +5,13 @@ import { useTranslations } from 'next-intl';
 import { BrandRow as BrandRowType } from '@/lib/queries/brands';
 import { BrandStatusBadge } from './BrandStatusBadge';
 import { cn } from '@/lib/utils';
-import { ShieldOff, ShieldCheck, ExternalLink, Settings2 } from 'lucide-react';
+import { ShieldOff, ShieldCheck, ExternalLink, Settings2, CalendarClock } from 'lucide-react';
 import { useState } from 'react';
 import { setBrandStatus } from '@/actions/setBrandStatus';
 import { useToast } from '@/components/ui/Toast';
 import Dialog from '@/components/ui/Dialog';
 import BrandLimitsDialog from './BrandLimitsDialog';
+import BrandAccessExpiryDialog from './BrandAccessExpiryDialog';
 import { Link } from '@/i18n/navigation';
 
 interface BrandRowProps {
@@ -24,6 +25,7 @@ export function BrandRow({ brand, onViewDetails }: BrandRowProps) {
   const { adminSlug } = useParams();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isLimitsOpen, setIsLimitsOpen] = useState(false);
+  const [isExpiryOpen, setIsExpiryOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleToggleStatus = (e: React.MouseEvent) => {
@@ -137,6 +139,16 @@ export function BrandRow({ brand, onViewDetails }: BrandRowProps) {
               <Settings2 size={18} />
             </button>
             <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpiryOpen(true);
+              }}
+              className="p-2 text-slate-400 hover:text-sky hover:bg-sky/5 rounded-lg transition-all"
+              title={t('actions.adjustAccessExpiry')}
+            >
+              <CalendarClock size={18} />
+            </button>
+            <button
               onClick={handleToggleStatus}
               className={cn(
                 "p-2 rounded-lg transition-all",
@@ -174,6 +186,12 @@ export function BrandRow({ brand, onViewDetails }: BrandRowProps) {
       <BrandLimitsDialog
         isOpen={isLimitsOpen}
         onClose={() => setIsLimitsOpen(false)}
+        brand={brand}
+      />
+
+      <BrandAccessExpiryDialog
+        isOpen={isExpiryOpen}
+        onClose={() => setIsExpiryOpen(false)}
         brand={brand}
       />
     </>

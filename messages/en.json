@@ -333,7 +333,15 @@
         "customLimitsTitle": "Enterprise Custom Limits",
         "customMaxBranches": "Allowed Branches",
         "customMaxUsers": "Allowed Users",
-        "invalidLimits": "Please enter valid numbers (greater than 0)."
+        "invalidLimits": "Please enter valid numbers (greater than 0).",
+        "accessDurationTitle": "Access Duration",
+        "accessDuration_1mo": "1 month",
+        "accessDuration_3mo": "3 months",
+        "accessDuration_6mo": "6 months",
+        "accessDuration_1yr": "1 year",
+        "accessDuration_none": "No expiry",
+        "accessDurationHint": "Access expires on {date}.",
+        "accessDurationNoneHint": "Access never expires."
       },
       "detail": {
         "email": "Contact Email",
@@ -405,11 +413,35 @@
         "activate": "Activate",
         "viewDetails": "View Details",
         "adjustLimits": "Adjust Limits",
+        "adjustAccessExpiry": "Adjust access expiry",
         "confirmSuspend": "Are you sure you want to suspend this brand? This will prevent all users under this brand from accessing the platform immediately.",
         "confirmActivate": "Are you sure you want to reactivate this brand?",
         "successSuspended": "Brand suspended successfully.",
         "successActivated": "Brand activated successfully.",
         "error": "Failed to update brand status."
+      },
+      "access": {
+        "title": "Access Expiry",
+        "current": "Current expiry",
+        "noExpiry": "No expiry (lifetime access)",
+        "alreadyExpired": "expired",
+        "addDuration": "Add duration",
+        "newExpiry": "New expiry",
+        "modeLabel": "When to start from",
+        "modeExtend": "Extend",
+        "modeExtendHint": "Add on top of remaining time",
+        "modeSet": "Reset from today",
+        "modeSetHint": "Discard remaining time",
+        "save": "Update access",
+        "saved": "Access expiry updated.",
+        "error": "Failed to update access expiry.",
+        "durations": {
+          "1mo": "1 month",
+          "3mo": "3 months",
+          "6mo": "6 months",
+          "1yr": "1 year",
+          "none": "No expiry"
+        }
       },
       "limits": {
         "title": "Adjust Limits",
@@ -443,7 +475,13 @@
         "background": "Background",
         "surface": "Surface",
         "textAccent": "Text Accent",
-        "copySlug": "Copy slug"
+        "copySlug": "Copy slug",
+        "accessExpiry": "Access Expiry",
+        "accessActiveHint": "Brand has access until this date.",
+        "accessExpiredHint": "Access has already expired — users are locked out.",
+        "accessNoExpiry": "No expiry",
+        "accessNoExpiryHint": "Brand has lifetime access.",
+        "accessEdit": "Edit"
       },
       "pagination": {
         "showing": "Showing {start}–{end} of {total} brands"

@@ -18,6 +18,7 @@ export type BrandRow = {
   logoUrl: string | null;
   brandColors: BrandColors | null;
   createdAt: Date;
+  accessExpiresAt: Date | null;
   branchCount: number;
   userCount: number;
   customMaxBranches: number | null;
@@ -100,6 +101,7 @@ export async function getBrands({
       logoUrl: brands.logoUrl,
       brandColors: brands.brandColors,
       createdAt: brands.createdAt,
+      accessExpiresAt: brands.accessExpiresAt,
       branchCount: sql<number>`COALESCE(${branchCountSub.count}, 0)`,
       userCount: sql<number>`COALESCE(${userCountSub.count}, 0)`,
       customMaxBranches: brands.customMaxBranches,

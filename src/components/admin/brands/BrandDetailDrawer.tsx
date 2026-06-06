@@ -4,10 +4,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslations, useFormatter, useLocale } from 'next-intl';
 import { motion } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
-import { 
-  X, 
-  Mail, 
-  Calendar, 
+import {
+  X,
+  Mail,
+  Calendar,
+  CalendarClock,
   ShieldAlert,
   Loader2,
   Building2,
@@ -21,6 +22,7 @@ import {
 import { BrandRow } from '@/lib/queries/brands';
 import { BrandStatusBadge } from './BrandStatusBadge';
 import { BrandColorSwatches } from './BrandColorSwatches';
+import BrandAccessExpiryDialog from './BrandAccessExpiryDialog';
 import { setBrandStatus } from '@/actions/setBrandStatus';
 import { useToast } from '@/components/ui/Toast';
 import Dialog from '@/components/ui/Dialog';
@@ -45,6 +47,7 @@ export function BrandDetailDrawer({
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [showStatusConfirm, setShowStatusConfirm] = useState(false);
+  const [showExpiryDialog, setShowExpiryDialog] = useState(false);
 
   const now = useMemo(() => new Date(), []);
 
@@ -205,6 +208,53 @@ export function BrandDetailDrawer({
 
             <div className="h-px bg-slate-100" />
 
+            {/* Access Expiry */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
+                <CalendarClock size={16} className="text-sky" />
+                {t('detail.accessExpiry')}
+              </div>
+              <div className="bg-slate-50 rounded-2xl p-5 flex items-center justify-between gap-4 border border-slate-100">
+                <div className="min-w-0">
+                  {brand.accessExpiresAt ? (
+                    (() => {
+                      const expiry = new Date(brand.accessExpiresAt);
+                      const expired = expiry <= now;
+                      return (
+                        <>
+                          <p className={`text-sm font-bold ${expired ? 'text-red-500' : 'text-slate-900'}`}>
+                            {format.dateTime(expiry, { dateStyle: 'long' })}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {expired
+                              ? t('detail.accessExpiredHint')
+                              : t('detail.accessActiveHint')}
+                          </p>
+                        </>
+                      );
+                    })()
+                  ) : (
+                    <>
+                      <p className="text-sm font-bold text-slate-900">
+                        {t('detail.accessNoExpiry')}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {t('detail.accessNoExpiryHint')}
+                      </p>
+                    </>
+                  )}
+                </div>
+                <button
+                  onClick={() => setShowExpiryDialog(true)}
+                  className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-sky border border-sky/30 hover:bg-sky/5 transition-colors"
+                >
+                  {t('detail.accessEdit')}
+                </button>
+              </div>
+            </div>
+
+            <div className="h-px bg-slate-100" />
+
             {/* Admin Info */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
@@ -283,6 +333,12 @@ export function BrandDetailDrawer({
         description={brand.isActive ? t("actions.confirmSuspend") : t("actions.confirmActivate")}
         type={brand.isActive ? "danger" : "info"}
         isLoading={isUpdating}
+      />
+
+      <BrandAccessExpiryDialog
+        isOpen={showExpiryDialog}
+        onClose={() => setShowExpiryDialog(false)}
+        brand={brand}
       />
     </>
   );

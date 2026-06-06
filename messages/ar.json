@@ -333,7 +333,15 @@
         "customLimitsTitle": "حدود مخصصة للمؤسسات",
         "customMaxBranches": "الفروع المسموح بها",
         "customMaxUsers": "المستخدمون المسموح بهم",
-        "invalidLimits": "يرجى إدخال أرقام صحيحة (أكبر من 0)."
+        "invalidLimits": "يرجى إدخال أرقام صحيحة (أكبر من 0).",
+        "accessDurationTitle": "مدة الوصول",
+        "accessDuration_1mo": "شهر",
+        "accessDuration_3mo": "3 أشهر",
+        "accessDuration_6mo": "6 أشهر",
+        "accessDuration_1yr": "سنة",
+        "accessDuration_none": "بدون انتهاء",
+        "accessDurationHint": "ينتهي الوصول في {date}.",
+        "accessDurationNoneHint": "الوصول لا ينتهي."
       },
       "detail": {
         "email": "البريد الإلكتروني",
@@ -405,11 +413,35 @@
         "activate": "تفعيل",
         "viewDetails": "عرض التفاصيل",
         "adjustLimits": "تعديل الحدود",
+        "adjustAccessExpiry": "تعديل انتهاء الوصول",
         "confirmSuspend": "هل أنت متأكد من إيقاف هذه العلامة التجارية؟ سيؤدي ذلك إلى منع جميع المستخدمين التابعين لها من الوصول إلى المنصة فوراً.",
         "confirmActivate": "هل أنت متأكد من إعادة تفعيل هذه العلامة التجارية؟",
         "successSuspended": "تم إيقاف العلامة التجارية بنجاح.",
         "successActivated": "تم تفعيل العلامة التجارية بنجاح.",
         "error": "فشل تحديث حالة العلامة التجارية."
+      },
+      "access": {
+        "title": "انتهاء الوصول",
+        "current": "تاريخ الانتهاء الحالي",
+        "noExpiry": "بدون انتهاء (وصول دائم)",
+        "alreadyExpired": "منتهي",
+        "addDuration": "إضافة مدة",
+        "newExpiry": "تاريخ الانتهاء الجديد",
+        "modeLabel": "نقطة البداية",
+        "modeExtend": "تمديد",
+        "modeExtendHint": "إضافة على الوقت المتبقي",
+        "modeSet": "البدء من اليوم",
+        "modeSetHint": "تجاهل الوقت المتبقي",
+        "save": "تحديث الوصول",
+        "saved": "تم تحديث تاريخ انتهاء الوصول.",
+        "error": "فشل تحديث تاريخ انتهاء الوصول.",
+        "durations": {
+          "1mo": "شهر",
+          "3mo": "3 أشهر",
+          "6mo": "6 أشهر",
+          "1yr": "سنة",
+          "none": "بدون انتهاء"
+        }
       },
       "limits": {
         "title": "تعديل الحدود",
@@ -443,7 +475,13 @@
         "background": "الخلفية",
         "surface": "السطح",
         "textAccent": "نص التمييز",
-        "copySlug": "نسخ المعرف"
+        "copySlug": "نسخ المعرف",
+        "accessExpiry": "انتهاء الوصول",
+        "accessActiveHint": "العلامة التجارية لديها وصول حتى هذا التاريخ.",
+        "accessExpiredHint": "انتهت صلاحية الوصول — لا يستطيع المستخدمون الدخول.",
+        "accessNoExpiry": "بدون انتهاء",
+        "accessNoExpiryHint": "وصول دائم لهذه العلامة التجارية.",
+        "accessEdit": "تعديل"
       },
       "pagination": {
         "showing": "عرض {start}–{end} من أصل {total} علامة تجارية"

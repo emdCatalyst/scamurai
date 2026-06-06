@@ -33,6 +33,12 @@ export const brands = pgTable(
       textAccent: string;
     }>(),
     isActive: boolean("is_active").notNull().default(true),
+    /**
+     * When the brand's paid access ends. NULL = no expiry (lifetime).
+     * Checked lazily by the brand portal layout — once `now() > accessExpiresAt`
+     * the brand is flipped to isActive=false and its users' sessions revoked.
+     */
+    accessExpiresAt: timestamp("access_expires_at", { withTimezone: true }),
     customMaxBranches: integer("custom_max_branches"),
     customMaxUsers: integer("custom_max_users"),
     createdAt: timestamp("created_at", { withTimezone: true })

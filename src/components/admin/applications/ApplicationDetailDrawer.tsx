@@ -25,6 +25,12 @@ import Dialog from '@/components/ui/Dialog';
 import { enterpriseLimitsSchema, type EnterpriseLimits } from '@/lib/validations/enterpriseLimits';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { CalendarClock } from 'lucide-react';
+import {
+  ACCESS_DURATIONS,
+  type AccessDuration,
+  durationToExpiry,
+} from '@/lib/accessDuration';
 
 interface ApplicationDetailDrawerProps {
   application: {
@@ -55,6 +61,7 @@ export default function ApplicationDetailDrawer({
 
   const [isRejecting, setIsRejecting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [accessDuration, setAccessDuration] = useState<AccessDuration>('1yr');
   
   // Dialog states
   const [showQuotedConfirm, setShowQuotedConfirm] = useState(false);
@@ -138,9 +145,10 @@ export default function ApplicationDetailDrawer({
     try {
       const vals = getValues();
       const result = await approveApplication(
-        application.id, 
+        application.id,
         application.plan === 'enterprise' ? parseInt(vals.customMaxBranches) : undefined,
-        application.plan === 'enterprise' ? parseInt(vals.customMaxUsers) : undefined
+        application.plan === 'enterprise' ? parseInt(vals.customMaxUsers) : undefined,
+        accessDuration
       );
       if (result.success) {
         toast(tActions('successApproved'), 'success');
@@ -289,6 +297,44 @@ export default function ApplicationDetailDrawer({
                     )}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Access duration picker — visible once the application has
+                progressed to "quoted" and the master admin is about to
+                approve. Picks the initial paid-access window for the brand. */}
+            {status === 'quoted' && (
+              <div className="bg-sky/5 border border-sky/10 rounded-xl p-5 space-y-4">
+                <div className="flex items-center gap-2 text-sky font-bold text-sm">
+                  <CalendarClock size={16} />
+                  {tActions('accessDurationTitle')}
+                </div>
+                <div className="grid grid-cols-5 gap-2">
+                  {ACCESS_DURATIONS.map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setAccessDuration(d)}
+                      disabled={isUpdating}
+                      className={`px-2 py-2.5 rounded-xl text-xs font-bold transition-all border ${
+                        accessDuration === d
+                          ? 'border-sky bg-sky/10 text-sky'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                      } disabled:opacity-50`}
+                    >
+                      {tActions(`accessDuration_${d}` as Parameters<typeof tActions>[0])}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-500">
+                  {accessDuration === 'none'
+                    ? tActions('accessDurationNoneHint')
+                    : tActions('accessDurationHint', {
+                        date: format.dateTime(durationToExpiry(accessDuration)!, {
+                          dateStyle: 'long',
+                        }),
+                      })}
+                </p>
               </div>
             )}
 

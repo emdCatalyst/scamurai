@@ -1,7 +1,8 @@
 import { requireAuth } from "@/lib/auth";
 import { getBrandBySlug } from "@/lib/queries/brands";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import BrandShell from "@/components/brand/BrandShell";
+import { flipBrandToExpired, isBrandExpired } from "@/lib/brandAccess";
 
 export default async function AuthenticatedBrandLayout({
   children,
@@ -11,10 +12,10 @@ export default async function AuthenticatedBrandLayout({
   params: Promise<{ locale: string; brandSlug: string }>;
 }) {
   const { brandSlug, locale } = await params;
-  
+
   // 1. Protection & Identity
   const { brandId: userBrandId, role, userId } = await requireAuth(["brand_admin", "finance", "staff"]);
-  
+
   // 2. Resolve Brand
   const brand = await getBrandBySlug(brandSlug);
   if (!brand) notFound();
@@ -24,6 +25,17 @@ export default async function AuthenticatedBrandLayout({
     // This is a safety net; requireAuth already checks this in a real scenario,
     // but here we double check against the slug for multi-tenant isolation.
     notFound();
+  }
+
+  // 3a. Lazy expiry enforcement. When the brand's paid access window has
+  //     elapsed, flip it to inactive (revoking sessions + Clerk metadata)
+  //     and bounce the user to /suspended. Middleware will catch them on
+  //     subsequent requests via the new metadata.
+  if (isBrandExpired(brand.accessExpiresAt)) {
+    if (brand.isActive) {
+      await flipBrandToExpired(brand.id);
+    }
+    redirect(`/${locale}/brands/${brandSlug}/suspended`);
   }
 
   // 4. Get User Details (Clerk)

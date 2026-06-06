@@ -5,6 +5,11 @@ import { db } from '@/lib/db';
 import { applications, brands, users } from '@/lib/db/schema';
 import { requireAuth } from '@/lib/auth';
 import { clerkClient } from '@clerk/nextjs/server';
+import {
+  type AccessDuration,
+  durationToExpiry,
+  isValidDuration,
+} from '@/lib/accessDuration';
 
 export type ApproveApplicationResult =
   | { success: true }
@@ -13,10 +18,17 @@ export type ApproveApplicationResult =
 export async function approveApplication(
   applicationId: string,
   customMaxBranches?: number,
-  customMaxUsers?: number
+  customMaxUsers?: number,
+  accessDuration: AccessDuration = '1yr'
 ): Promise<ApproveApplicationResult> {
   // Protected: master_admin only
   await requireAuth(['master_admin']);
+
+  // Validate access duration before we touch anything.
+  if (!isValidDuration(accessDuration)) {
+    return { success: false, error: 'Invalid access duration.' };
+  }
+  const accessExpiresAt = durationToExpiry(accessDuration);
 
   // Fetch the application
   const [application] = await db
@@ -93,6 +105,7 @@ export async function approveApplication(
           plan: application.plan,
           customMaxBranches: customMaxBranches ?? null,
           customMaxUsers: customMaxUsers ?? null,
+          accessExpiresAt,
         })
         .returning({ id: brands.id });
 
