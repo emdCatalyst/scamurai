@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Locale } from '@/i18n/routing';
-import { absoluteUrl, buildAlternates, localizedPath } from '@/lib/seo/site';
+import { absoluteUrl, baseOpenGraph, buildAlternates, localizedPath } from '@/lib/seo/site';
 import { organizationJsonLd, websiteJsonLd } from '@/lib/seo/jsonLd';
 import JsonLd from '@/components/seo/JsonLd';
 import HeroSection from '@/components/landing/HeroSection';
@@ -22,8 +22,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: { absolute: t('home.title') },
     description: t('home.description'),
     alternates: buildAlternates(locale as Locale, '/'),
-    // `images` is inherited from opengraph-image.png in this segment.
+    // `images` comes from opengraph-image.png in this same segment.
     openGraph: {
+      ...baseOpenGraph(locale as Locale, t('siteName')),
       url: localizedPath(locale as Locale, '/'),
       title: t('home.title'),
       description: t('home.description'),

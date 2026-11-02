@@ -190,6 +190,30 @@ body { background: #0d1e35; color: #f2f2f2; overflow-x: hidden; }
   100% { transform: translateY(100svh); opacity: 0; }
 }
 
+/* ─── Mobile navigation drawer: native modal <dialog> (see MobileMenu.tsx) ───
+   The page behind stays put while it is open, the overlay dims it, and the
+   panel slides in from the inline end (right in LTR, left in RTL). */
+body:has(dialog.nav-drawer[open]) {
+  overflow: hidden;
+}
+.nav-drawer::backdrop {
+  background: rgb(0 0 0 / 0.6);
+  backdrop-filter: blur(4px);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .nav-drawer[open] {
+    transition: translate 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .nav-drawer[open]::backdrop {
+    transition: opacity 0.3s ease;
+  }
+  @starting-style {
+    .nav-drawer[open] { translate: 100% 0; }
+    [dir='rtl'] .nav-drawer[open] { translate: -100% 0; }
+    .nav-drawer[open]::backdrop { opacity: 0; }
+  }
+}
+
 /* ─── Reduced motion ─── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -1,30 +1,39 @@
 import { Suspense } from 'react';
-import type { Metadata } from 'next';
+import type { Metadata, ResolvingMetadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Locale } from '@/i18n/routing';
-import { buildAlternates } from '@/lib/seo/site';
+import { baseOpenGraph, buildAlternates, localizedPath } from '@/lib/seo/site';
 import ClientIntlProvider from '@/components/providers/ClientIntlProvider';
 import { Container } from '@/components/marketing/primitives';
 import ApplicationForm from '@/components/onboarding/ApplicationForm';
 import ApplyFormSkeleton from '@/components/apply/ApplyFormSkeleton';
 import ApplyIntro from '@/components/apply/ApplyIntro';
-import { APPLY_FORM_NAMESPACES } from '@/components/apply/namespaces';
+import { APPLY_FORM_NAMESPACES, selectServiceSummaries } from '@/components/apply/namespaces';
 
 const HEADING_ID = 'apply-heading';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: { params: Promise<{ locale: string }> },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale: locale as Locale, namespace: 'seo' });
+  const [t, inherited] = await Promise.all([
+    getTranslations({ locale: locale as Locale, namespace: 'seo' }),
+    parent,
+  ]);
 
   return {
     title: t('apply.title'),
     description: t('apply.description'),
     // Preselection query strings (?service=…&plan=…) all canonicalise to /apply.
     alternates: buildAlternates(locale as Locale, '/apply'),
+    openGraph: {
+      ...baseOpenGraph(locale as Locale, t('siteName')),
+      url: localizedPath(locale as Locale, '/apply'),
+      title: t('apply.title'),
+      description: t('apply.description'),
+      images: inherited.openGraph?.images,
+    },
   };
 }
 
@@ -50,7 +59,7 @@ export default async function ApplyPage({ params }: { params: Promise<{ locale: 
       <Container className="max-w-4xl">
         <ApplyIntro headingId={HEADING_ID} />
         <div className="mt-10 sm:mt-12">
-          <ClientIntlProvider namespaces={APPLY_FORM_NAMESPACES}>
+          <ClientIntlProvider namespaces={APPLY_FORM_NAMESPACES} select={{ services: selectServiceSummaries }}>
             <Suspense fallback={<ApplyFormSkeleton label={t('loadingForm')} />}>
               <ApplicationForm labelledBy={HEADING_ID} />
             </Suspense>

@@ -17,7 +17,7 @@ export default async function AboutSection() {
     <HomeSection id={SECTION_IDS.about} labelledBy="about-title" className="bg-offwhite text-charcoal">
       <div className="mx-auto grid max-w-6xl items-center gap-16 px-6 lg:grid-cols-2 lg:gap-20 lg:px-10">
         <div className="reveal">
-          <p className="mb-4 text-xs font-bold uppercase tracking-widest text-sky">{t('label')}</p>
+          <p className="mb-4 text-xs font-bold uppercase tracking-widest text-cyan-700">{t('label')}</p>
           <h2 id="about-title" className="text-balance text-3xl font-black leading-tight text-navy sm:text-4xl lg:text-5xl">
             {t('heading')}
           </h2>

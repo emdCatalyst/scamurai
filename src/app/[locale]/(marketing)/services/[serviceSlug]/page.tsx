@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { getServiceBySlug, isLiveService, listServices } from '@/lib/services/catalog';
 import { breadcrumbJsonLd, faqJsonLd, serviceJsonLd } from '@/lib/seo/jsonLd';
-import { absoluteUrl, buildAlternates, localizedPath, OG_LOCALE, otherLocales } from '@/lib/seo/site';
+import { absoluteUrl, baseOpenGraph, buildAlternates, localizedPath } from '@/lib/seo/site';
 import JsonLd from '@/components/seo/JsonLd';
 import Breadcrumbs, { breadcrumbUrl, type BreadcrumbItem } from '@/components/marketing/services/Breadcrumbs';
 import { PAGE_NAMESPACE, serviceNamespace } from '@/components/marketing/services/content';
@@ -26,9 +26,11 @@ type Params = Promise<{ locale: string; serviceSlug: string }>;
 /**
  * One statically generated page per catalog service and locale. Everything is
  * data-driven: adding a service to the catalog (plus its copy) adds its page.
+ *
+ * Unknown slugs are not blocked with `dynamicParams = false`: that answers
+ * with the root 404 outside the [locale] layout (no <html lang>). Instead
+ * resolveParams calls notFound(), which renders the localized 404 in-layout.
  */
-export const dynamicParams = false;
-
 export function generateStaticParams() {
   return listServices().map((service) => ({ serviceSlug: service.slug }));
 }
@@ -61,13 +63,10 @@ export async function generateMetadata(
     // A page-level openGraph replaces the inherited one, so the shared fields
     // are repeated and the layout's share image (opengraph-image) is carried over.
     openGraph: {
-      type: 'website',
+      ...baseOpenGraph(locale, tSeo('siteName')),
       url: localizedPath(locale, path),
       title,
       description,
-      siteName: tSeo('siteName'),
-      locale: OG_LOCALE[locale],
-      alternateLocale: otherLocales(locale).map((other) => OG_LOCALE[other]),
       images: inherited.openGraph?.images,
     },
   };

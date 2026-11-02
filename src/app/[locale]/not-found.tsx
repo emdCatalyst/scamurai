@@ -6,14 +6,18 @@ import ClientIntlProvider from '@/components/providers/ClientIntlProvider';
 import { ButtonLink } from '@/components/marketing/primitives';
 import { NO_INDEX } from '@/lib/seo/site';
 
-export async function generateMetadata(): Promise<Metadata> {
-  const [t, tSeo] = await Promise.all([getTranslations('common.notFound'), getTranslations('seo')]);
-  return {
-    title: tSeo('titleTemplate').replace('%s', t('title')),
-    description: t('description'),
-    robots: NO_INDEX,
-  };
-}
+/**
+ * Static on purpose. not-found receives no params, and its metadata is
+ * resolved outside the layout that calls setRequestLocale, so a translated
+ * title would make next-intl read the request headers. On a statically
+ * generated route (e.g. an unknown service slug) that fails at runtime with
+ * "Page changed from static to dynamic".
+ */
+export const metadata: Metadata = {
+  // Absolute: the marketing layout's "%s | Scamurai" template must not be appended.
+  title: { absolute: '404 — Scamurai | سكامورائي' },
+  robots: NO_INDEX,
+};
 
 /**
  * Localized 404 for everything under /[locale] (unknown brand, admin path, …),

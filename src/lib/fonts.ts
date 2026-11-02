@@ -14,6 +14,8 @@ export const poppins = Poppins({
 export const mono = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['400', '500'],
+  // Used only in a few places (watermarks, product UI); don't preload it on every page.
+  preload: false,
   variable: '--font-mono',
   display: 'swap',
 });

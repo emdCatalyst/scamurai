@@ -16,7 +16,7 @@ export default async function ValuesSection() {
     <Section labelledBy="values-title" className="bg-offwhite text-charcoal">
       <div className="mx-auto max-w-6xl px-6 lg:px-10">
         <div className="reveal mb-14 text-center">
-          <p className="mb-4 text-xs font-bold uppercase tracking-widest text-sky">{t('label')}</p>
+          <p className="mb-4 text-xs font-bold uppercase tracking-widest text-cyan-700">{t('label')}</p>
           <h2 id="values-title" className="text-balance text-3xl font-black text-navy sm:text-4xl lg:text-5xl">
             {t('heading')}
           </h2>

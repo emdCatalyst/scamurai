@@ -35,6 +35,20 @@ export function otherLocales(locale: Locale): Locale[] {
   return routing.locales.filter((l) => l !== locale);
 }
 
+/**
+ * Open Graph fields every page should carry. A page-level `openGraph` replaces
+ * the inherited one entirely, so pages spread this in and add their own url,
+ * title, description and (from a child segment) the inherited images.
+ */
+export function baseOpenGraph(locale: Locale, siteName: string) {
+  return {
+    type: 'website' as const,
+    siteName,
+    locale: OG_LOCALE[locale],
+    alternateLocale: otherLocales(locale).map((other) => OG_LOCALE[other]),
+  };
+}
+
 /** Pages that must never be indexed (portals, auth, transactional pages). */
 export const NO_INDEX: NonNullable<Metadata['robots']> = {
   index: false,

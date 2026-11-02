@@ -39,16 +39,31 @@ export default function Picture({ image, variants = [], alt, className, priority
     <picture>
       {variants.map(({ media, image: variant }) => (
         <Fragment key={media}>
-          <Source media={media} image={variant.avif} type="image/avif" />
-          <Source media={media} image={variant.webp} type="image/webp" />
+          <Source media={media} image={variant.avif} size={variant.webp} type="image/avif" />
+          <Source media={media} image={variant.webp} size={variant.webp} type="image/webp" />
         </Fragment>
       ))}
-      <Source image={image.avif} type="image/avif" />
+      <Source image={image.avif} size={image.webp} type="image/avif" />
       <img {...props} alt={alt} />
     </picture>
   );
 }
 
-function Source({ image, type, media }: { image: StaticImageData; type: string; media?: string }) {
-  return <source media={media} type={type} srcSet={image.src} width={image.width} height={image.height} />;
+/**
+ * Dimensions come from the WebP twin (`size`): Turbopack cannot read AVIF
+ * headers and reports 100×100, which would reserve the wrong box (CLS). Both
+ * encodings are produced at the same pixel size by scripts/optimize-images.mjs.
+ */
+function Source({
+  image,
+  size,
+  type,
+  media,
+}: {
+  image: StaticImageData;
+  size: StaticImageData;
+  type: string;
+  media?: string;
+}) {
+  return <source media={media} type={type} srcSet={image.src} width={size.width} height={size.height} />;
 }
