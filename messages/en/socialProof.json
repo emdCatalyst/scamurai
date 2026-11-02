@@ -1,3 +1,11 @@
 {
-  "trusted": "Trusted by brands operating across Saudi Arabia"
+  "label": "Built for multi-branch businesses across Saudi Arabia",
+  "sectors": {
+    "restaurants": "Restaurants",
+    "cafes": "Cafés",
+    "cloudKitchens": "Cloud kitchens",
+    "retail": "Retail chains",
+    "supermarkets": "Supermarkets",
+    "pharmacies": "Pharmacies"
+  }
 }

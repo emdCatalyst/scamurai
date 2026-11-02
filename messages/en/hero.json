@@ -1,16 +1,17 @@
 {
-  "badge": "The Smart Order Verification Platform",
-  "headlineStar": "An idea!",
-  "headline1": "Stop Order.",
-  "headline1Highlight": "Fraud",
-  "headline2": "Before It Costs You.",
-  "subheading": "Scamurai gives your team a simple, tamper-proof way to photograph, verify, and track every delivery order — so finance always has the proof they need.",
-  "ctaPrimary": "Get Started Free",
-  "ctaSecondary": "Watch how it works",
-  "stat1Label": "Orders Verified",
-  "stat2Label": "Accuracy",
-  "stat3Label": "Report Time",
-  "trust1": "Tamper-proof records",
-  "trust2": "Under 30s review",
-  "trust3": "Real-time dashboards"
+  "kicker": "An idea!",
+  "headline": "Photo-verified operations for <highlight>every branch</highlight>",
+  "subheading": "Scamurai turns everyday branch work into clear, timestamped photo evidence, so your team settles disputes fast and every decision rests on facts, not guesswork.",
+  "ctaPrimary": "Explore our services",
+  "ctaSecondary": "Get started",
+  "highlights": {
+    "evidence": "Timestamped photo records",
+    "accountability": "Branch and staff accountability",
+    "dashboards": "Dashboards for every branch"
+  },
+  "services": {
+    "label": "Our services",
+    "heading": "One platform, every operation documented",
+    "description": "Pick the service your branches need today. Every service is built on the same foundation: photo evidence, recorded timestamps and clear accountability."
+  }
 }

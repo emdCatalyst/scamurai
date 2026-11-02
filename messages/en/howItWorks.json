@@ -1,10 +1,23 @@
 {
-  "label": "How It Works",
-  "heading": "Three Simple Steps",
-  "step1Title": "Capture",
-  "step1Desc": "Staff photographs the sealed and opened bag with one tap.",
-  "step2Title": "Review",
-  "step2Desc": "Finance reviews the order in seconds.",
-  "step3Title": "Track",
-  "step3Desc": "Admin tracks everything in real-time."
+  "label": "How it works",
+  "heading": "Up and running in four steps",
+  "description": "From choosing a service to running your own branded workspace, our team is with you at every step.",
+  "steps": {
+    "service": {
+      "title": "Choose a service",
+      "description": "Pick the service that fits your operations, whether it's available now or coming soon."
+    },
+    "plan": {
+      "title": "Choose a plan",
+      "description": "Select the plan that matches your branches, or register your interest in an upcoming service."
+    },
+    "contact": {
+      "title": "We contact you",
+      "description": "Our team reaches out to answer your questions, finalize the details and confirm your payment."
+    },
+    "activate": {
+      "title": "Activate your brand",
+      "description": "Upload your logo, choose your brand colors and take over as your brand's admin."
+    }
+  }
 }

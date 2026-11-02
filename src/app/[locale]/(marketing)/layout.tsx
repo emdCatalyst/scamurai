@@ -17,7 +17,12 @@ export async function generateMetadata({
 
 /**
  * Public marketing site: home, service pages, apply flow. Statically rendered,
- * no auth provider. Only the namespaces used by client components are shipped.
+ * no auth provider.
+ *
+ * The header and footer get their text from the server, so this provider ships
+ * no messages. It only gives client islands (locale switch) the locale. Pages
+ * whose client components translate text wrap them in their own provider with
+ * exactly the namespaces they use (see the apply page).
  */
 export default async function MarketingLayout({
   children,
@@ -30,9 +35,7 @@ export default async function MarketingLayout({
   setRequestLocale(locale as Locale);
 
   return (
-    <ClientIntlProvider
-      namespaces={['nav', 'footer', 'marketing', 'hero', 'socialProof', 'about', 'howItWorks', 'values', 'plans', 'apply', 'services']}
-    >
+    <ClientIntlProvider namespaces={[]}>
       <Navbar />
       {children}
       <Footer />

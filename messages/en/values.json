@@ -1,10 +1,18 @@
 {
-  "label": "Our Values",
-  "heading": "What We Stand For",
-  "v1Title": "Transparency",
-  "v1Desc": "Every order is documented. Every action is timestamped. Nothing is hidden.",
-  "v2Title": "Accountability",
-  "v2Desc": "Know who submitted what, when, and from which branch. Always.",
-  "v3Title": "Speed",
-  "v3Desc": "From order photo to finance review in under 30 seconds."
+  "label": "Our values",
+  "heading": "What we stand for",
+  "items": {
+    "transparency": {
+      "title": "Transparency",
+      "description": "Every record carries its photos, time and branch. Nothing is hidden."
+    },
+    "accountability": {
+      "title": "Accountability",
+      "description": "Know who did what, when, and at which branch. Always."
+    },
+    "speed": {
+      "title": "Speed",
+      "description": "Capturing proof takes seconds, so problems are resolved before they grow."
+    }
+  }
 }

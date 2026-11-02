@@ -1,11 +1,17 @@
 {
-  "label": "About Us",
-  "heading": "We protect your revenue",
-  "body1": "Scamurai acts as a verification layer between delivery apps and your finance team. Every order is photographed, timestamped, and linked to a branch and staff member — creating an unbreakable chain of accountability.",
-  "body2": "No more disputes. No more guesswork. Just transparent, verifiable proof for every order that passes through your kitchen.",
-  "visionBadge": "Aligned with Saudi Vision 2030",
-  "cardApproved": "Approved",
-  "cardReview": "Needs Review",
-  "cardBranch": "Al Olaya Branch",
-  "cardAmount": "142.50 SAR"
+  "label": "About Scamurai",
+  "heading": "Proof you can rely on, in every branch",
+  "body1": "Scamurai is a Saudi platform that turns your everyday branch operations into records you can verify. Every photo is timestamped and linked to its branch and the team member who took it, giving you a clear chain of accountability.",
+  "body2": "Start with the service your branches need most. Disputes are settled with evidence, and managers see what really happens in each branch without having to be there.",
+  "cta": "See how it works",
+  "card": {
+    "label": "Branch record",
+    "branch": "Al Olaya Branch",
+    "status": "Verified",
+    "photos": "Photo evidence attached",
+    "time": "Date and time recorded",
+    "staff": "Linked to the staff member",
+    "review": "Needs review"
+  },
+  "visionAlt": "Scamurai × Saudi Vision 2030"
 }

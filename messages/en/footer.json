@@ -1,18 +1,9 @@
 {
-  "tagline": "The Guardian of Your Orders",
-  "product": "Product",
-  "features": "Features",
-  "pricing": "Pricing",
-  "security": "Security",
-  "updates": "Updates",
-  "company": "Company",
-  "aboutLink": "About",
-  "contact": "Contact",
-  "privacy": "Privacy Policy",
-  "terms": "Terms",
-  "ctaHeading": "Try Scamurai Free",
-  "emailPlaceholder": "Enter your email",
-  "startButton": "Start",
-  "copyright": "© 2026 Scamurai. All rights reserved.",
-  "langLabel": "EN"
+  "tagline": "The guardian of your operations.",
+  "description": "Photo-verified operations for multi-branch businesses across Saudi Arabia.",
+  "servicesHeading": "Services",
+  "exploreHeading": "Explore",
+  "ctaHeading": "Ready to get started?",
+  "ctaBody": "Tell us about your branches and our team will help you choose the right service.",
+  "copyright": "© {year} Scamurai. All rights reserved."
 }

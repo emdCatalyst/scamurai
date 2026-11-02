@@ -1,142 +1,106 @@
-'use client';
-
-import { useTranslations, useLocale } from 'next-intl';
-import { useRouter, usePathname } from '@/i18n/navigation';
-import { Globe, MessageCircle, Mail, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
+import { getTranslations } from 'next-intl/server';
+import { getServicePath } from '@/components/marketing/services/links';
+import { ButtonLink, Container } from '@/components/marketing/primitives';
+import { Link } from '@/i18n/navigation';
+import { isLiveService, listServices } from '@/lib/services/catalog';
+import LanguageLinks from './LanguageLinks';
+import { homeSectionHref, SECTION_IDS } from './sections';
 
-export default function Footer() {
-  const t = useTranslations('footer');
-  const locale = useLocale();
-  const isAr = locale === 'ar';
-  const router = useRouter();
-  const pathname = usePathname();
+const LINK = 'rounded text-sm text-white/65 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60';
+const COLUMN_HEADING = 'mb-5 text-xs font-bold uppercase tracking-widest text-white/65 rtl:tracking-normal';
 
-  const switchLocale = () => router.replace(pathname, { locale: isAr ? 'en' : 'ar' });
+/** Rendered when the page is built, so the static footer always shows the current year. */
+const BUILD_YEAR = String(new Date().getFullYear());
 
-  const productLinks = [
-    { label: t('features'), href: '#how' },
-    { label: t('pricing'), href: '#plans' },
-    { label: t('security'), href: '#' },
-    { label: t('updates'), href: '#' },
-  ];
-
-  const companyLinks = [
-    { label: t('aboutLink'), href: '#about' },
-    { label: t('contact'), href: '#' },
-    { label: t('privacy'), href: '#' },
-    { label: t('terms'), href: '#' },
-  ];
+/** Site footer for the public pages. Server component: no client JavaScript besides the language switch. */
+export default async function Footer() {
+  const [t, tNav, tServices, tMarketing, tSeo] = await Promise.all([
+    getTranslations('footer'),
+    getTranslations('nav'),
+    getTranslations('services'),
+    getTranslations('marketing'),
+    getTranslations('seo'),
+  ]);
 
   return (
-    <footer
-      className="relative overflow-hidden border-t border-white/[0.06]"
-      style={{ background: 'linear-gradient(180deg, #0a1625 0%, #060e1a 100%)' }}
-    >
-      {/* Top glow */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky/20 to-transparent" />
+    <footer className="relative overflow-hidden border-t border-white/[0.06] bg-[linear-gradient(180deg,#0a1625_0%,#060e1a_100%)]">
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky/20 to-transparent"
+      />
 
-      {/* Ghosted logo watermark */}
-      <div className="pointer-events-none absolute end-0 top-0 h-full w-1/3 opacity-[0.015]" aria-hidden>
-        <Image src="/logos/secondy logo 2.svg" alt="" fill className="object-contain object-end" />
-      </div>
-
-      <div className="relative mx-auto max-w-6xl px-6 py-16">
-        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
-
-          {/* Brand */}
-          <div className="flex flex-col gap-5 lg:col-span-1">
-            <div className="flex items-center gap-1.5">
-              <Image src="/logos/secondy logo 2.svg" alt="Scamurai" width={38} height={38} className="opacity-80" style={{ height: 'auto' }} />
-              <Image src="/logos/primary logo 2.svg" alt="SCAMURAI" width={100} height={16} className="opacity-70" style={{ height: 'auto' }} />
-            </div>
-
-            <p className={`text-sm leading-relaxed text-white/35 ${isAr ? 'font-arabic' : ''}`}>
-              {t('tagline')}
-            </p>
-
-            <div className="flex gap-3">
-              {[Globe, MessageCircle, Mail].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-white/30 transition-all hover:border-sky/30 hover:text-sky hover:bg-sky/[0.06]"
-                >
-                  <Icon size={15} strokeWidth={1.5} />
-                </a>
-              ))}
-            </div>
+      <Container className="relative py-16">
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1.3fr]">
+          <div className="flex flex-col gap-5">
+            <Link
+              href="/"
+              className="flex w-fit items-center gap-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60"
+            >
+              <Image src="/logos/secondy logo 2.svg" alt="" width={38} height={38} className="opacity-90" />
+              <Image src="/logos/primary logo 2.svg" alt={tSeo('siteName')} width={100} height={29} className="opacity-90" />
+            </Link>
+            <p className="text-sm font-semibold text-white/85">{t('tagline')}</p>
+            <p className="max-w-xs text-sm leading-relaxed text-white/65">{t('description')}</p>
           </div>
 
-          {/* Product */}
-          <div>
-            <h4 className={`mb-5 text-xs font-bold uppercase tracking-widest text-white/40 ${isAr ? 'font-arabic' : ''}`}>
-              {t('product')}
-            </h4>
+          <nav aria-labelledby="footer-services">
+            <h2 id="footer-services" className={COLUMN_HEADING}>
+              {t('servicesHeading')}
+            </h2>
             <ul className="flex flex-col gap-3">
-              {productLinks.map((link) => (
-                <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className={`text-sm text-white/40 transition-colors hover:text-white/80 ${isAr ? 'font-arabic' : ''}`}
-                  >
-                    {link.label}
-                  </a>
+              {listServices().map((service) => (
+                <li key={service.key} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <Link href={getServicePath(service)} className={LINK}>
+                    {tServices(`${service.key}.name`)}
+                  </Link>
+                  {!isLiveService(service) && (
+                    <span className="rounded-full border border-white/10 px-2 py-0.5 text-[11px] font-medium text-white/65">
+                      {tMarketing(`status.${service.status}`)}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
-          {/* Company */}
-          <div>
-            <h4 className={`mb-5 text-xs font-bold uppercase tracking-widest text-white/40 ${isAr ? 'font-arabic' : ''}`}>
-              {t('company')}
-            </h4>
+          <nav aria-labelledby="footer-explore">
+            <h2 id="footer-explore" className={COLUMN_HEADING}>
+              {t('exploreHeading')}
+            </h2>
             <ul className="flex flex-col gap-3">
-              {companyLinks.map((link) => (
-                <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className={`text-sm text-white/40 transition-colors hover:text-white/80 ${isAr ? 'font-arabic' : ''}`}
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
+              <li>
+                <Link href={homeSectionHref(SECTION_IDS.how)} className={LINK}>
+                  {tNav('howItWorks')}
+                </Link>
+              </li>
+              <li>
+                <Link href={homeSectionHref(SECTION_IDS.about)} className={LINK}>
+                  {tNav('about')}
+                </Link>
+              </li>
+              <li>
+                <Link href="/apply" className={LINK}>
+                  {tMarketing('getStarted')}
+                </Link>
+              </li>
             </ul>
-          </div>
+          </nav>
 
-          {/* CTA */}
           <div>
-            <h4 className={`mb-2 text-sm font-bold text-white/80 ${isAr ? 'font-arabic' : ''}`}>
-              {t('ctaHeading')}
-            </h4>
-            <div className="mt-5 flex overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
-              <input
-                type="email"
-                placeholder={t('emailPlaceholder')}
-                className={`min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none ${isAr ? 'font-arabic text-end' : ''}`}
-                dir={isAr ? 'rtl' : 'ltr'}
-              />
-              <button className="shrink-0 bg-gradient-cta px-4 font-semibold text-sm text-navy transition-all hover:brightness-110">
-                <ArrowRight size={16} strokeWidth={2} className={isAr ? 'rotate-180' : ''} />
-              </button>
-            </div>
+            <h2 className="text-base font-bold text-white">{t('ctaHeading')}</h2>
+            <p className="mt-3 text-sm leading-relaxed text-white/65">{t('ctaBody')}</p>
+            <ButtonLink href="/apply" className="mt-6">
+              {tMarketing('getStarted')}
+            </ButtonLink>
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/[0.05] pt-8 sm:flex-row">
-          <p className={`text-xs text-white/25 ${isAr ? 'font-arabic' : ''}`}>{t('copyright')}</p>
-
-          <button
-            onClick={switchLocale}
-            className="flex items-center justify-center rounded-full border border-white/10 bg-white/[0.03] h-8 w-8 text-[11px] font-bold text-white/40 transition-all hover:border-sky/30 hover:text-sky"
-          >
-            {t('langLabel')}
-          </button>
+        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/[0.06] pt-8 sm:flex-row">
+          <p className="text-xs text-white/65">{t('copyright', { year: BUILD_YEAR })}</p>
+          <LanguageLinks className="rounded-full border border-white/10 px-3 py-1.5 text-xs font-semibold text-white/75 transition-colors hover:border-sky/40 hover:text-sky focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60" />
         </div>
-      </div>
+      </Container>
     </footer>
   );
 }

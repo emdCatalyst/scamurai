@@ -1,9 +1,14 @@
 {
-  "features": "Features",
+  "home": "Scamurai home",
+  "primaryNav": "Main",
+  "services": "Services",
+  "howItWorks": "How it works",
   "about": "About",
-  "plans": "Plans",
-  "login": "Login",
-  "getStarted": "Get Started",
-  "langLabel": "EN",
-  "close": "Close menu"
+  "menu": "Menu",
+  "openMenu": "Open menu",
+  "closeMenu": "Close menu",
+  "localeNames": {
+    "en": "English",
+    "ar": "العربية"
+  }
 }
