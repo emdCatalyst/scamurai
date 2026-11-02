@@ -41,5 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 # Add these lines
-src/lib/db/migrations/
 *.md
+!db/sql/README.md
