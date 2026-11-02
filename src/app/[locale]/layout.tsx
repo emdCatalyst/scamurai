@@ -6,7 +6,6 @@ import { notFound } from 'next/navigation';
 import { routing, type Locale } from '@/i18n/routing';
 import { poppins, mono } from '@/lib/fonts';
 import { getSiteUrl, OG_LOCALE, otherLocales } from '@/lib/seo/site';
-import { ToastProvider } from '@/components/ui/Toast';
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -45,9 +44,10 @@ export const viewport: Viewport = {
 };
 
 /**
- * Root layout: document shell only. Product providers (Clerk, full message
- * catalogue) live in the authenticated route groups — see AppProviders — and
- * marketing pages pick the few namespaces they need — see ClientIntlProvider.
+ * Root layout: document shell only, with no client JavaScript of its own.
+ * Product providers (Clerk, full message catalogue, toasts) live in the
+ * authenticated route groups — see AppProviders — and marketing pages pick the
+ * few namespaces they need — see ClientIntlProvider.
  */
 export default async function LocaleLayout({
   children,
@@ -72,7 +72,7 @@ export default async function LocaleLayout({
       data-scroll-behavior="smooth"
     >
       <body className="min-h-screen flex flex-col">
-        <ToastProvider>{children}</ToastProvider>
+        {children}
       </body>
     </html>
   );

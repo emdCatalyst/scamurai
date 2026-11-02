@@ -17,13 +17,18 @@ export default function SearchField({ value, onSearch }: SearchFieldProps) {
   const id = useId();
   const [text, setText] = useState(value);
   const [appliedValue, setAppliedValue] = useState(value);
+  /** The search this field last asked for; its arrival must not clobber newer typing. */
+  const [requested, setRequested] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  // The URL changed elsewhere (back/forward, another filter): show its search,
-  // unless it is just the normalised form of what is being typed.
+  // The URL changed. If it is the search this field requested, the admin may
+  // have kept typing since, so leave the text alone. Otherwise it changed
+  // elsewhere (back/forward, another filter): show its search, unless it is
+  // just the normalised form of what is being typed.
   if (value !== appliedValue) {
     setAppliedValue(value);
-    if (normalizeSearch(text) !== value) setText(value);
+    if (value === requested) setRequested(null);
+    else if (normalizeSearch(text) !== value) setText(value);
   }
 
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -31,7 +36,10 @@ export default function SearchField({ value, onSearch }: SearchFieldProps) {
   const apply = (next: string) => {
     clearTimeout(timer.current);
     const search = normalizeSearch(next);
-    if (search !== value) onSearch(search);
+    if (search !== value) {
+      setRequested(search);
+      onSearch(search);
+    }
   };
 
   return (

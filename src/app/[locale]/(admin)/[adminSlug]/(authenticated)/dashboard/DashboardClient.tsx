@@ -32,6 +32,7 @@ export default function DashboardClient({
   const pieData = [
     { name: t('pending'), value: applicationStats.pending || 0, color: '#f59e0b' },
     { name: t('quoted'), value: applicationStats.quoted || 0, color: '#3b82f6' },
+    { name: t('paid'), value: applicationStats.paid || 0, color: '#8b5cf6' },
     { name: t('approved'), value: applicationStats.approved || 0, color: '#10b981' },
     { name: t('rejected'), value: applicationStats.rejected || 0, color: '#ef4444' },
   ];
@@ -183,6 +184,7 @@ export default function DashboardClient({
                     const statusConfig: any = {
                       pending: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200' },
                       quoted: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' },
+                      paid: { bg: 'bg-violet-50', text: 'text-violet-600', border: 'border-violet-200' },
                       approved: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200' },
                       rejected: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' },
                     };
@@ -197,7 +199,7 @@ export default function DashboardClient({
                         <td className="py-4 px-2 md:px-0">
                           <span className="font-bold text-slate-800 group-hover/row:text-[#4fc5df] transition-colors">{app.brandName}</span>
                         </td>
-                        <td className="py-4 px-2 md:px-0 font-medium text-slate-500 capitalize">{app.plan}</td>
+                        <td className="py-4 px-2 md:px-0 font-medium text-slate-500 capitalize">{app.plan ?? '—'}</td>
                         <td className="py-4 px-2 md:px-0">
                           <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider border ${sc.bg} ${sc.text} ${sc.border}`}>
                             {t(app.status)}

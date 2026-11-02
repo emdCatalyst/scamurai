@@ -1,3 +1,4 @@
+import { APPLICATION_STATUSES, isApplicationStatus, type ApplicationStatus } from '@/lib/applications/status';
 import { requireMasterAdminPage } from '@/lib/auth';
 import { Building2, Clock, ShoppingBag, TrendingUp } from 'lucide-react';
 import { Suspense } from 'react';
@@ -114,10 +115,11 @@ async function DashboardDataWrapper() {
     };
   });
   
-  const applicationStats = { pending: 0, quoted: 0, approved: 0, rejected: 0 };
+  // One bucket per lifecycle status, so new statuses (e.g. paid) are always counted.
+  const applicationStats = Object.fromEntries(APPLICATION_STATUSES.map((status) => [status, 0])) as Record<ApplicationStatus, number>;
   appStatsRaw.forEach(row => {
-    if (row.status in applicationStats) {
-      applicationStats[row.status as keyof typeof applicationStats] = Number(row.count);
+    if (isApplicationStatus(row.status)) {
+      applicationStats[row.status] = Number(row.count);
     }
   });
 
