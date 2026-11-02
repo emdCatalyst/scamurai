@@ -38,6 +38,12 @@ describe('applicationSchema', () => {
     expect(applicationSchema.parse({ ...base, service: 'receiving' }).plan).toBeUndefined();
   });
 
+  it('treats an unselected (null) plan as no plan', () => {
+    // react-hook-form reports an untouched radio group as null.
+    expect(applicationSchema.parse({ ...base, service: 'compliance', plan: null }).plan).toBeUndefined();
+    expect(errorsOf({ ...base, service: 'dispute_orders', plan: null }).plan).toEqual(['errPlan']);
+  });
+
   it('rejects unknown services and out-of-range branch counts', () => {
     expect(errorsOf({ ...base, service: 'payroll' }).service).toEqual(['errService']);
     expect(errorsOf({ ...base, service: 'compliance', branchCount: 0 }).branchCount).toEqual(['errBranchCount']);

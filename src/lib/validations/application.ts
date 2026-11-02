@@ -19,7 +19,12 @@ export const MAX_BRANCH_COUNT = 10000;
 export const applicationSchema = z
   .object({
     service: z.enum(SERVICE_KEYS, { message: 'errService' }),
-    plan: z.enum(PLAN_TIERS, { message: 'errPlan' }).optional(),
+    // An untouched radio group yields null; treat it as "no plan" so a
+    // coming-soon interest registration is never rejected for a hidden field.
+    plan: z
+      .enum(PLAN_TIERS, { message: 'errPlan' })
+      .nullish()
+      .transform((plan) => plan ?? undefined),
     brandName: z
       .string({ message: 'errBrandMin' })
       .trim()

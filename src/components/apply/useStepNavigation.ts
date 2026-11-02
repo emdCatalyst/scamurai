@@ -20,7 +20,9 @@ export function useStepNavigation(steps: readonly StepId[], initialStep: StepId)
   const index = steps.indexOf(step);
 
   function goTo(next: StepId | undefined) {
-    if (!next) return;
+    // Never leave the current path (e.g. a stale plan error after switching to
+    // a coming-soon service, whose path has no plan step).
+    if (!next || !steps.includes(next)) return;
     focusHeadingOnChange.current = true;
     setStep(next);
   }

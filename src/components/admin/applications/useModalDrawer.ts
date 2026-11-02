@@ -25,6 +25,9 @@ export function useModalDrawer({ panelRef, initialFocusRef, onClose }: ModalDraw
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // A nested dialog (e.g. a confirmation portalled to <body>) owns the keyboard.
+      const active = document.activeElement;
+      if (panelRef.current && active && active !== document.body && !panelRef.current.contains(active)) return;
       if (event.key === 'Escape') {
         onClose();
         return;

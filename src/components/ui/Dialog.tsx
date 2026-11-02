@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, AlertTriangle, HelpCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+
+const subscribeToNothing = () => () => {};
 
 interface DialogProps {
   isOpen: boolean;
@@ -30,11 +32,58 @@ export default function Dialog({
   isLoading = false,
 }: DialogProps) {
   const t = useTranslations('common.dialog');
-  const [mounted, setMounted] = useState(false);
+  // Portals need document.body, so render only on the client (no hydration mismatch).
+  const mounted = useSyncExternalStore(subscribeToNothing, () => true, () => false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
+  const descriptionId = useId();
 
+  // Focus moves into the dialog on open and back to whatever opened it on close.
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (!isOpen) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const frame = requestAnimationFrame(() => cancelRef.current?.focus());
+    return () => {
+      cancelAnimationFrame(frame);
+      opener?.focus();
+    };
+  }, [isOpen]);
+
+  // Keyboard: Tab stays inside, Escape cancels. Handled in the capture phase and
+  // stopped there, so a drawer underneath neither wraps the Tab nor closes.
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        event.preventDefault();
+        if (!isLoading) onClose();
+        return;
+      }
+      if (event.key !== 'Tab' || !panelRef.current) return;
+      event.stopPropagation();
+
+      const focusable = Array.from(panelRef.current.querySelectorAll<HTMLElement>('button:not([disabled])'));
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (!first || !last) {
+        event.preventDefault();
+      } else if (!panelRef.current.contains(active)) {
+        event.preventDefault();
+        first.focus();
+      } else if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [isOpen, isLoading, onClose]);
 
   useEffect(() => {
     if (isOpen) {
@@ -64,6 +113,11 @@ export default function Dialog({
             className={`absolute inset-0 bg-[#0A1628]/40 backdrop-blur-sm ${!isLoading ? 'cursor-pointer' : 'cursor-wait'}`}
           />
           <motion.div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            aria-describedby={descriptionId}
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -82,10 +136,12 @@ export default function Dialog({
                   {type === 'danger' ? <AlertTriangle size={28} /> : <HelpCircle size={28} />}
                 </div>
                 <div className="flex-1 pt-1">
-                  <h3 className="text-xl font-bold text-[var(--brand-surface-fg,#0f172a)] mb-2 leading-tight">{title}</h3>
-                  <p className="text-[var(--brand-surface-fg-muted,#64748b)] text-sm leading-relaxed">{description}</p>
+                  <h3 id={titleId} className="text-xl font-bold text-[var(--brand-surface-fg,#0f172a)] mb-2 leading-tight">{title}</h3>
+                  <p id={descriptionId} className="text-[var(--brand-surface-fg-muted,#64748b)] text-sm leading-relaxed">{description}</p>
                 </div>
-                <button 
+                <button
+                  type="button"
+                  aria-label={cancelText || t('cancel')}
                   onClick={onClose}
                   disabled={isLoading}
                   className="p-1 -mt-1 -me-1 transition-colors disabled:opacity-30 disabled:cursor-wait"
@@ -104,6 +160,8 @@ export default function Dialog({
               }}
             >
               <button
+                ref={cancelRef}
+                type="button"
                 onClick={onClose}
                 disabled={isLoading}
                 className="px-5 py-2.5 text-sm font-bold transition-colors disabled:opacity-50 rounded-xl"
@@ -112,6 +170,7 @@ export default function Dialog({
                 {cancelText || t('cancel')}
               </button>
               <button
+                type="button"
                 onClick={onConfirm}
                 disabled={isLoading}
                 className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 shadow-lg`}
