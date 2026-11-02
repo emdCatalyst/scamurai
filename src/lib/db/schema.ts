@@ -21,6 +21,11 @@ import { APPLICATION_STATUSES } from "../applications/status";
 const sqlList = (values: readonly string[]) =>
   sql.raw(values.map((value) => `'${value}'`).join(", "));
 
+// Every table has row-level security enabled with no policies. Supabase
+// exposes the public schema through its Data API, so this denies all access
+// through anon/authenticated keys. The app connects as the table owner, which
+// bypasses RLS, so server code is unaffected.
+
 // ─────────────────────────────────────────────────────────────────────────────
 // brands
 // The root multi-tenant entity. Created by master admin only.
@@ -72,7 +77,7 @@ export const brands = pgTable(
       sql`${table.plan} IN ('starter', 'growth', 'enterprise')`
     ),
   ]
-);
+).enableRLS();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // applications
@@ -139,7 +144,7 @@ export const applications = pgTable(
       sql`${table.branchCount} IS NULL OR ${table.branchCount} BETWEEN 1 AND 10000`
     ),
   ]
-);
+).enableRLS();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // users
@@ -191,7 +196,7 @@ export const users = pgTable(
       sql`${table.role} IN ('master_admin', 'brand_admin', 'finance', 'staff')`
     ),
   ]
-);
+).enableRLS();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // branches
@@ -221,7 +226,7 @@ export const branches = pgTable(
       .on(table.brandId)
       .where(sql`${table.deletedAt} IS NULL`),
   ]
-);
+).enableRLS();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // delivery_app_catalog
@@ -247,7 +252,7 @@ export const deliveryAppCatalog = pgTable(
       .on(table.isActive)
       .where(sql`${table.deletedAt} IS NULL`),
   ]
-);
+).enableRLS();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // brand_delivery_apps
@@ -279,7 +284,7 @@ export const brandDeliveryApps = pgTable(
     index("idx_brand_delivery_apps_brand").on(table.brandId),
     index("idx_brand_delivery_apps_catalog").on(table.catalogAppId),
   ]
-);
+).enableRLS();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // orders
@@ -341,7 +346,7 @@ export const orders = pgTable(
       sql`${table.status} IN ('needs_review', 'approved', 'rejected')`
     ),
   ]
-);
+).enableRLS();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // order_images
@@ -373,7 +378,7 @@ export const orderImages = pgTable(
       sql`${table.type} IN ('opened', 'sealed')`
     ),
   ]
-);
+).enableRLS();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Relations
