@@ -159,6 +159,25 @@ body { background: #0d1e35; color: #f2f2f2; overflow-x: hidden; }
   opacity: 0.4;
 }
 
+/* ─── Scroll reveal: CSS-only progressive enhancement, zero JavaScript ───
+   Content is fully visible where scroll-driven animations are unsupported
+   or the user prefers reduced motion. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: fade-in-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}
+
+/* ─── Page-load entrance. Never put it on the LCP element (usually the h1):
+   fading it in from opacity 0 delays Largest Contentful Paint. ─── */
+.enter-fade-up {
+  animation: fade-in-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* ─── Reduced motion ─── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

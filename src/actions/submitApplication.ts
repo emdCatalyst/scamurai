@@ -121,7 +121,7 @@ export async function submitApplication(
       ];
       if (phone) rows.push({ key: 'Phone', value: phone });
       rows.push(
-        { key: 'Requested plan', value: plan },
+        { key: 'Requested plan', value: plan ?? '—' },
         { key: 'Submitted', value: submittedAt }
       );
 

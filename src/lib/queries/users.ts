@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { db } from "@/lib/db";
 import { users, brands, branches } from "@/lib/db/schema";
 import { eq, and, ilike, or, desc, asc, count, isNull, ne } from "drizzle-orm";
@@ -147,11 +148,12 @@ export async function getUsers({
   };
 }
 
-export async function getUserByClerkId(clerkUserId: string) {
+/** Memoised per request with React `cache` (no-op outside a render). */
+export const getUserByClerkId = cache(async (clerkUserId: string) => {
   return await db.query.users.findFirst({
     where: and(eq(users.clerkUserId, clerkUserId), isNull(users.deletedAt)),
     with: {
       brand: true,
     },
   });
-}
+});

@@ -29,6 +29,12 @@ export async function approveApplication(
     return { success: false, error: 'Application not found.' };
   }
 
+  // Interest registrations (coming-soon services) carry no plan and cannot be approved.
+  const plan = application.plan;
+  if (!plan) {
+    return { success: false, error: 'This application has no plan and cannot be approved.' };
+  }
+
   if (application.status !== 'quoted') {
     return { success: false, error: 'Application must be in "quoted" status before approval.' };
   }
@@ -90,7 +96,7 @@ export async function approveApplication(
         .values({
           name: application.brandName,
           slug,
-          plan: application.plan,
+          plan,
           customMaxBranches: customMaxBranches ?? null,
           customMaxUsers: customMaxUsers ?? null,
         })

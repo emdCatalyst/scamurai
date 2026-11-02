@@ -1,0 +1,373 @@
+{
+  "login": {
+    "title": "المدير العام",
+    "emailPlaceholder": "البريد الإلكتروني",
+    "passwordPlaceholder": "كلمة المرور",
+    "signIn": "تسجيل الدخول",
+    "signingIn": "جاري تسجيل الدخول...",
+    "redirecting": "جاري تحميل لوحة التحكم...",
+    "accessDenied": "تم رفض الوصول.",
+    "incomplete": "التحقق غير مكتمل.",
+    "invalid": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+    "errors": {
+      "emailRequired": "البريد الإلكتروني مطلوب.",
+      "emailInvalid": "البريد الإلكتروني غير صالح.",
+      "passwordRequired": "كلمة المرور مطلوبة.",
+      "passwordMin": "كلمة المرور يجب أن تتكون من 8 أحرف على الأقل.",
+      "form_identifier_not_found": "الحساب غير موجود.",
+      "form_password_incorrect": "كلمة المرور غير صحيحة.",
+      "too_many_requests": "محاولات كثيرة جدًا. يرجى المحاولة مرة أخرى لاحقًا.",
+      "general": "حدث خطأ ما."
+    }
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "activeBrands": "العلامات التجارية النشطة",
+    "pendingApplications": "الطلبات المعلقة",
+    "ordersThisMonth": "طلبات هذا الشهر",
+    "approvalRate": "معدل القبول",
+    "applicationsOverview": "نظرة عامة على الطلبات",
+    "totalApps": "إجمالي الطلبات",
+    "pending": "معلق",
+    "quoted": "مُسعّر",
+    "approved": "مقبول",
+    "rejected": "مرفوض",
+    "orderTrends": "اتجاهات الطلبات",
+    "last30Days": "آخر 30 يوماً",
+    "submitted": "مُقدم",
+    "recentApplications": "أحدث الطلبات",
+    "recentAppsSubtitle": "أحدث العلامات التجارية المنضمة للمنصة",
+    "viewAll": "عرض الكل",
+    "noRecentApps": "لا توجد طلبات حديثة.",
+    "brand": "العلامة التجارية",
+    "plan": "الخطة",
+    "status": "الحالة",
+    "time": "الوقت",
+    "topPerformers": "الأفضل أداءً",
+    "topPerformersSubtitle": "الفروع ذات أعلى حجم طلبات هذا الشهر",
+    "noOrderData": "لا توجد بيانات طلبات متاحة لهذا الشهر.",
+    "orders": "طلبات"
+  },
+  "shell": {
+    "dashboard": "لوحة التحكم",
+    "applications": "الطلبات",
+    "brands": "العلامات التجارية",
+    "users": "المستخدمون",
+    "delivery-apps": "تطبيقات التوصيل",
+    "settings": "الإعدادات",
+    "comingSoon": "قريباً",
+    "platformAdmin": "مدير المنصة",
+    "logout": "تسجيل الخروج",
+    "signingOut": "جاري تسجيل الخروج...",
+    "masterAdmin": "المدير العام"
+  },
+  "applications": {
+    "title": "إدارة الطلبات",
+    "filters": {
+      "status": {
+        "all": "الكل",
+        "pending": "قيد الانتظار",
+        "quoted": "تم التسعير",
+        "approved": "مقبول",
+        "rejected": "مرفوض"
+      },
+      "searchPlaceholder": "البحث بالاسم أو البريد...",
+      "sort": {
+        "newest": "الأحدث أولاً",
+        "oldest": "الأقدم أولاً"
+      },
+      "plan": {
+        "all": "كل الخطط"
+      }
+    },
+    "status": {
+      "pending": "قيد الانتظار",
+      "quoted": "تم التسعير",
+      "approved": "مقبول",
+      "rejected": "مرفوض"
+    },
+    "table": {
+      "brandName": "اسم العلامة التجارية",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "plan": "الخطة",
+      "submitted": "تاريخ التقديم",
+      "status": "الحالة",
+      "actions": "الإجراءات",
+      "noPhone": "لا يوجد هاتف",
+      "emptyTitle": "لم يتم العثور على طلبات",
+      "emptyDesc": "جرب تغيير الفلاتر أو كلمة البحث."
+    },
+    "actions": {
+      "markAsQuoted": "تحديد كمُسعّر",
+      "approve": "قبول العلامة",
+      "reject": "رفض",
+      "confirmQuoted": "هل أنت متأكد من تحديد هذا الطلب كمُسعّر؟",
+      "confirmApprove": "تحذير: سيؤدي هذا إلى إنشاء حساب العلامة التجارية وإرسال دعوة. هذا الإجراء غير قابل للتراجع. هل تريد الاستمرار؟",
+      "successQuoted": "تم تحديد الطلب كمُسعّر بنجاح.",
+      "successApproved": "تم قبول العلامة التجارية وإرسال الدعوة بنجاح.",
+      "successRejected": "تم رفض الطلب بنجاح.",
+      "error": "فشل تحديث الحالة.",
+      "customLimitsTitle": "حدود مخصصة للمؤسسات",
+      "customMaxBranches": "الفروع المسموح بها",
+      "customMaxUsers": "المستخدمون المسموح بهم",
+      "invalidLimits": "يرجى إدخال أرقام صحيحة (أكبر من 0)."
+    },
+    "detail": {
+      "email": "البريد الإلكتروني",
+      "phone": "رقم الهاتف",
+      "notProvided": "غير متوفر",
+      "plan": "الخطة المختارة",
+      "submitted": "تاريخ التقديم",
+      "rejectionTitle": "سبب الرفض",
+      "noFurtherActions": "لا توجد إجراءات إضافية متاحة لهذا الطلب."
+    },
+    "reject": {
+      "title": "رفض {name}",
+      "placeholder": "أدخل سبب الرفض (سيتم إرساله لمقدم الطلب)...",
+      "cancel": "إلغاء",
+      "confirm": "تأكيد الرفض",
+      "error": "فشل رفض الطلب."
+    },
+    "timeline": {
+      "title": "سجل الحالة",
+      "status": {
+        "pending": "تم تقديم الطلب",
+        "quoted": "تم التحديد كمُسعّر",
+        "approved": "تم القبول والدعوة",
+        "rejected": "تم الرفض"
+      },
+      "by": "بواسطة"
+    },
+    "pagination": {
+      "showing": "عرض {start}–{end} من أصل {total} طلبات"
+    }
+  },
+  "brands": {
+    "title": "إدارة العلامات التجارية",
+    "filters": {
+      "status": {
+        "all": "الكل",
+        "active": "نشط",
+        "suspended": "موقوف"
+      },
+      "searchPlaceholder": "البحث بالاسم أو المعرف...",
+      "sort": {
+        "newest": "الأحدث أولاً",
+        "oldest": "الأقدم أولاً",
+        "name_asc": "الاسم أ←ي",
+        "name_desc": "الاسم ي←أ"
+      },
+      "plan": {
+        "all": "كل الخطط"
+      }
+    },
+    "table": {
+      "brand": "العلامة التجارية",
+      "plan": "الخطة",
+      "adminEmail": "البريد الإلكتروني للمدير",
+      "branches": "الفروع",
+      "onboarding": "الإعداد",
+      "status": "الحالة",
+      "created": "تاريخ الإنشاء",
+      "actions": "الإجراءات",
+      "onboardingComplete": "مكتمل",
+      "onboardingPending": "قيد الانتظار",
+      "statusActive": "نشط",
+      "statusSuspended": "موقوف",
+      "emptyTitle": "لم يتم العثور على علامات تجارية",
+      "emptyDesc": "جرب تغيير الفلاتر أو كلمة البحث."
+    },
+    "actions": {
+      "suspend": "إيقاف",
+      "activate": "تفعيل",
+      "viewDetails": "عرض التفاصيل",
+      "adjustLimits": "تعديل الحدود",
+      "confirmSuspend": "هل أنت متأكد من إيقاف هذه العلامة التجارية؟ سيؤدي ذلك إلى منع جميع المستخدمين التابعين لها من الوصول إلى المنصة فوراً.",
+      "confirmActivate": "هل أنت متأكد من إعادة تفعيل هذه العلامة التجارية؟",
+      "successSuspended": "تم إيقاف العلامة التجارية بنجاح.",
+      "successActivated": "تم تفعيل العلامة التجارية بنجاح.",
+      "error": "فشل تحديث حالة العلامة التجارية."
+    },
+    "limits": {
+      "title": "تعديل الحدود",
+      "plan": "الخطة",
+      "branches": "الفروع",
+      "users": "المستخدمون",
+      "branchesLabel": "فرع",
+      "usersLabel": "مستخدم",
+      "inUse": "قيد الاستخدام",
+      "planDefault": "حد الخطة",
+      "useDefault": "استخدام الافتراضي",
+      "belowUsage": "أقل من الاستخدام الحالي",
+      "save": "حفظ التغييرات",
+      "saved": "تم تحديث حدود العلامة التجارية.",
+      "error": "فشل تحديث الحدود."
+    },
+    "detail": {
+      "slug": "المعرف (Slug)",
+      "info": "معلومات العلامة التجارية",
+      "admin": "مدير العلامة التجارية",
+      "colors": "ألوان العلامة التجارية",
+      "dangerZone": "منطقة الخطر",
+      "created": "تاريخ الإنشاء",
+      "branches": "الفروع النشطة",
+      "users": "المستخدمون النشطون",
+      "limits": "الحد الأقصى {branches} فرع، {users} مستخدم",
+      "onboarding": "حالة الإعداد",
+      "joined": "تاريخ الانضمام",
+      "invitePending": "بانتظار قبول الدعوة",
+      "primary": "الرئيسي",
+      "background": "الخلفية",
+      "surface": "السطح",
+      "textAccent": "نص التمييز",
+      "copySlug": "نسخ المعرف"
+    },
+    "pagination": {
+      "showing": "عرض {start}–{end} من أصل {total} علامة تجارية"
+    },
+    "email": {
+      "suspensionSubject": "هام: تم إيقاف حساب سكامورائي الخاص بك",
+      "activationSubject": "تم إعادة تفعيل حساب سكامورائي الخاص بك",
+      "suspensionBody": "نحيطكم علماً بأنه تم إيقاف حساب العلامة التجارية ({brandName}) الخاص بكم على منصة سكامورائي. لن يتمكن جميع المستخدمين التابعين لهذا الحساب من الوصول إلى المنصة. يرجى التواصل مع فريق الدعم لحل هذه المشكلة.",
+      "activationBody": "أخبار سارة! تم إعادة تفعيل حساب العلامة التجارية ({brandName}) الخاص بكم على منصة سكامورائي. يمكنك أنت وفريقك الآن الوصول إلى المنصة مرة أخرى."
+    }
+  },
+  "users": {
+    "title": "إدارة المستخدمين",
+    "filters": {
+      "status": {
+        "all": "الكل",
+        "active": "نشط",
+        "inactive": "غير نشط"
+      },
+      "searchPlaceholder": "البحث بالاسم أو البريد...",
+      "sort": {
+        "newest": "الأحدث أولاً",
+        "oldest": "الأقدم أولاً",
+        "name_asc": "الاسم أ←ي",
+        "name_desc": "الاسم ي←أ"
+      },
+      "role": {
+        "all": "كل الأدوار",
+        "brand_admin": "مدير العلامة",
+        "finance": "المالية",
+        "staff": "الموظفين"
+      },
+      "brand": {
+        "all": "كل العلامات"
+      }
+    },
+    "table": {
+      "user": "المستخدم",
+      "role": "الدور",
+      "brand": "العلامة التجارية",
+      "branch": "الفرع",
+      "joined": "تاريخ الانضمام",
+      "status": "الحالة",
+      "actions": "الإجراءات",
+      "allBranches": "كل الفروع",
+      "invitePending": "بانتظار قبول الدعوة",
+      "statusActive": "نشط",
+      "statusInactive": "غير نشط",
+      "emptyTitle": "لم يتم العثور على مستخدمين",
+      "emptyDesc": "جرب تغيير الفلاتر أو كلمة البحث."
+    },
+    "actions": {
+      "deactivate": "إيقاف الحساب",
+      "activate": "تفعيل الحساب",
+      "viewDetails": "عرض التفاصيل",
+      "confirmDeactivate": "هل أنت متأكد من إيقاف حساب هذا المستخدم؟ سيفقد الوصول إلى المنصة فوراً.",
+      "confirmActivate": "هل أنت متأكد من إعادة تفعيل حساب هذا المستخدم؟",
+      "successDeactivated": "تم إيقاف حساب المستخدم بنجاح.",
+      "successActivated": "تم تفعيل حساب المستخدم بنجاح.",
+      "error": "فشل تحديث حالة المستخدم."
+    },
+    "detail": {
+      "info": "معلومات الحساب",
+      "access": "العلامة التجارية والوصول",
+      "dangerZone": "منطقة الخطر",
+      "email": "البريد الإلكتروني",
+      "joined": "تاريخ الانضمام",
+      "created": "تاريخ الإنشاء",
+      "brand": "العلامة التجارية",
+      "branch": "الفرع",
+      "onboarding": "حالة الإعداد",
+      "copyEmail": "نسخ البريد"
+    },
+    "pagination": {
+      "showing": "عرض {start}–{end} من أصل {total} مستخدم"
+    },
+    "email": {
+      "deactivationSubject": "تم إيقاف حساب سكامورائي الخاص بك",
+      "activationSubject": "تم استعادة حساب سكامورائي الخاص بك",
+      "deactivationBody": "مرحباً {name}، نحيطكم علماً بأنه تم إيقاف حسابكم على منصة سكامورائي. لن تتمكنوا من الوصول إلى المنصة. إذا كنت تعتقد أن هذا خطأ، فيرجى التواصل مع مدير علامتك التجارية أو فريق الدعم لدينا.",
+      "activationBody": "أخبار سارة {name}! تم استعادة حساب سكامورائي الخاص بك. يمكنك الآن الوصول إلى المنصة مرة أخرى."
+    }
+  },
+  "deliveryApps": {
+    "title": "تطبيقات التوصيل",
+    "filters": {
+      "status": {
+        "all": "الكل",
+        "active": "نشط",
+        "inactive": "غير نشط"
+      },
+      "searchPlaceholder": "البحث عن المنصات...",
+      "sort": {
+        "name_asc": "الاسم أ←ي",
+        "name_desc": "الاسم ي←أ",
+        "newest": "أضيف حديثاً",
+        "most_used": "الأكثر استخداماً"
+      },
+      "btnAdd": "إضافة منصة"
+    },
+    "table": {
+      "platform": "المنصة",
+      "status": "الحالة",
+      "usedBy": "مستخدم من قبل",
+      "added": "تاريخ الإضافة",
+      "actions": "الإجراءات",
+      "statusActive": "نشط",
+      "statusInactive": "غير نشط",
+      "emptyTitle": "لم يتم العثور على منصات",
+      "emptyDesc": "جرب تغيير الفلاتر أو كلمة البحث."
+    },
+    "form": {
+      "createTitle": "إضافة منصة جديدة",
+      "editTitle": "تعديل المنصة",
+      "fieldName": "اسم المنصة",
+      "namePlaceholder": "مثال: جاهز، هنقرستيشن",
+      "fieldLogo": "شعار المنصة",
+      "btnCreate": "إنشاء منصة",
+      "btnUpdate": "تحديث المنصة",
+      "submitting": "جاري الحفظ...",
+      "successCreated": "تمت إضافة المنصة إلى الكتالوج بنجاح.",
+      "successUpdated": "تم تحديث المنصة بنجاح.",
+      "errorNameMin": "يجب أن يتكون الاسم من حرفين على الأقل",
+      "errorGeneral": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+    },
+    "detail": {
+      "brandsUsingTitle": "العلامات التجارية التي تستخدم هذه المنصة",
+      "noBrands": "لم تقم أي علامة تجارية بتفعيل هذه المنصة بعد.",
+      "dangerZone": "منطقة الخطر"
+    },
+    "actions": {
+      "edit": "تعديل",
+      "deactivate": "إيقاف",
+      "activate": "تفعيل",
+      "delete": "حذف",
+      "confirmDeactivate": "هل أنت متأكد من إيقاف هذه المنصة؟ سيتم إخفاؤها من جميع إعدادات العلامات التجارية.",
+      "confirmActivate": "هل أنت متأكد من إعادة تفعيل هذه المنصة؟",
+      "confirmDelete": "هل أنت متأكد من حذف هذه المنصة نهائياً؟ لا يمكن التراجع عن هذا الإجراء.",
+      "successActivated": "تم تفعيل المنصة بنجاح.",
+      "successDeactivated": "تم إيقاف المنصة بنجاح.",
+      "successDeleted": "تم حذف المنصة بنجاح.",
+      "deleteDisabledHint": "لا يمكن حذف المنصة وهي مفعلة لدى علامة تجارية واحدة أو أكثر.",
+      "error": "فشل تحديث المنصة."
+    },
+    "pagination": {
+      "showing": "عرض {start}–{end} من أصل {total} منصة"
+    }
+  }
+}

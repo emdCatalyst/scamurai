@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { getTranslations } from 'next-intl/server';
-import Navbar from '@/components/landing/Navbar';
-import Footer from '@/components/landing/Footer';
 import ApplicationSuccess from '@/components/onboarding/ApplicationSuccess';
 
 export const metadata: Metadata = {
@@ -20,7 +18,6 @@ export default async function ApplySuccessPage({
 
   return (
     <>
-      <Navbar />
       <main
         className="relative min-h-screen flex items-center justify-center py-32 px-4"
         style={{
@@ -44,7 +41,6 @@ export default async function ApplySuccessPage({
           <ApplicationSuccess email="" />
         </div>
       </main>
-      <Footer />
     </>
   );
 }

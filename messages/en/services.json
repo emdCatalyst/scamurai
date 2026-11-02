@@ -1,0 +1,17 @@
+{
+  "dispute_orders": {
+    "name": "Order Protection",
+    "tagline": "Win delivery disputes with photo proof.",
+    "summary": "Staff photograph every delivery bag sealed and opened, linked to the order number and delivery app, so finance has proof ready whenever an app or a customer disputes an order."
+  },
+  "compliance": {
+    "name": "Operations Compliance",
+    "tagline": "See every branch every morning, without visiting.",
+    "summary": "Daily photo checklists for each branch (AC, lights, cleanliness, staff, displays) roll up into a pass/fail board for your operations manager, with maintenance tickets instead of WhatsApp threads."
+  },
+  "receiving": {
+    "name": "Receiving Proof",
+    "tagline": "Every delivery into your branches, documented.",
+    "summary": "Photograph shipments sealed when sent and opened when received, record shortages and damage with evidence, and settle supplier and branch-transfer disputes in minutes."
+  }
+}

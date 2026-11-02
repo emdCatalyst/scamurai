@@ -1,4 +1,9 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import AppProviders from "@/components/providers/AppProviders";
+import { NO_INDEX } from "@/lib/seo/site";
+
+export const metadata: Metadata = { robots: NO_INDEX };
 
 export default async function AdminRootLayout({
   children,
@@ -13,5 +18,5 @@ export default async function AdminRootLayout({
     notFound();
   }
 
-  return <>{children}</>;
+  return <AppProviders>{children}</AppProviders>;
 }

@@ -1,8 +1,6 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
-import Navbar from '@/components/landing/Navbar';
-import Footer from '@/components/landing/Footer';
 import ApplicationForm from '@/components/onboarding/ApplicationForm';
 
 export const metadata: Metadata = {
@@ -21,7 +19,6 @@ export default async function ApplyPage({
 
   return (
     <>
-      <Navbar />
       <main
         className="relative min-h-screen flex items-center justify-center py-32 px-4"
         style={{
@@ -51,7 +48,6 @@ export default async function ApplyPage({
           </Suspense>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

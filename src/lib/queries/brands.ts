@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { db } from "@/lib/db";
 import { brands, users, branches } from "@/lib/db/schema";
 import { eq, and, ilike, or, sql, desc, asc, count, isNull } from "drizzle-orm";
@@ -211,9 +212,13 @@ export async function getBrandStats() {
   return stats;
 }
 
-export async function getBrandBySlug(slug: string) {
+/**
+ * Memoised per request with React `cache`: the brand layout, the authenticated
+ * layout and the page all look the brand up, and this keeps it to one query.
+ */
+export const getBrandBySlug = cache(async (slug: string) => {
   return await db.query.brands.findFirst({
     where: and(eq(brands.slug, slug), isNull(brands.deletedAt)),
   });
-}
+});
 

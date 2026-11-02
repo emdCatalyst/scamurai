@@ -1,0 +1,16 @@
+{
+  "siteName": "Scamurai",
+  "titleTemplate": "%s | Scamurai",
+  "home": {
+    "title": "Scamurai — Proof-based operations for multi-branch businesses",
+    "description": "Saudi-built operations platform: photo-verified delivery orders, daily branch compliance checks and goods-receiving proof, all in one place."
+  },
+  "apply": {
+    "title": "Get started",
+    "description": "Choose a Scamurai service and plan, leave your details, and our team will contact you to activate your account."
+  },
+  "applySuccess": {
+    "title": "Application received",
+    "description": "Your request has been received. Our team will contact you shortly."
+  }
+}

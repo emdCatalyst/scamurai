@@ -13,6 +13,13 @@ import {
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
+// Relative imports (not "@/") so drizzle-kit can resolve them outside Next.
+import { DEFAULT_SERVICE_KEY, PLAN_TIERS, SERVICE_KEYS } from "../../config/services";
+import { APPLICATION_STATUSES } from "../applications/status";
+
+/** `'a', 'b', 'c'` — keeps CHECK constraints in sync with the TS unions. */
+const sqlList = (values: readonly string[]) =>
+  sql.raw(values.map((value) => `'${value}'`).join(", "));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // brands
@@ -69,19 +76,36 @@ export const brands = pgTable(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // applications
-// Public form submissions from prospective brand owners.
+// Public form submissions from prospective customers, one per requested
+// service. Lifecycle: pending → quoted → paid → approved (or rejected).
+// Applications for coming-soon services are interest registrations: they have
+// no plan and stay pending until the service launches.
+// Migration: db/sql/0001_multi_service_applications.up.sql
 // ─────────────────────────────────────────────────────────────────────────────
 export const applications = pgTable(
   "applications",
   {
     id: uuid().primaryKey().defaultRandom(),
+    service: text().notNull().default(DEFAULT_SERVICE_KEY),
     brandName: text("brand_name").notNull(),
+    contactName: text("contact_name"),
     contactEmail: text("contact_email").notNull(),
     phone: text(),
-    plan: text().notNull(),
+    branchCount: integer("branch_count"),
+    /** Null for interest registrations (coming-soon services). */
+    plan: text(),
+    /** Language the applicant used — drives email language and invite links. */
+    locale: text().notNull().default("en"),
     status: text().notNull().default("pending"),
     rejectionNote: text("rejection_note"),
+    paymentReference: text("payment_reference"),
+    /** Clerk user id of the admin who confirmed the payment. */
+    paymentConfirmedBy: text("payment_confirmed_by"),
     brandId: uuid("brand_id").references(() => brands.id),
+    quotedAt: timestamp("quoted_at", { withTimezone: true }),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    rejectedAt: timestamp("rejected_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -92,13 +116,27 @@ export const applications = pgTable(
   (table) => [
     index("idx_applications_status").on(table.status),
     index("idx_applications_email").on(table.contactEmail),
+    index("idx_applications_service_status").on(table.service, table.status),
+    index("idx_applications_created_at").on(sql`${table.createdAt} DESC`),
     check(
       "applications_status_values",
-      sql`${table.status} IN ('pending', 'quoted', 'approved', 'rejected')`
+      sql`${table.status} IN (${sqlList(APPLICATION_STATUSES)})`
     ),
     check(
       "applications_plan_values",
-      sql`${table.plan} IN ('starter', 'growth', 'enterprise')`
+      sql`${table.plan} IS NULL OR ${table.plan} IN (${sqlList(PLAN_TIERS)})`
+    ),
+    check(
+      "applications_service_values",
+      sql`${table.service} IN (${sqlList(SERVICE_KEYS)})`
+    ),
+    check(
+      "applications_locale_values",
+      sql`${table.locale} IN ('en', 'ar')`
+    ),
+    check(
+      "applications_branch_count_range",
+      sql`${table.branchCount} IS NULL OR ${table.branchCount} BETWEEN 1 AND 10000`
     ),
   ]
 );

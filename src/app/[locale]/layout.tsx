@@ -1,23 +1,54 @@
 import '../globals.css';
-import type { Metadata } from 'next';
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, setRequestLocale } from 'next-intl/server';
+import type { Metadata, Viewport } from 'next';
+import { hasLocale } from 'next-intl';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { routing } from '@/i18n/routing';
+import { routing, type Locale } from '@/i18n/routing';
 import { poppins, mono } from '@/lib/fonts';
-import { ClerkProvider } from '@clerk/nextjs';
+import { getSiteUrl, OG_LOCALE, otherLocales } from '@/lib/seo/site';
 import { ToastProvider } from '@/components/ui/Toast';
-
-export const metadata: Metadata = {
-  title: 'Scamurai — The Guardian of Your Orders',
-  description:
-    'Scamurai gives your team a simple, tamper-proof way to photograph, verify, and track every delivery order.',
-};
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) return {};
+
+  const t = await getTranslations({ locale, namespace: 'seo' });
+  const siteName = t('siteName');
+
+  return {
+    metadataBase: getSiteUrl(),
+    applicationName: siteName,
+    // Title template is set by the marketing layout so product pages keep their own titles.
+    title: t('home.title'),
+    description: t('home.description'),
+    openGraph: {
+      type: 'website',
+      siteName,
+      locale: OG_LOCALE[locale],
+      alternateLocale: otherLocales(locale).map((l) => OG_LOCALE[l]),
+    },
+    twitter: { card: 'summary_large_image' },
+    formatDetection: { telephone: false, email: false, address: false },
+  };
+}
+
+export const viewport: Viewport = {
+  themeColor: '#0d1e35',
+};
+
+/**
+ * Root layout: document shell only. Product providers (Clerk, full message
+ * catalogue) live in the authenticated route groups — see AppProviders — and
+ * marketing pages pick the few namespaces they need — see ClientIntlProvider.
+ */
 export default async function LocaleLayout({
   children,
   params,
@@ -27,12 +58,11 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params;
 
-  if (!routing.locales.includes(locale as 'en' | 'ar')) {
+  if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
 
-  setRequestLocale(locale);
-  const messages = await getMessages();
+  setRequestLocale(locale as Locale);
 
   return (
     <html
@@ -42,13 +72,7 @@ export default async function LocaleLayout({
       data-scroll-behavior="smooth"
     >
       <body className="min-h-screen flex flex-col">
-        <ClerkProvider>
-          <ToastProvider>
-            <NextIntlClientProvider messages={messages}>
-              {children}
-            </NextIntlClientProvider>
-          </ToastProvider>
-        </ClerkProvider>
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

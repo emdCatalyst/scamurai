@@ -1,7 +1,7 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
 import { useState, useEffect } from "react";
+
+// Re-exported for existing imports; new server-safe code imports "@/lib/cn".
+export { cn } from "./cn";
 
 export function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -19,9 +19,6 @@ export function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 export function formatDate(date: Date | string | number) {
   return new Intl.DateTimeFormat("en-US", {

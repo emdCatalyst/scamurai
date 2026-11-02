@@ -1,0 +1,15 @@
+{
+  "status": {
+    "live": "متاح الآن",
+    "coming_soon": "قريباً"
+  },
+  "startingFrom": "يبدأ من {price} ر.س/شهرياً",
+  "currency": "ر.س",
+  "perMonth": "/شهر",
+  "learnMore": "اعرف المزيد",
+  "registerInterest": "سجّل اهتمامك",
+  "getStarted": "ابدأ الآن",
+  "skipToContent": "تخطَّ إلى المحتوى",
+  "breadcrumbHome": "الرئيسية",
+  "breadcrumbServices": "الخدمات"
+}

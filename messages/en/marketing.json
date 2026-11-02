@@ -1,0 +1,15 @@
+{
+  "status": {
+    "live": "Available now",
+    "coming_soon": "Coming soon"
+  },
+  "startingFrom": "From {price} SAR/mo",
+  "currency": "SAR",
+  "perMonth": "/mo",
+  "learnMore": "Learn more",
+  "registerInterest": "Register interest",
+  "getStarted": "Get started",
+  "skipToContent": "Skip to content",
+  "breadcrumbHome": "Home",
+  "breadcrumbServices": "Services"
+}

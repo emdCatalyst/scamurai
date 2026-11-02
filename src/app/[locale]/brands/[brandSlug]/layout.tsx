@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
 import { getBrandBySlug } from "@/lib/queries/brands";
 import { notFound } from "next/navigation";
 import { deriveBrandTokens, DEFAULT_BRAND_COLORS } from "@/lib/brandTokens";
 import { BrandColors } from "@/types/brand";
+import AppProviders from "@/components/providers/AppProviders";
+import { NO_INDEX } from "@/lib/seo/site";
+
+export const metadata: Metadata = { robots: NO_INDEX };
 
 export default async function BrandLayout({
   children,
@@ -31,7 +36,7 @@ export default async function BrandLayout({
   return (
     <div className="min-h-screen bg-[var(--brand-background)] font-poppins antialiased">
       <style dangerouslySetInnerHTML={{ __html: cssVars }} />
-      {children}
+      <AppProviders>{children}</AppProviders>
     </div>
   );
 }
