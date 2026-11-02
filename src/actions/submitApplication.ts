@@ -9,6 +9,7 @@ import { z } from 'zod';
 import type { ServiceKey } from '@/config/services';
 import { routing, type Locale } from '@/i18n/routing';
 import { OPEN_APPLICATION_STATUSES } from '@/lib/applications/status';
+import { getService, isLiveService } from '@/lib/services/catalog';
 import { db } from '@/lib/db';
 import { applications, users } from '@/lib/db/schema';
 import { sendEmail } from '@/lib/email';
@@ -18,12 +19,7 @@ import { applicationSchema, type ApplicationData } from '@/lib/validations/appli
 import { isHoneypotFilled } from '@/components/apply/honeypot';
 
 /** Every error the form can show; each one is a key in the `apply` namespace. */
-export type ApplyErrorKey =
-  | 'errFormFix'
-  | 'errorTooManyRequests'
-  | 'errorEmailRegistered'
-  | 'errorAlreadyApplied'
-  | 'errorGeneral';
+export type ApplyErrorKey = 'errFormFix' | 'errorTooManyRequests' | 'errorEmailRegistered' | 'errorGeneral';
 
 /** Field → `apply` message keys, straight from the shared schema. */
 export type ApplyFieldErrors = Partial<Record<keyof ApplicationData, string[]>>;
@@ -32,14 +28,17 @@ export type SubmitApplicationResult =
   | { success: true }
   | { success: false; error: ApplyErrorKey; fieldErrors?: ApplyFieldErrors };
 
-type Conflict = Extract<ApplyErrorKey, 'errorEmailRegistered' | 'errorAlreadyApplied'>;
-
 /**
  * Public application form endpoint. The input is untrusted: it is parsed with
  * the same schema the form uses, and nothing reaches the database unless it
  * passes. Order: honeypot and validation (no I/O) → rate limit → one query
  * for both duplicate checks → insert. The admin email is sent after the
  * response, so the visitor never waits on the email provider.
+ *
+ * A repeat request for a service the email already has open gets the normal
+ * success response (no second row, admins are told it's a possible
+ * duplicate). Answering "already applied" would let anyone probe whether an
+ * address has an open quote, or squat a business's email to block it.
  */
 export async function submitApplication(input: unknown): Promise<SubmitApplicationResult> {
   // Bots that fill the hidden field get a convincing success and nothing else.
@@ -57,21 +56,28 @@ export async function submitApplication(input: unknown): Promise<SubmitApplicati
 
   const locale = await resolveLocale();
 
+  let duplicate: boolean;
   try {
-    const conflict = await findConflict(application.contactEmail, application.service);
-    if (conflict) return { success: false, error: conflict };
+    const { emailRegistered, alreadyApplied } = await findConflicts(application.contactEmail, application.service);
+    // Existing customers may still register interest in services that aren't live yet.
+    if (emailRegistered && isLiveService(getService(application.service))) {
+      return { success: false, error: 'errorEmailRegistered' };
+    }
 
-    await db.insert(applications).values({
-      service: application.service,
-      plan: application.plan ?? null,
-      brandName: application.brandName,
-      contactName: application.contactName,
-      contactEmail: application.contactEmail,
-      phone: application.phone ?? null,
-      branchCount: application.branchCount,
-      locale,
-      status: 'pending',
-    });
+    duplicate = alreadyApplied;
+    if (!duplicate) {
+      await db.insert(applications).values({
+        service: application.service,
+        plan: application.plan ?? null,
+        brandName: application.brandName,
+        contactName: application.contactName,
+        contactEmail: application.contactEmail,
+        phone: application.phone ?? null,
+        branchCount: application.branchCount,
+        locale,
+        status: 'pending',
+      });
+    }
   } catch (err) {
     console.error('[submitApplication] Database error:', err);
     return { success: false, error: 'errorGeneral' };
@@ -80,7 +86,7 @@ export async function submitApplication(input: unknown): Promise<SubmitApplicati
   const submittedAt = new Date();
   after(async () => {
     try {
-      await notifyAdmin(application, locale, submittedAt);
+      await notifyAdmin(application, locale, submittedAt, duplicate);
     } catch (err) {
       // The application is stored; a failed notification must not surface to the visitor.
       console.error('[submitApplication] Admin notification failed:', err);
@@ -100,7 +106,10 @@ async function resolveLocale(): Promise<Locale> {
  * Both duplicate checks in one round trip. Soft-deleted users count too: the
  * unique constraint on users.email would block approving them anyway.
  */
-async function findConflict(email: string, service: ServiceKey): Promise<Conflict | null> {
+async function findConflicts(
+  email: string,
+  service: ServiceKey
+): Promise<{ emailRegistered: boolean; alreadyApplied: boolean }> {
   const registeredUser = db.select({ id: users.id }).from(users).where(eq(users.email, email));
   const openApplication = db
     .select({ id: applications.id })
@@ -113,13 +122,10 @@ async function findConflict(email: string, service: ServiceKey): Promise<Conflic
       )
     );
 
-  const [{ emailRegistered, alreadyApplied }] = await db.execute<{ emailRegistered: boolean; alreadyApplied: boolean }>(
+  const [row] = await db.execute<{ emailRegistered: boolean; alreadyApplied: boolean }>(
     sql`select ${exists(registeredUser)} as "emailRegistered", ${exists(openApplication)} as "alreadyApplied"`
   );
-
-  if (emailRegistered) return 'errorEmailRegistered';
-  if (alreadyApplied) return 'errorAlreadyApplied';
-  return null;
+  return { emailRegistered: row.emailRegistered, alreadyApplied: row.alreadyApplied };
 }
 
 const SUBMITTED_AT_FORMAT = new Intl.DateTimeFormat('en-GB', {
@@ -136,7 +142,12 @@ function adminApplicationsUrl(): string {
 }
 
 /** Internal notification to the team, always in English. */
-async function notifyAdmin(application: ApplicationData, locale: Locale, submittedAt: Date): Promise<void> {
+async function notifyAdmin(
+  application: ApplicationData,
+  locale: Locale,
+  submittedAt: Date,
+  duplicate: boolean
+): Promise<void> {
   const to = process.env.SUPER_ADMIN_EMAIL;
   if (!to) {
     console.warn('[submitApplication] SUPER_ADMIN_EMAIL is not set; skipping the admin notification.');
@@ -149,7 +160,7 @@ async function notifyAdmin(application: ApplicationData, locale: Locale, submitt
   ]);
   const serviceName = tServices(`${application.service}.name`);
   const planLabel = application.plan ? tPlans(application.plan) : INTEREST_LABEL;
-  const kind = application.plan ? 'application' : 'interest registration';
+  const kind = `${duplicate ? 'possible duplicate ' : ''}${application.plan ? 'application' : 'interest registration'}`;
   // The schema allows any whitespace in brand names; keep the subject on one line.
   const brandName = application.brandName.replace(/\s+/g, ' ');
 
@@ -171,7 +182,11 @@ async function notifyAdmin(application: ApplicationData, locale: Locale, submitt
     preheader: `${brandName}: ${serviceName}, ${planLabel}`,
     bodyHtml: [
       emailHeading(`New ${kind}`),
-      emailParagraph(`${brandName} submitted a new ${kind} for ${serviceName}. Review it in the admin dashboard.`),
+      emailParagraph(
+        duplicate
+          ? `${brandName} submitted ${serviceName} again with an email that already has an open request. No new row was created; compare these details with the open request in the admin dashboard.`
+          : `${brandName} submitted a new ${kind} for ${serviceName}. Review it in the admin dashboard.`
+      ),
       emailKeyValue(rows),
       emailButton(adminApplicationsUrl(), 'Review in admin dashboard'),
     ].join('\n'),

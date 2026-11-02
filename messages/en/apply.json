@@ -56,7 +56,6 @@
   "errorGeneral": "Something went wrong on our side. Please try again in a moment.",
   "errorTooManyRequests": "You've sent several requests today. Please try again tomorrow.",
   "errorEmailRegistered": "This email already belongs to a Scamurai account. Please sign in, or use a different email.",
-  "errorAlreadyApplied": "You already have an open request for this service with this email. Our team will be in touch soon.",
   "errService": "Please choose a service.",
   "errPlan": "Please choose a plan.",
   "errBrandMin": "Brand name must be at least 2 characters.",

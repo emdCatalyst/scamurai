@@ -2,12 +2,13 @@
 
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { DrizzleQueryError, TransactionRollbackError, eq, like, or, sql } from 'drizzle-orm';
+import { DrizzleQueryError, TransactionRollbackError, eq, like, or } from 'drizzle-orm';
 import { clerkClient } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { applications, brands, users } from '@/lib/db/schema';
 import { requireAuth } from '@/lib/auth';
 import type { PlanTier } from '@/config/services';
+import { findIdentityBlocker } from '@/lib/applications/activation';
 import { canTransition, isApplicationStatus } from '@/lib/applications/status';
 import { getPlan, getService, isLiveService, isPlanTier, isServiceKey } from '@/lib/services/catalog';
 import {
@@ -96,18 +97,11 @@ export async function approveApplication(input: ApproveApplicationInput): Promis
     if ('error' in terms) return failure(terms.error);
 
     const email = application.contactEmail.trim().toLowerCase();
-    const [[existingUser], [existingBrand], slug] = await Promise.all([
-      db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1),
-      db
-        .select({ id: brands.id })
-        .from(brands)
-        .where(sql`lower(${brands.name}) = lower(${application.brandName})`)
-        .limit(1),
+    const [identityBlocker, slug] = await Promise.all([
+      findIdentityBlocker(email, application.brandName),
       findAvailableSlug(slugBaseFor(application.brandName)),
     ]);
-
-    if (existingUser) return failure('emailInUse');
-    if (existingBrand) return failure('brandNameTaken');
+    if (identityBlocker) return failure(identityBlocker);
 
     const now = new Date();
     const brandId = await db.transaction(async (tx) => {

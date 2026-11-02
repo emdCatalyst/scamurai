@@ -1,7 +1,13 @@
 'use server';
 
 import { after } from 'next/server';
+import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import {
+  findIdentityBlocker,
+  findPlanBlocker,
+  type ActivationBlocker,
+} from '@/lib/applications/activation';
 import { db } from '@/lib/db';
 import { applications } from '@/lib/db/schema';
 import { requireAuth } from '@/lib/auth';
@@ -39,7 +45,12 @@ const inputSchema = z.discriminatedUnion('status', [
 
 export type UpdateApplicationStatusInput = z.input<typeof inputSchema>;
 
-export type UpdateApplicationStatusError = 'invalidInput' | 'invalidRejectionNote' | 'conflict' | 'failed';
+export type UpdateApplicationStatusError =
+  | 'invalidInput'
+  | 'invalidRejectionNote'
+  | 'conflict'
+  | 'failed'
+  | ActivationBlocker;
 
 export type UpdateApplicationStatusResult =
   | { success: true }
@@ -63,6 +74,12 @@ export async function updateApplicationStatus(
   };
 
   try {
+    // Don't ask for payment on an application that approval would refuse.
+    if (data.status === 'quoted') {
+      const blocker = await findQuoteBlocker(data.id);
+      if (blocker) return { success: false, error: blocker };
+    }
+
     const [updated] = await db
       .update(applications)
       .set({
@@ -91,6 +108,22 @@ export async function updateApplicationStatus(
     console.error(`[updateApplicationStatus] Failed to update application ${data.id}:`, error);
     return { success: false, error: 'failed' };
   }
+}
+
+async function findQuoteBlocker(id: string): Promise<UpdateApplicationStatusError | null> {
+  const [application] = await db
+    .select({
+      service: applications.service,
+      plan: applications.plan,
+      brandName: applications.brandName,
+      contactEmail: applications.contactEmail,
+    })
+    .from(applications)
+    .where(eq(applications.id, id))
+    .limit(1);
+
+  if (!application) return 'conflict';
+  return findPlanBlocker(application) ?? (await findIdentityBlocker(application.contactEmail, application.brandName));
 }
 
 interface RejectionEmail {
