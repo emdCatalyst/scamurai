@@ -1,160 +1,182 @@
 'use server';
 
 import { headers } from 'next/headers';
-import { eq } from 'drizzle-orm';
+import { after } from 'next/server';
+import { and, eq, exists, inArray, sql } from 'drizzle-orm';
+import { hasLocale } from 'next-intl';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { z } from 'zod';
+import type { ServiceKey } from '@/config/services';
+import { routing, type Locale } from '@/i18n/routing';
+import { OPEN_APPLICATION_STATUSES } from '@/lib/applications/status';
 import { db } from '@/lib/db';
 import { applications, users } from '@/lib/db/schema';
 import { sendEmail } from '@/lib/email';
-import {
-  renderEmail,
-  emailHeading,
-  emailParagraph,
-  emailKeyValue,
-  emailButton,
-} from '@/lib/email-templates';
-import type { PlanKey } from '@/config/plans';
-import { applicationRateLimiter } from '@/lib/ratelimit';
-import { applicationSchema } from '@/lib/validations/application';
+import { emailButton, emailHeading, emailKeyValue, emailParagraph, renderEmail } from '@/lib/email-templates';
+import { isApplicationRateLimited } from '@/lib/ratelimit';
+import { applicationSchema, type ApplicationData } from '@/lib/validations/application';
+import { isHoneypotFilled } from '@/components/apply/honeypot';
+
+/** Every error the form can show; each one is a key in the `apply` namespace. */
+export type ApplyErrorKey =
+  | 'errFormFix'
+  | 'errorTooManyRequests'
+  | 'errorEmailRegistered'
+  | 'errorAlreadyApplied'
+  | 'errorGeneral';
+
+/** Field → `apply` message keys, straight from the shared schema. */
+export type ApplyFieldErrors = Partial<Record<keyof ApplicationData, string[]>>;
 
 export type SubmitApplicationResult =
   | { success: true }
-  | { success: false; error: string; fieldErrors?: Record<string, string[]> };
+  | { success: false; error: ApplyErrorKey; fieldErrors?: ApplyFieldErrors };
 
-export async function submitApplication(
-  data: {
-    brandName: string;
-    contactEmail: string;
-    phone?: string;
-    plan: PlanKey;
-  }
-): Promise<SubmitApplicationResult> {
-  // 1. Rate Limiting (IP based)
-  if (process.env.NODE_ENV === 'production') {
-    try {
-      const headerList = await headers();
-      const ip = headerList.get('x-forwarded-for') || '127.0.0.1';
-      
-      const { success } = await applicationRateLimiter.limit(ip);
-      if (!success) {
-        return {
-          success: false,
-          error: 'errorTooManyRequests',
-        };
-      }
-    } catch (err) {
-      // If Redis is down or env vars missing, we log and continue to avoid blocking valid users
-      // unless this is a strict requirement. In most cases, fail-open is better for UX.
-      console.error('[submitApplication] Rate limit check failed:', err);
-    }
-  }
+type Conflict = Extract<ApplyErrorKey, 'errorEmailRegistered' | 'errorAlreadyApplied'>;
 
-  // 2. Validate input
-  const parsed = applicationSchema.safeParse(data);
+/**
+ * Public application form endpoint. The input is untrusted: it is parsed with
+ * the same schema the form uses, and nothing reaches the database unless it
+ * passes. Order: honeypot and validation (no I/O) → rate limit → one query
+ * for both duplicate checks → insert. The admin email is sent after the
+ * response, so the visitor never waits on the email provider.
+ */
+export async function submitApplication(input: unknown): Promise<SubmitApplicationResult> {
+  // Bots that fill the hidden field get a convincing success and nothing else.
+  if (isHoneypotFilled(input)) return { success: true };
+
+  const parsed = applicationSchema.safeParse(input);
   if (!parsed.success) {
-    return {
-      success: false,
-      error: 'errFormFix',
-      fieldErrors: parsed.error.flatten().fieldErrors,
-    };
+    return { success: false, error: 'errFormFix', fieldErrors: z.flattenError(parsed.error).fieldErrors };
+  }
+  const application = parsed.data;
+
+  if (await isApplicationRateLimited(await headers())) {
+    return { success: false, error: 'errorTooManyRequests' };
   }
 
-  const { brandName, contactEmail, phone, plan } = parsed.data;
-  const normalizedEmail = contactEmail.trim().toLowerCase();
-
-  // 3. Check if email belongs to an existing user
-  try {
-    const [existingUser] = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.email, normalizedEmail))
-      .limit(1);
-
-    if (existingUser) {
-      return {
-        success: false,
-        error: 'errorEmailRegistered',
-      };
-    }
-  } catch (err) {
-    console.error('[submitApplication] DB user check failed:', err);
-    return {
-      success: false,
-      error: 'errorGeneral',
-    };
-  }
+  const locale = await resolveLocale();
 
   try {
-    // Insert application into DB
+    const conflict = await findConflict(application.contactEmail, application.service);
+    if (conflict) return { success: false, error: conflict };
+
     await db.insert(applications).values({
-      brandName: brandName.trim(),
-      contactEmail: normalizedEmail,
-      phone: phone?.trim() || null,
-      plan,
+      service: application.service,
+      plan: application.plan ?? null,
+      brandName: application.brandName,
+      contactName: application.contactName,
+      contactEmail: application.contactEmail,
+      phone: application.phone ?? null,
+      branchCount: application.branchCount,
+      locale,
       status: 'pending',
     });
   } catch (err) {
-    console.error('[submitApplication] DB insert failed:', err);
-    return {
-      success: false,
-      error: 'errorGeneral',
-    };
+    console.error('[submitApplication] Database error:', err);
+    return { success: false, error: 'errorGeneral' };
   }
 
-  // Send notification email to super admin — failure must NOT fail the action
-  try {
-    const superAdminEmail = process.env.SUPER_ADMIN_EMAIL;
-    if (superAdminEmail) {
-      const appUrl = (
-        process.env.APP_URL || 'http://localhost:3000'
-      ).replace(/\/$/, '');
-      const adminSlug = process.env.ADMIN_SLUG || 'admin';
-      const reviewUrl = `${appUrl}/${adminSlug}/applications`;
-      const submittedAt = new Date().toLocaleString('en-US', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-        timeZone: 'Asia/Riyadh',
-      });
-
-      const rows: Array<{ key: string; value: string }> = [
-        { key: 'Brand name', value: brandName },
-        { key: 'Contact email', value: contactEmail },
-      ];
-      if (phone) rows.push({ key: 'Phone', value: phone });
-      rows.push(
-        { key: 'Requested plan', value: plan ?? '—' },
-        { key: 'Submitted', value: submittedAt }
-      );
-
-      const html = renderEmail({
-        preheader: `${brandName} just submitted a ${plan} application.`,
-        bodyHtml: [
-          emailHeading('New brand application'),
-          emailParagraph(
-            `A new brand application was submitted just now. Review the details below and take action when ready.`
-          ),
-          emailKeyValue(rows),
-          emailButton(reviewUrl, 'Review in admin dashboard'),
-        ].join('\n'),
-      });
-
-      const { data, error } = await sendEmail({
-        to: superAdminEmail,
-        subject: `New brand application — ${brandName}`,
-        html,
-      });
-
-      if (error) {
-        console.error('[submitApplication] Resend API error:', error);
-      } else {
-        console.log('[submitApplication] Email sent successfully:', data);
-      }
-    } else {
-      console.warn('[submitApplication] SUPER_ADMIN_EMAIL is not set. Skipping email notification.');
+  const submittedAt = new Date();
+  after(async () => {
+    try {
+      await notifyAdmin(application, locale, submittedAt);
+    } catch (err) {
+      // The application is stored; a failed notification must not surface to the visitor.
+      console.error('[submitApplication] Admin notification failed:', err);
     }
-  } catch (emailErr) {
-    // Catch block for network issues or SDK crashes
-    console.error('[submitApplication] Admin notification email failed with exception:', emailErr);
-  }
+  });
 
   return { success: true };
+}
+
+/** The visitor's locale (from the localized URL the action was posted to), stored on the row. */
+async function resolveLocale(): Promise<Locale> {
+  const locale = await getLocale();
+  return hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
+}
+
+/**
+ * Both duplicate checks in one round trip. Soft-deleted users count too: the
+ * unique constraint on users.email would block approving them anyway.
+ */
+async function findConflict(email: string, service: ServiceKey): Promise<Conflict | null> {
+  const registeredUser = db.select({ id: users.id }).from(users).where(eq(users.email, email));
+  const openApplication = db
+    .select({ id: applications.id })
+    .from(applications)
+    .where(
+      and(
+        eq(applications.contactEmail, email),
+        eq(applications.service, service),
+        inArray(applications.status, OPEN_APPLICATION_STATUSES)
+      )
+    );
+
+  const [{ emailRegistered, alreadyApplied }] = await db.execute<{ emailRegistered: boolean; alreadyApplied: boolean }>(
+    sql`select ${exists(registeredUser)} as "emailRegistered", ${exists(openApplication)} as "alreadyApplied"`
+  );
+
+  if (emailRegistered) return 'errorEmailRegistered';
+  if (alreadyApplied) return 'errorAlreadyApplied';
+  return null;
+}
+
+const SUBMITTED_AT_FORMAT = new Intl.DateTimeFormat('en-GB', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: 'Asia/Riyadh',
+});
+const LANGUAGE_NAMES = new Intl.DisplayNames(['en'], { type: 'language' });
+const INTEREST_LABEL = 'Interest registration (coming soon)';
+
+function adminApplicationsUrl(): string {
+  const appUrl = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+  return `${appUrl}/${process.env.ADMIN_SLUG || 'admin'}/applications`;
+}
+
+/** Internal notification to the team, always in English. */
+async function notifyAdmin(application: ApplicationData, locale: Locale, submittedAt: Date): Promise<void> {
+  const to = process.env.SUPER_ADMIN_EMAIL;
+  if (!to) {
+    console.warn('[submitApplication] SUPER_ADMIN_EMAIL is not set; skipping the admin notification.');
+    return;
+  }
+
+  const [tServices, tPlans] = await Promise.all([
+    getTranslations({ locale: 'en', namespace: 'services' }),
+    getTranslations({ locale: 'en', namespace: 'plans' }),
+  ]);
+  const serviceName = tServices(`${application.service}.name`);
+  const planLabel = application.plan ? tPlans(application.plan) : INTEREST_LABEL;
+  const kind = application.plan ? 'application' : 'interest registration';
+  // The schema allows any whitespace in brand names; keep the subject on one line.
+  const brandName = application.brandName.replace(/\s+/g, ' ');
+
+  const rows = [
+    { key: 'Service', value: serviceName },
+    { key: 'Plan', value: planLabel },
+    { key: 'Brand name', value: brandName },
+    { key: 'Branches', value: String(application.branchCount) },
+    { key: 'Contact name', value: application.contactName },
+    { key: 'Email', value: application.contactEmail },
+    ...(application.phone ? [{ key: 'Phone', value: application.phone }] : []),
+    { key: 'Language', value: LANGUAGE_NAMES.of(locale) ?? locale },
+    { key: 'Submitted', value: `${SUBMITTED_AT_FORMAT.format(submittedAt)} (Riyadh time)` },
+  ];
+
+  // The template helpers HTML-escape every text and attribute they receive, so
+  // applicant input is passed as-is (escaping it here would double-encode it).
+  const html = renderEmail({
+    preheader: `${brandName}: ${serviceName}, ${planLabel}`,
+    bodyHtml: [
+      emailHeading(`New ${kind}`),
+      emailParagraph(`${brandName} submitted a new ${kind} for ${serviceName}. Review it in the admin dashboard.`),
+      emailKeyValue(rows),
+      emailButton(adminApplicationsUrl(), 'Review in admin dashboard'),
+    ].join('\n'),
+  });
+
+  const { error } = await sendEmail({ to, subject: `New ${kind}: ${brandName} (${serviceName})`, html });
+  if (error) console.error('[submitApplication] Resend rejected the admin notification:', error);
 }

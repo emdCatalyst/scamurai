@@ -1,290 +1,193 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Send, Loader2, AlertCircle } from 'lucide-react';
-import { submitApplication } from '@/actions/submitApplication';
-import { PLANS, type PlanKey } from '@/config/plans';
-import { applicationSchema } from '@/lib/validations/application';
+import { useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { submitApplication, type ApplyErrorKey, type ApplyFieldErrors } from '@/actions/submitApplication';
+import { getPlan, getService, isLiveService, isPlanTier, isServiceKey } from '@/lib/services/catalog';
+import {
+  APPLICATION_FIELDS,
+  applicationSchema,
+  type ApplicationData,
+  type ApplicationFormValues,
+} from '@/lib/validations/application';
+import ApplyCard from '@/components/apply/ApplyCard';
+import DetailsStep from '@/components/apply/DetailsStep';
+import FormAlert from '@/components/apply/FormAlert';
+import { HONEYPOT_FIELD } from '@/components/apply/honeypot';
+import HoneypotField from '@/components/apply/HoneypotField';
+import PlanStep from '@/components/apply/PlanStep';
+import { parseSelection } from '@/components/apply/selection';
+import ServiceStep from '@/components/apply/ServiceStep';
+import StepNav from '@/components/apply/StepNav';
+import StepProgress from '@/components/apply/StepProgress';
+import {
+  getFirstIncompleteStep,
+  getStepFields,
+  getStepForField,
+  getSteps,
+  type ApplicationField,
+} from '@/components/apply/steps';
+import { useSelectionUrlSync } from '@/components/apply/useSelectionUrlSync';
+import { useStepNavigation } from '@/components/apply/useStepNavigation';
 import ApplicationSuccess from './ApplicationSuccess';
-import GlowButton from '../ui/GlowButton';
 
-const validPlans: PlanKey[] = ['starter', 'growth', 'enterprise'];
+/**
+ * Text fields start as empty strings rather than undefined. Their "too short"
+ * / "invalid" issues are then continuable in zod, so the schema's cross-field
+ * rule (live services need a plan) still runs while later steps are untouched,
+ * which is what lets the plan step be validated on its own.
+ */
+const EMPTY_DETAILS = { brandName: '', contactName: '', contactEmail: '', phone: '', branchCount: '' };
 
-export default function ApplicationForm() {
+/**
+ * Multi-step application: service → plan (live services only) → details.
+ * Validation is the shared zod schema (the server action re-validates);
+ * `/apply?service=<key>&plan=<tier>` preselects and opens the first
+ * incomplete step, and the URL follows the choice without navigating.
+ */
+export default function ApplicationForm({ labelledBy }: { labelledBy?: string }) {
   const t = useTranslations('apply');
-  const tPlans = useTranslations('plans');
-  const locale = useLocale();
-  const isAr = locale === 'ar';
-  const prefersReduced = useReducedMotion();
   const searchParams = useSearchParams();
-  const router = useRouter();
+  const [initialSelection] = useState(() => parseSelection(searchParams));
+  const [submitted, setSubmitted] = useState<ApplicationData | null>(null);
+  const [serverError, setServerError] = useState<ApplyErrorKey | null>(null);
+  const honeypotRef = useRef<HTMLInputElement>(null);
 
-  // Pre-fill plan from query param
-  const paramPlan = searchParams.get('plan') as PlanKey | null;
-  const initialPlan: PlanKey = paramPlan && validPlans.includes(paramPlan) ? paramPlan : 'starter';
+  const {
+    register,
+    control,
+    handleSubmit,
+    trigger,
+    setError,
+    setFocus,
+    formState: { errors, isSubmitting },
+  } = useForm<ApplicationFormValues, unknown, ApplicationData>({
+    resolver: zodResolver(applicationSchema),
+    mode: 'onTouched',
+    defaultValues: { ...EMPTY_DETAILS, ...initialSelection },
+  });
 
-  const [plan, setPlan] = useState<PlanKey>(initialPlan);
-  const [brandName, setBrandName] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [isPending, startTransition] = useTransition();
-  const [globalError, setGlobalError] = useState('');
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [serviceValue, planValue] = useWatch({ control, name: ['service', 'plan'] });
+  const service = isServiceKey(serviceValue) ? getService(serviceValue) : undefined;
+  const plan = service && isPlanTier(planValue) ? getPlan(service, planValue) : undefined;
+  const steps = getSteps(service);
+  const nav = useStepNavigation(steps, getFirstIncompleteStep(initialSelection));
+  useSelectionUrlSync({ service: service?.key, plan: plan?.tier });
 
-  function validateField(field: string, value: string | PlanKey) {
-    setTouched(prev => ({ ...prev, [field]: true }));
-    const data = {
-      brandName: field === 'brandName' ? value : brandName,
-      contactEmail: field === 'contactEmail' ? value : contactEmail,
-      phone: field === 'phone' ? value : phone,
-      plan: field === 'plan' ? value : plan,
-    };
-
-    // Treat empty phone as undefined for validation
-    if (data.phone === '') {
-      data.phone = undefined as any;
-    }
-
-    const parsed = applicationSchema.safeParse(data);
-    if (!parsed.success) {
-      const errs = parsed.error.flatten().fieldErrors;
-      setFieldErrors(prev => ({ ...prev, [field]: (errs as any)[field] || [] }));
-    } else {
-      setFieldErrors(prev => ({ ...prev, [field]: [] }));
-    }
+  if (submitted) {
+    return (
+      <ApplicationSuccess
+        service={submitted.service}
+        plan={submitted.plan}
+        contactName={submitted.contactName}
+        contactEmail={submitted.contactEmail}
+      />
+    );
   }
 
-  function handlePlanToggle(newPlan: PlanKey) {
-    setPlan(newPlan);
-    validateField('plan', newPlan);
-    // Update URL query param without navigation
-    const url = new URL(window.location.href);
-    url.searchParams.set('plan', newPlan);
-    window.history.replaceState({}, '', url.toString());
+  /** Shows the first invalid field: focus it on this step, or open the step that owns it. */
+  function revealFirstInvalid(fields: readonly ApplicationField[]) {
+    const [first] = fields;
+    if (!first) return;
+    const step = getStepForField(first);
+    if (step === nav.step) setFocus(first);
+    else nav.goTo(step);
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setGlobalError('');
+  function showServerFieldErrors(fieldErrors: ApplyFieldErrors) {
+    const invalid = APPLICATION_FIELDS.filter((field) => fieldErrors[field]?.length);
+    for (const field of invalid) setError(field, { type: 'server', message: fieldErrors[field]?.[0] });
+    revealFirstInvalid(invalid);
+  }
 
-    // Full client-side validation
-    const data = {
-      brandName,
-      contactEmail,
-      phone: phone || undefined,
-      plan,
-    };
-
-    const parsed = applicationSchema.safeParse(data);
-    if (!parsed.success) {
-      setFieldErrors(parsed.error.flatten().fieldErrors);
-      setGlobalError('errFormFix');
-      return;
-    }
-
-    setFieldErrors({});
-
-    startTransition(async () => {
-      const result = await submitApplication({
-        brandName,
-        contactEmail,
-        phone: phone || undefined,
-        plan,
-      });
-
-      if (result.success) {
-        setIsSuccess(true);
-      } else {
-        setGlobalError(result.error);
-        if (result.fieldErrors) {
-          setFieldErrors(result.fieldErrors);
+  const submit = handleSubmit(
+    async (data) => {
+      try {
+        const result = await submitApplication({ ...data, [HONEYPOT_FIELD]: honeypotRef.current?.value ?? '' });
+        if (result.success) {
+          setSubmitted(data);
+          return;
         }
+        setServerError(result.error);
+        if (result.fieldErrors) showServerFieldErrors(result.fieldErrors);
+      } catch {
+        setServerError('errorGeneral');
       }
-    });
+    },
+    (invalid) => revealFirstInvalid(APPLICATION_FIELDS.filter((field) => invalid[field]))
+  );
+
+  async function continueToNextStep() {
+    if (await trigger(getStepFields(nav.step), { shouldFocus: true })) nav.goNext();
   }
 
-  const inputClasses = `w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm text-white placeholder:text-white/25 transition-all duration-200 focus:border-sky/50 focus:outline-none focus:ring-2 focus:ring-sky/20 ${isAr ? 'font-arabic text-end' : ''}`;
-  const labelClasses = `mb-2 block text-sm font-medium text-white/70 ${isAr ? 'font-arabic' : ''}`;
+  function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isSubmitting) return;
+    setServerError(null);
+    void (nav.isLast ? submit() : continueToNextStep());
+  }
+
+  function handleBack() {
+    setServerError(null);
+    nav.goBack();
+  }
+
+  const frame = {
+    headingRef: nav.headingRef,
+    counter: t('stepCounter', { current: nav.index + 1, total: steps.length }),
+  };
+  const groupError = (message: string | undefined) => (message ? t(message) : undefined);
 
   return (
-    <AnimatePresence mode="wait">
-      {isSuccess ? (
-        <motion.div
-          key="success"
-          {...(prefersReduced ? {} : {
-            initial: { opacity: 0, scale: 0.95 },
-            animate: { opacity: 1, scale: 1 },
-            transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
-          })}
-        >
-          <ApplicationSuccess email={contactEmail} />
-        </motion.div>
-      ) : (
-        <motion.div
-          key="form"
-          {...(prefersReduced ? {} : {
-            initial: { opacity: 0, y: 24 },
-            animate: { opacity: 1, y: 0 },
-            exit: { opacity: 0, scale: 0.95, y: -20 },
-            transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
-          })}
-        >
-          <div
-            className="mx-auto max-w-lg rounded-2xl p-8 sm:p-10"
-            style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              backdropFilter: 'blur(24px)',
-            }}
-          >
-            {/* Header */}
-            <div className="mb-8 text-center">
-              <h1 className={`text-3xl font-black text-white sm:text-4xl ${isAr ? 'font-arabic' : ''}`}>
-                {t('heading')}
-              </h1>
-              <p className={`mt-3 text-sm text-white/50 ${isAr ? 'font-arabic' : ''}`}>
-                {t('subheading')}
-              </p>
-            </div>
+    <ApplyCard>
+      <form noValidate aria-labelledby={labelledBy} onSubmit={handleFormSubmit} className="relative">
+        <StepProgress
+          label={t('progressLabel')}
+          completedLabel={t('stepCompleted')}
+          steps={steps.map((id) => ({ id, label: t(`steps.${id}.label`) }))}
+          currentIndex={nav.index}
+        />
 
-            {/* Global error */}
-            {globalError && (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300"
-              >
-                <AlertCircle size={16} strokeWidth={1.5} className="shrink-0" />
-                <span className={isAr ? 'font-arabic' : ''}>{t(globalError as any)}</span>
-              </motion.div>
-            )}
+        <div className="mt-8">
+          {nav.step === 'service' && (
+            <ServiceStep
+              frame={frame}
+              field={register('service')}
+              selected={service?.key}
+              error={groupError(errors.service?.message)}
+            />
+          )}
+          {nav.step === 'plan' && service && (
+            <PlanStep
+              frame={frame}
+              service={service}
+              field={register('plan')}
+              selected={plan?.tier}
+              error={groupError(errors.plan?.message)}
+            />
+          )}
+          {nav.step === 'details' && service && (
+            <DetailsStep frame={frame} service={service} plan={plan} register={register} errors={errors} />
+          )}
+        </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              {/* Plan toggle */}
-              <div>
-                <label className={labelClasses}>{t('selectedPlan')}</label>
-                <div
-                  className="inline-flex w-full items-center gap-1 rounded-xl p-1"
-                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
-                >
-                  {validPlans.map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => handlePlanToggle(p)}
-                      className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${p === plan
-                        ? 'bg-gradient-cta text-navy shadow-glow-sky'
-                        : 'text-white/40 hover:text-white/70'
-                        } ${isAr ? 'font-arabic' : ''}`}
-                    >
-                      {/* @ts-ignore */}
-                      {tPlans(p)}
-
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Brand Name */}
-              <div>
-                <label htmlFor="brandName" className={labelClasses}>
-                  {t('brandName')}
-                </label>
-                <input
-                  id="brandName"
-                  type="text"
-                  required
-                  minLength={2}
-                  maxLength={60}
-                  value={brandName}
-                  onChange={(e) => {
-                    setBrandName(e.target.value);
-                    validateField('brandName', e.target.value);
-                  }}
-                  onBlur={(e) => validateField('brandName', e.target.value)}
-                  placeholder={t('brandNamePlaceholder')}
-                  className={inputClasses}
-                  dir={isAr ? 'rtl' : 'ltr'}
-                />
-                {touched.brandName && fieldErrors.brandName && fieldErrors.brandName.length > 0 && (
-                  <p className="mt-1.5 text-xs text-red-400">{t(fieldErrors.brandName[0] as any)}</p>
-                )}
-              </div>
-
-              {/* Contact Email */}
-              <div>
-                <label htmlFor="contactEmail" className={labelClasses}>
-                  {t('contactEmail')}
-                </label>
-                <input
-                  id="contactEmail"
-                  type="email"
-                  required
-                  value={contactEmail}
-                  onChange={(e) => {
-                    setContactEmail(e.target.value);
-                    validateField('contactEmail', e.target.value);
-                  }}
-                  onBlur={(e) => validateField('contactEmail', e.target.value)}
-                  placeholder={t('contactEmailPlaceholder')}
-                  className={inputClasses}
-                  dir="ltr"
-                />
-                {touched.contactEmail && fieldErrors.contactEmail && fieldErrors.contactEmail.length > 0 && (
-                  <p className="mt-1.5 text-xs text-red-400">{t(fieldErrors.contactEmail[0] as any)}</p>
-                )}
-              </div>
-
-              {/* Phone */}
-              <div>
-                <label htmlFor="phone" className={labelClasses}>
-                  {t('phone')} <span className="text-white/30">({t('phoneOptional')})</span>
-                </label>
-                <input
-                  id="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => {
-                    setPhone(e.target.value);
-                    validateField('phone', e.target.value);
-                  }}
-                  onBlur={(e) => validateField('phone', e.target.value)}
-                  placeholder={t('phonePlaceholder')}
-                  className={inputClasses}
-                  dir="ltr"
-                />
-                {touched.phone && fieldErrors.phone && fieldErrors.phone.length > 0 && (
-                  <p className="mt-1.5 text-xs text-red-400">{t(fieldErrors.phone[0] as any)}</p>
-                )}
-              </div>
-
-              {/* Submit */}
-              <GlowButton
-                type="submit"
-                disabled={isPending}
-                className='justify-center'
-              >
-                {isPending ? (
-                  <>
-                    <Loader2 size={18} strokeWidth={1.5} className="animate-spin" />
-                    <span>{t('submitting')}</span>
-                  </>
-                ) : (
-                  <>
-                    <Send size={16} strokeWidth={1.5} />
-                    <span>{t('submitButton')}</span>
-                  </>
-                )}
-              </GlowButton>
-            </form>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        <HoneypotField ref={honeypotRef} label={t('honeypotLabel')} />
+        <FormAlert message={serverError ? t(serverError) : undefined} />
+        <StepNav
+          backLabel={t('back')}
+          onBack={nav.isFirst ? undefined : handleBack}
+          primaryLabel={
+            nav.isLast ? t(service && isLiveService(service) ? 'submitQuote' : 'submitInterest') : t('continue')
+          }
+          isLastStep={nav.isLast}
+          busy={isSubmitting}
+          busyLabel={t('submitting')}
+        />
+      </form>
+    </ApplyCard>
   );
 }
