@@ -1,20 +1,30 @@
+import './globals.css';
+import { getLocale } from 'next-intl/server';
+import { cn } from '@/lib/cn';
 import { poppins } from '@/lib/fonts';
+import LocaleNotFound from './[locale]/not-found';
 
-export default function NotFound() {
+export { generateMetadata } from './[locale]/not-found';
+
+/**
+ * Fallback for URLs no route matches (e.g. /ar/unknown-page). The locale comes
+ * from the proxy (next-intl), falling back to the default locale.
+ *
+ * The real root layout is app/[locale]/layout.tsx, so Next.js wraps this page
+ * in a bare <html><body> of its own: rendering another <html> here would nest
+ * documents. Language, direction and font are therefore set on a wrapper, and
+ * the UI is the localized 404 itself.
+ */
+export default async function RootNotFound() {
+  const locale = await getLocale();
+
   return (
-    <html lang="en" data-scroll-behavior="smooth">
-      <body className={poppins.className}>
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[#f8fafc] p-4 text-center">
-          <h2 className="text-4xl font-black text-[#172b49] mb-4 tracking-tighter">404</h2>
-          <p className="text-slate-600 mb-8 font-medium">The page you are looking for does not exist.</p>
-          <a
-            href="/"
-            className="px-8 py-3 bg-[#4fc5df] text-white rounded-full font-bold hover:shadow-glow-sky transition-all active:scale-[0.98]"
-          >
-            Back to Home
-          </a>
-        </div>
-      </body>
-    </html>
+    <div
+      lang={locale}
+      dir={locale === 'ar' ? 'rtl' : 'ltr'}
+      className={cn(poppins.variable, locale === 'ar' ? 'font-arabic' : 'font-sans', 'antialiased')}
+    >
+      <LocaleNotFound />
+    </div>
   );
 }

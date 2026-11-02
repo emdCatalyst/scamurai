@@ -8,6 +8,7 @@ const intlMiddleware = createMiddleware(routing);
 const isPublicRoute = createRouteMatcher([
   '/:locale',
   '/:locale/apply(.*)',
+  '/:locale/services(.*)',
   '/:locale/inactive(.*)',
   '/:locale/:adminSlug/login(.*)',
   '/:locale/brands/:brandSlug/login(.*)',
@@ -101,8 +102,11 @@ export default proxy;
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|otf|OTF|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Skip Next.js internals and all static files, unless found in search params.
+    // robots.txt and sitemap.xml are requested by crawlers without a locale
+    // prefix, so they must skip auth + locale redirects too (the manifest is
+    // already covered by the .webmanifest extension).
+    '/((?!_next|robots\\.txt$|sitemap\\.xml$|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|otf|OTF|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
     // Always run for API routes and clerk internals
     '/(api|trpc|__clerk)(.*)',
   ],
