@@ -1,5 +1,5 @@
-import { auth, clerkClient } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
+import { auth, clerkClient, currentUser } from '@clerk/nextjs/server';
+import { notFound, redirect } from 'next/navigation';
 
 export type UserRole = 'master_admin' | 'brand_admin' | 'finance' | 'staff';
 
@@ -109,6 +109,30 @@ export async function requireAuth(allowedRoles?: UserRole[]) {
   }
 
   return { userId, role, brandId };
+}
+
+/**
+ * Page-level guard for the master-admin console.
+ *
+ * Layouts are not a security boundary in the App Router: an RSC request whose
+ * router-state header already lists the parent segments renders the page
+ * WITHOUT running the layouts above it. Every admin page must therefore call
+ * this before reading any data. It answers with notFound() rather than a
+ * redirect, so outsiders can't confirm the secret admin path exists.
+ */
+export async function requireMasterAdminPage(adminSlug: string): Promise<void> {
+  const expectedSlug = process.env.ADMIN_SLUG;
+  if (!expectedSlug || adminSlug !== expectedSlug) notFound();
+
+  const { userId, sessionClaims } = await auth();
+  if (!userId) notFound();
+
+  let role = sessionClaims?.metadata?.role;
+  if (!role) {
+    const user = await currentUser();
+    role = user?.publicMetadata?.role as UserRole | undefined;
+  }
+  if (role !== 'master_admin') notFound();
 }
 
 /**

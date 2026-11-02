@@ -1,3 +1,4 @@
+import { requireMasterAdminPage } from '@/lib/auth';
 import { getUsers } from "@/lib/queries/users";
 import { UsersPageContent } from "@/components/admin/users/UsersPageContent";
 import { Metadata } from "next";
@@ -23,6 +24,7 @@ type PageProps = {
 };
 
 export default async function UsersPage({ params, searchParams }: PageProps) {
+  await requireMasterAdminPage((await params).adminSlug);
   return (
     <Suspense fallback={<UsersLoading />}>
       <UsersDataWrapper params={params} searchParams={searchParams} />

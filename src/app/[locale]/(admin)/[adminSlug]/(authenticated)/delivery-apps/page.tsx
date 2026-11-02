@@ -1,3 +1,4 @@
+import { requireMasterAdminPage } from '@/lib/auth';
 import { getCatalogApps } from "@/lib/queries/deliveryAppCatalog";
 import { DeliveryAppsPageContent } from "@/components/admin/delivery-apps/DeliveryAppsPageContent";
 import { Metadata } from "next";
@@ -19,6 +20,7 @@ type PageProps = {
 };
 
 export default async function DeliveryAppsPage({ params, searchParams }: PageProps) {
+  await requireMasterAdminPage((await params).adminSlug);
   return (
     <Suspense fallback={<Loading />}>
       <DeliveryAppsDataWrapper params={params} searchParams={searchParams} />

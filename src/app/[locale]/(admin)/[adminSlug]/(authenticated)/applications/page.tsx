@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { requireMasterAdminPage } from '@/lib/auth';
 import { getApplications } from '@/lib/queries/applications';
 import ApplicationsPageContent from '@/components/admin/applications/ApplicationsPageContent';
 import {
@@ -16,10 +17,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AdminApplicationsPage({
+  params: routeParams,
   searchParams,
 }: {
+  params: Promise<{ adminSlug: string }>;
   searchParams: Promise<ListSearchParams>;
 }) {
+  await requireMasterAdminPage((await routeParams).adminSlug);
   const params = await searchParams;
   const filters = parseApplicationListFilters(params);
   const { rows, total, page, counts } = await getApplications(filters, PAGE_SIZE);

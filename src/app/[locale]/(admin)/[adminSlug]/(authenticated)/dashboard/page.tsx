@@ -1,3 +1,4 @@
+import { requireMasterAdminPage } from '@/lib/auth';
 import { Building2, Clock, ShoppingBag, TrendingUp } from 'lucide-react';
 import { Suspense } from 'react';
 import DashboardClient from './DashboardClient';
@@ -6,7 +7,8 @@ import { applications, brands, orders, branches } from '@/lib/db/schema';
 import { eq, count, desc, gte, sql } from 'drizzle-orm';
 import { getTranslations, getFormatter } from 'next-intl/server';
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({ params }: { params: Promise<{ adminSlug: string }> }) {
+  await requireMasterAdminPage((await params).adminSlug);
   return (
     <Suspense fallback={<DashboardLoading />}>
       <DashboardDataWrapper />

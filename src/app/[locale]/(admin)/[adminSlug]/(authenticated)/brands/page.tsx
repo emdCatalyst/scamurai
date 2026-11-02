@@ -1,3 +1,4 @@
+import { requireMasterAdminPage } from '@/lib/auth';
 import { getBrands } from "@/lib/queries/brands";
 import { BrandsPageContent } from "@/components/admin/brands/BrandsPageContent";
 import { Metadata } from "next";
@@ -20,6 +21,7 @@ type PageProps = {
 };
 
 export default async function BrandsPage({ params, searchParams }: PageProps) {
+  await requireMasterAdminPage((await params).adminSlug);
   return (
     <Suspense fallback={<BrandsLoading />}>
       <BrandsDataWrapper params={params} searchParams={searchParams} />
