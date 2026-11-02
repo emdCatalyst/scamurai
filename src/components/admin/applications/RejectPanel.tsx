@@ -1,97 +1,114 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState, useTransition, type FormEvent } from 'react';
 import { useTranslations } from 'next-intl';
-import { AlertCircle, Loader2, X } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { updateApplicationStatus } from '@/actions/updateApplicationStatus';
-import { useToast } from '@/components/ui/Toast';
+import { cn } from '@/lib/cn';
+import { REQUEST_FAILED, callAction, type ReviewStepProps } from './actionResult';
+import { REJECTION_NOTE_MAX_LENGTH, rejectionNoteSchema } from './reviewRules';
+import {
+  DANGER_BUTTON,
+  FIELD_ERROR,
+  FIELD_HINT,
+  FIELD_LABEL,
+  SECONDARY_BUTTON,
+  TEXT_INPUT,
+  TEXT_INPUT_INVALID,
+  TEXT_INPUT_VALID,
+} from './styles';
 
-interface RejectPanelProps {
-  applicationId: string;
-  brandName: string;
-  onSuccess: () => void;
+interface RejectPanelProps extends ReviewStepProps {
   onCancel: () => void;
 }
 
-export default function RejectPanel({
-  applicationId,
-  brandName,
-  onSuccess,
-  onCancel,
-}: RejectPanelProps) {
+/** Any open status → rejected. The reason is emailed to the applicant. */
+export default function RejectPanel({ application, onCompleted, onFailed, onCancel }: RejectPanelProps) {
   const t = useTranslations('admin.applications.reject');
-  const { toast } = useToast();
+  const tErrors = useTranslations('admin.applications.errors');
+  const id = useId();
   const [reason, setReason] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!reason.trim()) return;
+  const titleId = `${id}-title`;
+  const hintId = `${id}-hint`;
+  const errorId = `${id}-error`;
 
-    setIsSubmitting(true);
-
-    try {
-      const result = await updateApplicationStatus({
-        id: applicationId,
-        status: 'rejected',
-        rejectionNote: reason,
-      });
-
-      if (result.success) {
-        onSuccess();
-      } else {
-        toast(result.error || t('error'), 'error');
-      }
-    } catch (err) {
-      toast(t('error'), 'error');
-    } finally {
-      setIsSubmitting(false);
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const parsed = rejectionNoteSchema.safeParse(reason);
+    if (!parsed.success) {
+      setError(tErrors('invalidRejectionNote'));
+      return;
     }
+    setError(null);
+
+    startTransition(async () => {
+      const result = await callAction(
+        () =>
+          updateApplicationStatus({
+            id: application.id,
+            expectedStatus: application.status,
+            status: 'rejected',
+            rejectionNote: parsed.data,
+          }),
+        REQUEST_FAILED
+      );
+      if (result.success) onCompleted(t('success'));
+      else if (result.error === 'invalidRejectionNote') setError(tErrors(result.error));
+      else onFailed(result.error);
+    });
   };
 
   return (
-    <div className="bg-red-50 border border-red-100 rounded-xl p-4 animate-in fade-in slide-in-from-top-2 duration-200">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2 text-red-700 font-semibold text-sm">
-          <AlertCircle size={16} />
-          {t('title', { name: brandName })}
-        </div>
-        <button 
-          onClick={onCancel}
-          className="text-red-400 hover:text-red-600 transition-colors"
-        >
-          <X size={18} />
-        </button>
+    <form
+      onSubmit={handleSubmit}
+      noValidate
+      aria-labelledby={titleId}
+      className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3"
+    >
+      <p id={titleId} className="flex items-center gap-2 text-red-800 font-semibold text-sm">
+        <AlertCircle size={16} aria-hidden="true" className="shrink-0" />
+        {t('title', { name: application.brandName })}
+      </p>
+
+      <div>
+        <label htmlFor={id} className={FIELD_LABEL}>
+          {t('label')}
+        </label>
+        <textarea
+          id={id}
+          value={reason}
+          onChange={(event) => setReason(event.target.value)}
+          required
+          autoFocus
+          maxLength={REJECTION_NOTE_MAX_LENGTH}
+          dir="auto"
+          placeholder={t('placeholder')}
+          aria-invalid={error !== null}
+          aria-describedby={error ? `${hintId} ${errorId}` : hintId}
+          className={cn(TEXT_INPUT, 'min-h-[100px] p-3', error ? TEXT_INPUT_INVALID : TEXT_INPUT_VALID)}
+        />
+        <p id={hintId} className={FIELD_HINT}>
+          {t('hint')}
+        </p>
+        {error && (
+          <p id={errorId} role="alert" className={FIELD_ERROR}>
+            {error}
+          </p>
+        )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <textarea
-          required
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          placeholder={t('placeholder')}
-          className="w-full bg-white border border-red-200 focus:border-red-500 focus:ring-4 focus:ring-red-500/5 rounded-lg p-3 text-sm min-h-[100px] outline-none transition-all"
-        />
-
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 disabled:opacity-50"
-          >
-            {t('cancel')}
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting || !reason.trim()}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-lg shadow-sm transition-all flex items-center gap-2 disabled:opacity-50"
-          >
-            {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : null}
-            {t('confirm')}
-          </button>
-        </div>
-      </form>
-    </div>
+      <div className="flex justify-end gap-2">
+        <button type="button" onClick={onCancel} disabled={isPending} className={SECONDARY_BUTTON}>
+          {t('cancel')}
+        </button>
+        <button type="submit" disabled={isPending} className={DANGER_BUTTON}>
+          {isPending && <Loader2 size={16} aria-hidden="true" className="animate-spin" />}
+          {t('confirm')}
+        </button>
+      </div>
+    </form>
   );
 }

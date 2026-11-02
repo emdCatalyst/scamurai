@@ -30,6 +30,7 @@
     "totalApps": "Total Apps",
     "pending": "Pending",
     "quoted": "Quoted",
+    "paid": "Paid",
     "approved": "Approved",
     "rejected": "Rejected",
     "orderTrends": "Order Trends",
@@ -62,85 +63,158 @@
     "masterAdmin": "Master Admin"
   },
   "applications": {
-    "title": "Applications Management",
+    "metaTitle": "Applications | Scamurai Admin",
     "filters": {
+      "label": "Application filters",
+      "statusLabel": "Filter by status",
       "status": {
         "all": "All",
         "pending": "Pending",
         "quoted": "Quoted",
+        "paid": "Paid",
         "approved": "Approved",
         "rejected": "Rejected"
       },
-      "searchPlaceholder": "Search by brand or email...",
+      "serviceLabel": "Filter by service",
+      "allServices": "All services",
+      "planLabel": "Filter by plan",
+      "allPlans": "All plans",
+      "interestOnly": "Interest registrations",
+      "sortLabel": "Sort order",
       "sort": {
-        "newest": "Newest First",
-        "oldest": "Oldest First"
+        "newest": "Newest first",
+        "oldest": "Oldest first"
       },
-      "plan": {
-        "all": "All Plans"
-      }
+      "searchLabel": "Search applications",
+      "searchPlaceholder": "Search brand, contact, email or reference…"
+    },
+    "plans": {
+      "starter": "Starter",
+      "growth": "Growth",
+      "enterprise": "Enterprise",
+      "none": "Interest"
     },
     "status": {
       "pending": "Pending",
       "quoted": "Quoted",
+      "paid": "Paid",
       "approved": "Approved",
       "rejected": "Rejected"
     },
     "table": {
-      "brandName": "Brand Name",
-      "email": "Contact Email",
-      "phone": "Phone",
+      "caption": "Applications",
+      "brand": "Brand",
+      "service": "Service",
+      "contact": "Contact",
       "plan": "Plan",
       "submitted": "Submitted",
       "status": "Status",
-      "actions": "Actions",
+      "details": "Details",
       "noPhone": "No phone",
+      "viewDetailsFor": "View details for {brand}",
       "emptyTitle": "No applications found",
       "emptyDesc": "Try adjusting your filters or search query."
     },
-    "actions": {
-      "markAsQuoted": "Mark as Quoted",
-      "approve": "Approve Brand",
-      "reject": "Reject",
-      "confirmQuoted": "Are you sure you want to mark this application as quoted?",
-      "confirmApprove": "WARNING: This will create the brand account and send an invitation. This action is irreversible. Continue?",
-      "successQuoted": "Application marked as quoted successfully.",
-      "successApproved": "Brand approved and invitation sent successfully.",
-      "successRejected": "Application rejected successfully.",
-      "error": "Failed to update status.",
-      "customLimitsTitle": "Enterprise Custom Limits",
-      "customMaxBranches": "Allowed Branches",
-      "customMaxUsers": "Allowed Users",
-      "invalidLimits": "Please enter valid numbers (greater than 0)."
+    "pagination": {
+      "label": "Applications pages",
+      "showing": "Showing {start}–{end} of {total, plural, one {# application} other {# applications}}",
+      "previous": "Previous page",
+      "next": "Next page",
+      "page": "Page {page}"
     },
     "detail": {
-      "email": "Contact Email",
-      "phone": "Phone Number",
+      "close": "Close details",
+      "applicantTitle": "Applicant",
+      "contactName": "Contact name",
+      "email": "Email",
+      "phone": "Phone",
       "notProvided": "Not provided",
-      "plan": "Selected Plan",
-      "submitted": "Submitted On",
-      "rejectionTitle": "Rejection Reason",
-      "noFurtherActions": "No further actions available for this application."
+      "branchCount": "Branches",
+      "plan": "Plan",
+      "locale": "Preferred language",
+      "submitted": "Submitted",
+      "locales": {
+        "en": "English",
+        "ar": "Arabic"
+      },
+      "interestTitle": "Interest registration",
+      "interestNote": "{service} isn't live yet, so this registration can't be quoted or approved. Keep it until launch, or reject it.",
+      "rejectionTitle": "Rejection reason",
+      "noFurtherActions": "No further actions are available for this application."
+    },
+    "steps": {
+      "title": "Next step",
+      "quoted": {
+        "title": "Send a quote",
+        "description": "Contact {name} to agree on pricing, then mark the application as quoted.",
+        "action": "Mark as quoted",
+        "confirmTitle": "Mark as quoted?",
+        "confirmDescription": "Confirm that a quote has been sent to {brand}.",
+        "success": "Application marked as quoted."
+      },
+      "paid": {
+        "title": "Confirm payment",
+        "description": "Once the payment has arrived, record its bank transfer or invoice reference.",
+        "referenceLabel": "Payment reference",
+        "referenceHint": "Bank transfer or invoice number (2–100 characters).",
+        "referencePlaceholder": "e.g. INV-2026-0142",
+        "action": "Confirm payment",
+        "confirmTitle": "Confirm payment?",
+        "confirmDescription": "Record payment {reference} for {brand}? This can't be undone.",
+        "success": "Payment confirmed."
+      },
+      "approved": {
+        "title": "Approve & activate",
+        "description": "Creates the {brand} account and emails {email} an invitation to add their logo and brand colors.",
+        "customLimitsTitle": "Negotiated limits",
+        "customLimitsHint": "This plan has no fixed limits. Enter the branches and users agreed with the customer.",
+        "maxBranches": "Allowed branches",
+        "maxUsers": "Allowed users",
+        "action": "Approve & activate",
+        "confirmTitle": "Approve and activate {brand}?",
+        "confirmDescription": "This creates the brand account and sends the invitation. It can't be undone.",
+        "success": "Brand activated and invitation sent.",
+        "invitationFailed": "Brand activated, but the invitation email could not be sent. Resend it from the Clerk dashboard."
+      }
     },
     "reject": {
+      "action": "Reject application",
       "title": "Reject {name}",
-      "placeholder": "Enter rejection reason (sent to applicant)...",
+      "label": "Reason",
+      "hint": "The applicant receives this reason by email.",
+      "placeholder": "Explain why the application can't move forward…",
       "cancel": "Cancel",
-      "confirm": "Confirm Rejection",
-      "error": "Failed to reject application."
+      "confirm": "Confirm rejection",
+      "success": "Application rejected."
     },
     "timeline": {
-      "title": "Status History",
+      "title": "Status history",
       "status": {
-        "pending": "Application Submitted",
-        "quoted": "Marked as Quoted",
-        "approved": "Approved & Invited",
+        "pending": "Application submitted",
+        "quoted": "Quote sent",
+        "paid": "Payment confirmed",
+        "approved": "Approved & activated",
         "rejected": "Rejected"
       },
-      "by": "by"
+      "paymentReference": "Reference: <value>{reference}</value>"
     },
-    "pagination": {
-      "showing": "Showing {start}–{end} of {total} applications"
+    "errors": {
+      "invalidInput": "Some details are invalid. Check them and try again.",
+      "invalidPaymentReference": "Enter a payment reference of 2–100 characters.",
+      "invalidRejectionNote": "Enter a reason of up to 1,000 characters.",
+      "invalidLimits": "Enter whole numbers from 1 to 10,000.",
+      "notFound": "This application no longer exists.",
+      "conflict": "Someone else updated this application. Its latest status is now shown — review it and try again.",
+      "serviceNotLive": "This service isn't live yet, so the application can't be approved.",
+      "missingPlan": "This application has no valid plan for its service, so it can't be approved.",
+      "emailInUse": "A user with this email address already exists.",
+      "brandNameTaken": "A brand with this name already exists.",
+      "failed": "Something went wrong. Please try again."
+    },
+    "loadError": {
+      "title": "Something went wrong",
+      "description": "We couldn't load the applications. The error has been logged; please try again.",
+      "retry": "Try again"
     }
   },
   "brands": {

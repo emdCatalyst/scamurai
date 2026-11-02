@@ -1,230 +1,80 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useTranslations, useFormatter } from 'next-intl';
-import { useRouter } from 'next/navigation';
-import { 
-  MoreHorizontal, 
-  CheckCircle2, 
-  XCircle, 
-  FileCheck, 
-  ChevronRight,
-  Phone,
-  Mail,
-  Calendar,
-  Loader2
-} from 'lucide-react';
-import ApplicationStatusBadge, { type ApplicationStatus } from './ApplicationStatusBadge';
-import RejectPanel from './RejectPanel';
-import { updateApplicationStatus } from '@/actions/updateApplicationStatus';
-import { approveApplication } from '@/actions/approveApplication';
-import { useToast } from '@/components/ui/Toast';
-import Dialog from '@/components/ui/Dialog';
+import { useFormatter, useTranslations } from 'next-intl';
+import { Calendar, ChevronRight, Mail, Phone } from 'lucide-react';
+import type { ApplicationListItem } from '@/lib/queries/applications';
+import ApplicationStatusBadge from './ApplicationStatusBadge';
+import PlanChip from './PlanChip';
+import ServiceChip from './ServiceChip';
 
 interface ApplicationRowProps {
-  application: {
-    id: string;
-    brandName: string;
-    contactEmail: string;
-    phone: string | null;
-    plan: string;
-    status: string;
-    createdAt: Date;
-    updatedAt: Date;
-  };
-  onDetailOpen: (app: any) => void;
+  application: ApplicationListItem;
+  onOpen: (id: string) => void;
 }
 
-export default function ApplicationRow({ application, onDetailOpen }: ApplicationRowProps) {
+/**
+ * Review happens in the detail drawer, so the row only opens it: the whole row
+ * for pointer users, the trailing button for keyboard and screen-reader users.
+ */
+export default function ApplicationRow({ application, onOpen }: ApplicationRowProps) {
   const t = useTranslations('admin.applications.table');
-  const tActions = useTranslations('admin.applications.actions');
   const format = useFormatter();
-  const router = useRouter();
-  const { toast } = useToast();
-  
-  const [isRejecting, setIsRejecting] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  
-  // Dialog states
-  const [showQuotedConfirm, setShowQuotedConfirm] = useState(false);
-  const [showApproveConfirm, setShowApproveConfirm] = useState(false);
-
-  // Consistent 'now' for relative time
-  const now = useMemo(() => new Date(), []);
-
-  const status = application.status as ApplicationStatus;
-
-  const handleMarkAsQuoted = async () => {
-    setShowQuotedConfirm(false);
-    setIsUpdating(true);
-    try {
-      const result = await updateApplicationStatus({
-        id: application.id,
-        status: 'quoted',
-      });
-      if (result.success) {
-        toast(tActions('successQuoted'), 'success');
-        router.refresh();
-      } else {
-        toast(result.error, 'error');
-      }
-    } catch (err) {
-      toast(tActions('error'), 'error');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleApprove = async () => {
-    setShowApproveConfirm(false);
-    setIsUpdating(true);
-    try {
-      const result = await approveApplication(application.id);
-      if (result.success) {
-        toast(tActions('successApproved'), 'success');
-        router.refresh();
-      } else {
-        toast(result.error, 'error');
-      }
-    } catch (err) {
-      toast(tActions('error'), 'error');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleRejectClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsRejecting(true);
-  };
+  const open = () => onOpen(application.id);
 
   return (
-    <>
-      <tr 
-        onClick={() => onDetailOpen(application)}
-        className="group hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-100 last:border-0"
-      >
-        <td className="py-4 px-4">
-          <div className="font-bold text-slate-900 group-hover:text-sky transition-colors">
-            {application.brandName}
-          </div>
-        </td>
-        <td className="py-4 px-4">
-          <div className="text-sm text-slate-500 flex items-center gap-1.5">
-            <Mail size={14} className="text-slate-300" />
-            {application.contactEmail}
-          </div>
-        </td>
-        <td className="py-4 px-4">
-          <div className="text-sm text-slate-500 flex items-center gap-1.5">
-            <Phone size={14} className="text-slate-300" />
-            {application.phone || <span className="text-slate-300 italic text-xs">{t('noPhone')}</span>}
-          </div>
-        </td>
-        <td className="py-4 px-4">
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
-            {application.plan}
-          </span>
-        </td>
-        <td className="py-4 px-4">
-          <div className="text-sm text-slate-500 flex items-center gap-1.5" title={format.dateTime(new Date(application.createdAt), { dateStyle: 'full', timeStyle: 'short' })}>
-            <Calendar size={14} className="text-slate-300" />
-            {format.relativeTime(new Date(application.createdAt), { now })}
-          </div>
-        </td>
-        <td className="py-4 px-4">
-          <ApplicationStatusBadge status={status} />
-        </td>
-        <td className="py-4 px-4 text-right">
-          <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-            {isUpdating ? (
-              <Loader2 size={18} className="animate-spin text-sky" />
-            ) : (
-              <>
-                {status === 'pending' && (
-                  <>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setShowQuotedConfirm(true); }}
-                      className="p-2 text-slate-400 hover:text-sky hover:bg-sky-50 rounded-lg transition-all"
-                      title={tActions('markAsQuoted')}
-                    >
-                      <FileCheck size={18} />
-                    </button>
-                    <button
-                      onClick={handleRejectClick}
-                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                      title={tActions('reject')}
-                    >
-                      <XCircle size={18} />
-                    </button>
-                  </>
-                )}
-                {status === 'quoted' && (
-                  <>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setShowApproveConfirm(true); }}
-                      className="p-2 text-slate-400 hover:text-navy hover:bg-slate-100 rounded-lg transition-all"
-                      title={tActions('approve')}
-                    >
-                      <CheckCircle2 size={18} />
-                    </button>
-                    <button
-                      onClick={handleRejectClick}
-                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                      title={tActions('reject')}
-                    >
-                      <XCircle size={18} />
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={() => onDetailOpen(application)}
-                  className="p-2 text-slate-400 hover:text-navy hover:bg-slate-100 rounded-lg transition-all"
-                >
-                  <ChevronRight size={18} />
-                </button>
-              </>
-            )}
-          </div>
-        </td>
-      </tr>
-      {isRejecting && (
-        <tr>
-          <td colSpan={7} className="p-0">
-            <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-              <RejectPanel
-                applicationId={application.id}
-                brandName={application.brandName}
-                onSuccess={() => {
-                   setIsRejecting(false);
-                   toast(tActions('successRejected'), 'success');
-                   router.refresh();
-                }}
-                onCancel={() => setIsRejecting(false)}
-              />
-            </div>
-          </td>
-        </tr>
-      )}
-
-      {/* Confirmation Dialogs */}
-      <Dialog
-        isOpen={showQuotedConfirm}
-        onClose={() => setShowQuotedConfirm(false)}
-        onConfirm={handleMarkAsQuoted}
-        title={tActions('markAsQuoted')}
-        description={tActions('confirmQuoted')}
-        isLoading={isUpdating}
-      />
-      <Dialog
-        isOpen={showApproveConfirm}
-        onClose={() => setShowApproveConfirm(false)}
-        onConfirm={handleApprove}
-        title={tActions('approve')}
-        description={tActions('confirmApprove')}
-        type="danger"
-        isLoading={isUpdating}
-      />
-    </>
+    <tr
+      onClick={open}
+      className="group hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-100 last:border-0"
+    >
+      <td className="py-4 px-4">
+        <div className="font-bold text-slate-900 group-hover:text-sky-700 transition-colors">
+          {application.brandName}
+        </div>
+        {application.contactName && <div className="mt-0.5 text-xs text-slate-600">{application.contactName}</div>}
+      </td>
+      <td className="py-4 px-4">
+        <ServiceChip service={application.service} />
+      </td>
+      <td className="py-4 px-4">
+        <div className="text-sm text-slate-700 flex items-center gap-1.5">
+          <Mail size={14} aria-hidden="true" className="text-slate-400 shrink-0" />
+          <span dir="ltr">{application.contactEmail}</span>
+        </div>
+        <div className="mt-1 text-xs text-slate-600 flex items-center gap-1.5">
+          <Phone size={14} aria-hidden="true" className="text-slate-400 shrink-0" />
+          {application.phone ? <span dir="ltr">{application.phone}</span> : <span className="italic">{t('noPhone')}</span>}
+        </div>
+      </td>
+      <td className="py-4 px-4">
+        <PlanChip plan={application.plan} />
+      </td>
+      <td className="py-4 px-4">
+        <div className="text-sm text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+          <Calendar size={14} aria-hidden="true" className="text-slate-400 shrink-0" />
+          <time
+            dateTime={application.createdAt.toISOString()}
+            title={format.dateTime(application.createdAt, { dateStyle: 'full', timeStyle: 'short' })}
+          >
+            {format.relativeTime(application.createdAt)}
+          </time>
+        </div>
+      </td>
+      <td className="py-4 px-4">
+        <ApplicationStatusBadge status={application.status} />
+      </td>
+      <td className="py-4 px-4 text-end">
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            open();
+          }}
+          aria-label={t('viewDetailsFor', { brand: application.brandName })}
+          className="p-2 text-slate-500 hover:text-navy hover:bg-slate-100 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50"
+        >
+          <ChevronRight size={18} aria-hidden="true" className="rtl:rotate-180" />
+        </button>
+      </td>
+    </tr>
   );
 }

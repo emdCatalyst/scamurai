@@ -1,64 +1,37 @@
-import { Metadata } from 'next';
-import { Suspense } from 'react';
-import { getApplications, type ApplicationStatus } from '@/lib/queries/applications';
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import { getApplications } from '@/lib/queries/applications';
 import ApplicationsPageContent from '@/components/admin/applications/ApplicationsPageContent';
-import ApplicationsLoading from './loading';
+import {
+  PAGE_SIZE,
+  SELECTED_PARAM,
+  firstParam,
+  parseApplicationListFilters,
+  type ListSearchParams,
+} from '@/components/admin/applications/listFilters';
 
-export const metadata: Metadata = {
-  title: 'Applications Management | Scamurai Admin',
-};
-
-interface PageProps {
-  params: Promise<{ locale: string; adminSlug: string }>;
-  searchParams: Promise<{
-    status?: string;
-    plan?: string;
-    q?: string;
-    page?: string;
-    sort?: string;
-  }>;
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('admin.applications');
+  return { title: t('metaTitle') };
 }
 
-export default async function AdminApplicationsPage({ params, searchParams }: PageProps) {
-  // We don't await data here, we pass the promises down or await them in a Suspense child
-  return (
-    <Suspense fallback={<ApplicationsLoading />}>
-      <ApplicationsDataWrapper params={params} searchParams={searchParams} />
-    </Suspense>
-  );
-}
-
-async function ApplicationsDataWrapper({ params, searchParams }: PageProps) {
-  const [{ locale, adminSlug }, sParams] = await Promise.all([params, searchParams]);
-
-  const status = (sParams.status as ApplicationStatus) || 'all';
-  const plan = sParams.plan || 'all';
-  const search = sParams.q || '';
-  const page = parseInt(sParams.page || '1', 10);
-  const sort = (sParams.sort as 'newest' | 'oldest') || 'newest';
-  const pageSize = 20;
-
-  // 2. Fetch data
-  const { rows, total, counts } = await getApplications({
-    status,
-    plan,
-    search,
-    page,
-    pageSize,
-    sort,
-  });
+export default async function AdminApplicationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<ListSearchParams>;
+}) {
+  const params = await searchParams;
+  const filters = parseApplicationListFilters(params);
+  const { rows, total, page, counts } = await getApplications(filters, PAGE_SIZE);
 
   return (
     <ApplicationsPageContent
       applications={rows}
       total={total}
       counts={counts}
-      status={status}
-      plan={plan}
-      search={search}
-      sort={sort}
-      page={page}
-      pageSize={pageSize}
+      filters={{ ...filters, page }}
+      pageSize={PAGE_SIZE}
+      initialSelectedId={firstParam(params[SELECTED_PARAM]) ?? null}
     />
   );
 }

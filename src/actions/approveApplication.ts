@@ -1,166 +1,250 @@
 'use server';
 
-import { eq, ilike } from 'drizzle-orm';
+import { randomUUID } from 'node:crypto';
+import { z } from 'zod';
+import { DrizzleQueryError, TransactionRollbackError, eq, like, or, sql } from 'drizzle-orm';
+import { clerkClient } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { applications, brands, users } from '@/lib/db/schema';
 import { requireAuth } from '@/lib/auth';
-import { clerkClient } from '@clerk/nextjs/server';
+import type { PlanTier } from '@/config/services';
+import { canTransition, isApplicationStatus } from '@/lib/applications/status';
+import { getPlan, getService, isLiveService, isPlanTier, isServiceKey } from '@/lib/services/catalog';
+import {
+  escapeLikePattern,
+  planRequiresCustomLimits,
+  whereTransitionAllowed,
+} from '@/lib/queries/applications';
+import { customLimitSchema } from '@/components/admin/applications/reviewRules';
+import { routing, type Locale } from '@/i18n/routing';
+
+/**
+ * paid → approved: creates the brand and its brand-admin user, marks the
+ * application approved, then invites the applicant through Clerk to set up
+ * their logo and brand colors. Only live services can be approved.
+ */
+
+const inputSchema = z.object({
+  id: z.uuid(),
+  /** Required when the plan has no fixed limits (Enterprise); ignored otherwise. */
+  customLimits: z.object({ maxBranches: customLimitSchema, maxUsers: customLimitSchema }).optional(),
+});
+
+export type ApproveApplicationInput = z.input<typeof inputSchema>;
+
+export type ApproveApplicationError =
+  | 'invalidInput'
+  | 'invalidLimits'
+  | 'notFound'
+  | 'conflict'
+  | 'serviceNotLive'
+  | 'missingPlan'
+  | 'emailInUse'
+  | 'brandNameTaken'
+  | 'failed';
 
 export type ApproveApplicationResult =
-  | { success: true }
-  | { success: false; error: string };
+  | { success: true; invitationSent: boolean }
+  | { success: false; error: ApproveApplicationError };
 
-export async function approveApplication(
-  applicationId: string,
-  customMaxBranches?: number,
-  customMaxUsers?: number
-): Promise<ApproveApplicationResult> {
-  // Protected: master_admin only
+type CustomLimits = NonNullable<z.output<typeof inputSchema>['customLimits']>;
+
+interface ApplicationForApproval {
+  service: string;
+  status: string;
+  plan: string | null;
+  locale: string;
+}
+
+interface ApprovalTerms {
+  plan: PlanTier;
+  customMaxBranches: number | null;
+  customMaxUsers: number | null;
+  locale: Locale;
+}
+
+const MAX_SLUG_LENGTH = 48;
+
+export async function approveApplication(input: ApproveApplicationInput): Promise<ApproveApplicationResult> {
   await requireAuth(['master_admin']);
 
-  // Fetch the application
-  const [application] = await db
-    .select()
-    .from(applications)
-    .where(eq(applications.id, applicationId))
-    .limit(1);
-
-  if (!application) {
-    return { success: false, error: 'Application not found.' };
+  const parsed = inputSchema.safeParse(input);
+  if (!parsed.success) {
+    const limitsIssue = parsed.error.issues.some((issue) => issue.path[0] === 'customLimits');
+    return failure(limitsIssue ? 'invalidLimits' : 'invalidInput');
   }
-
-  // Interest registrations (coming-soon services) carry no plan and cannot be approved.
-  const plan = application.plan;
-  if (!plan) {
-    return { success: false, error: 'This application has no plan and cannot be approved.' };
-  }
-
-  if (application.status !== 'quoted') {
-    return { success: false, error: 'Application must be in "quoted" status before approval.' };
-  }
-
-  // Check if a user with this email already exists to prevent unique constraint violation
-  const [existingUser] = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.email, application.contactEmail))
-    .limit(1);
-
-  if (existingUser) {
-    return { success: false, error: `A user with email ${application.contactEmail} already exists in the system.` };
-  }
-
-  // Generate base slug from brand name
-  const baseSlug = application.brandName
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '');
+  const { id, customLimits } = parsed.data;
 
   try {
-    const brandId = await db.transaction(async (tx) => {
-      // Slug collision handling
-      let slug = baseSlug;
-      let counter = 1;
-      let isUnique = false;
+    const [application] = await db
+      .select({
+        service: applications.service,
+        status: applications.status,
+        plan: applications.plan,
+        locale: applications.locale,
+        brandName: applications.brandName,
+        contactName: applications.contactName,
+        contactEmail: applications.contactEmail,
+      })
+      .from(applications)
+      .where(eq(applications.id, id))
+      .limit(1);
 
-      while (!isUnique) {
-        const [existingBrand] = await tx
-          .select({ id: brands.id })
-          .from(brands)
-          .where(eq(brands.slug, slug))
-          .limit(1);
+    if (!application) return failure('notFound');
 
-        if (!existingBrand) {
-          isUnique = true;
-        } else {
-          counter++;
-          slug = `${baseSlug}-${counter}`;
-        }
-      }
+    const terms = resolveApprovalTerms(application, customLimits);
+    if ('error' in terms) return failure(terms.error);
 
-      // Check brand name uniqueness
-      const [existingBrandName] = await tx
+    const email = application.contactEmail.trim().toLowerCase();
+    const [[existingUser], [existingBrand], slug] = await Promise.all([
+      db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1),
+      db
         .select({ id: brands.id })
         .from(brands)
-        .where(ilike(brands.name, application.brandName))
-        .limit(1);
-      
-      if (existingBrandName) {
-        throw new Error(`A brand named "${application.brandName}" already exists.`);
-      }
+        .where(sql`lower(${brands.name}) = lower(${application.brandName})`)
+        .limit(1),
+      findAvailableSlug(slugBaseFor(application.brandName)),
+    ]);
 
-      // 1. Create brand
+    if (existingUser) return failure('emailInUse');
+    if (existingBrand) return failure('brandNameTaken');
+
+    const now = new Date();
+    const brandId = await db.transaction(async (tx) => {
       const [brand] = await tx
         .insert(brands)
         .values({
           name: application.brandName,
           slug,
-          plan,
-          customMaxBranches: customMaxBranches ?? null,
-          customMaxUsers: customMaxUsers ?? null,
+          plan: terms.plan,
+          customMaxBranches: terms.customMaxBranches,
+          customMaxUsers: terms.customMaxUsers,
         })
         .returning({ id: brands.id });
 
-      // 2. Create user row
-      await tx
-        .insert(users)
-        .values({
-          email: application.contactEmail,
-          fullName: application.brandName, // Fallback to brand name for now
-          role: 'brand_admin',
-          brandId: brand.id,
-          isActive: true,
-          onboardingComplete: false,
-        });
+      await tx.insert(users).values({
+        email,
+        fullName: application.contactName ?? application.brandName,
+        role: 'brand_admin',
+        brandId: brand.id,
+        isActive: true,
+        onboardingComplete: false,
+      });
 
-      // 3. Update application status
-      await tx
+      const [approved] = await tx
         .update(applications)
-        .set({
-          status: 'approved',
-          brandId: brand.id,
-          updatedAt: new Date(),
-        })
-        .where(eq(applications.id, applicationId));
+        .set({ status: 'approved', approvedAt: now, brandId: brand.id, updatedAt: now })
+        .where(whereTransitionAllowed(id, 'paid', 'approved'))
+        .returning({ id: applications.id });
+
+      // Someone else approved or rejected it meanwhile: undo the brand and user.
+      if (!approved) tx.rollback();
 
       return brand.id;
     });
 
-    // 4. Outside transaction: Send Clerk invite
-    try {
-      const clerk = await clerkClient();
-      const baseUrl = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
-      const redirectUrl = `${baseUrl}/en/onboarding/brand-setup`;
-      
-      console.log(`[approveApplication] Sending Clerk invite to ${application.contactEmail} with redirect ${redirectUrl}`);
-      
-      await clerk.invitations.createInvitation({
-        emailAddress: application.contactEmail,
-        redirectUrl,
-        publicMetadata: {
-          role: 'brand_admin',
-          brandId: brandId,
-          userIsActive: true,
-          brandIsActive: true,
-        },
-      });
-      console.log(`[approveApplication] Clerk invite sent successfully.`);
-    } catch (clerkErr: any) {
-      console.error('[approveApplication] Clerk invitation failed:', clerkErr);
-      if (clerkErr.errors) {
-        console.error('[approveApplication] Clerk API Errors:', JSON.stringify(clerkErr.errors, null, 2));
-      }
-      // We don't return failure here if DB is done, but maybe toast warning? 
-      // For now, let's just log it. The brand is created.
-    }
-
-    return { success: true };
-  } catch (err: any) {
-    console.error('[approveApplication] Error:', err);
-    return {
-      success: false,
-      error: err.message || 'Failed to approve application.',
-    };
+    const invitationSent = await inviteBrandAdmin({ email, brandId, locale: terms.locale });
+    return { success: true, invitationSent };
+  } catch (error) {
+    // A rollback or a unique violation means a concurrent change won the race.
+    if (error instanceof TransactionRollbackError || isUniqueViolation(error)) return failure('conflict');
+    console.error(`[approveApplication] Failed to approve application ${id}:`, error);
+    return failure('failed');
   }
+}
+
+function failure(error: ApproveApplicationError): ApproveApplicationResult {
+  return { success: false, error };
+}
+
+/** Checks the application can be approved and settles the brand's plan and limits. */
+function resolveApprovalTerms(
+  application: ApplicationForApproval,
+  customLimits: CustomLimits | undefined
+): ApprovalTerms | { error: ApproveApplicationError } {
+  const service = isServiceKey(application.service) ? getService(application.service) : undefined;
+  if (!service || !isLiveService(service)) return { error: 'serviceNotLive' };
+
+  if (!isApplicationStatus(application.status) || !canTransition(application.status, 'approved', service)) {
+    return { error: 'conflict' };
+  }
+
+  const plan = isPlanTier(application.plan) ? getPlan(service, application.plan) : undefined;
+  if (!plan) return { error: 'missingPlan' };
+
+  const limits = planRequiresCustomLimits(plan) ? customLimits : undefined;
+  if (planRequiresCustomLimits(plan) && !limits) return { error: 'invalidLimits' };
+
+  return {
+    plan: plan.tier,
+    customMaxBranches: limits?.maxBranches ?? null,
+    customMaxUsers: limits?.maxUsers ?? null,
+    locale: routing.locales.find((locale) => locale === application.locale) ?? routing.defaultLocale,
+  };
+}
+
+/**
+ * Slug base that satisfies brands_slug_format (`^[a-z0-9-]+$`). Accents are
+ * folded to ASCII; names with no Latin letters or digits (e.g. Arabic only)
+ * get `brand-` plus a short random suffix.
+ */
+function slugBaseFor(brandName: string): string {
+  const latin = brandName
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .slice(0, MAX_SLUG_LENGTH)
+    .replace(/^-+|-+$/g, '');
+
+  return latin || `brand-${randomUUID().slice(0, 8)}`;
+}
+
+/** `base`, or `base-2`, `base-3`, … — whichever is free, found with a single query. */
+async function findAvailableSlug(base: string): Promise<string> {
+  const rows = await db
+    .select({ slug: brands.slug })
+    .from(brands)
+    .where(or(eq(brands.slug, base), like(brands.slug, `${escapeLikePattern(base)}-%`)));
+
+  const taken = new Set(rows.map((row) => row.slug));
+  let slug = base;
+  for (let suffix = 2; taken.has(slug); suffix += 1) slug = `${base}-${suffix}`;
+  return slug;
+}
+
+/** Sends the Clerk invitation. Failure is reported, not thrown: the brand already exists. */
+async function inviteBrandAdmin({
+  email,
+  brandId,
+  locale,
+}: {
+  email: string;
+  brandId: string;
+  locale: Locale;
+}): Promise<boolean> {
+  try {
+    const clerk = await clerkClient();
+    const baseUrl = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+
+    await clerk.invitations.createInvitation({
+      emailAddress: email,
+      redirectUrl: `${baseUrl}/${locale}/onboarding/brand-setup`,
+      publicMetadata: {
+        role: 'brand_admin',
+        brandId,
+        userIsActive: true,
+        brandIsActive: true,
+      },
+    });
+    return true;
+  } catch (error) {
+    console.error(`[approveApplication] Clerk invitation failed for brand ${brandId}:`, error);
+    return false;
+  }
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  const cause = error instanceof DrizzleQueryError ? error.cause : error;
+  return typeof cause === 'object' && cause !== null && 'code' in cause && cause.code === '23505';
 }
