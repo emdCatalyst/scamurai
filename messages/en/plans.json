@@ -15,7 +15,7 @@
   "growthAnnualPrice": "639",
   "enterprise": "Enterprise",
   "enterprisePrice": "Contact Us",
-  "contactUs": "Contact Us",
+  "contactUs": "Contact us",
   "getStarted": "Get Started",
   "branches": "Branches",
   "users": "Users",
@@ -26,11 +26,36 @@
   "starterHistory": "90 days",
   "starterSupport": "Email",
   "growthBranches": "Up to 10",
-  "growthUsers": "Up to 50",
+  "growthUsers": "Up to 30",
   "growthHistory": "1 year",
   "growthSupport": "Priority",
   "enterpriseBranches": "Unlimited",
   "enterpriseUsers": "Unlimited",
   "enterpriseHistory": "Unlimited",
-  "enterpriseSupport": "Dedicated"
+  "enterpriseSupport": "Dedicated",
+  "titleFor": "{name} plans and pricing",
+  "description": "Pick the plan that fits your branches and team today, and move up as you grow.",
+  "billingPeriod": "Billing period",
+  "saveUpTo": "Save up to {percent}%",
+  "billedMonthly": "Billed monthly",
+  "billedAnnually": "Billed annually at {total} SAR",
+  "annualSavings": "You save {amount} SAR a year",
+  "regularPrice": "Regular monthly price:",
+  "recommended": "Recommended",
+  "customPricing": "Custom pricing",
+  "customPricingNote": "Limits and pricing tailored to your group.",
+  "pricingNote": "Prices are in Saudi riyals. Nothing is charged online: after you apply, our team contacts you to confirm your plan, and your account is activated once payment is confirmed.",
+  "limits": {
+    "branches": "{count, plural, one {Up to {count} branch} other {Up to {count} branches}}",
+    "branchesUnlimited": "Unlimited branches",
+    "users": "{count, plural, one {Up to {count} user} other {Up to {count} users}}",
+    "usersUnlimited": "Unlimited users",
+    "history": "{days, plural, =365 {1 year of history} one {{days} day of history} other {{days} days of history}}",
+    "historyUnlimited": "Unlimited history"
+  },
+  "supportLevel": {
+    "email": "Email support",
+    "priority": "Priority support",
+    "dedicated": "Dedicated support"
+  }
 }

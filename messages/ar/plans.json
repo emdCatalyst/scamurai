@@ -26,11 +26,36 @@
   "starterHistory": "90 يوم",
   "starterSupport": "بريد إلكتروني",
   "growthBranches": "حتى 10",
-  "growthUsers": "حتى 50",
+  "growthUsers": "حتى 30",
   "growthHistory": "سنة واحدة",
   "growthSupport": "أولوية",
   "enterpriseBranches": "غير محدود",
   "enterpriseUsers": "غير محدود",
   "enterpriseHistory": "غير محدود",
-  "enterpriseSupport": "مخصص"
+  "enterpriseSupport": "مخصص",
+  "titleFor": "باقات {name} وأسعارها",
+  "description": "اختر الباقة التي تناسب عدد فروعك وفريقك اليوم، وانتقل إلى باقة أكبر متى ما توسّعت.",
+  "billingPeriod": "دورة الفوترة",
+  "saveUpTo": "وفّر حتى {percent}%",
+  "billedMonthly": "فوترة شهرية",
+  "billedAnnually": "فوترة سنوية بقيمة {total} ر.س",
+  "annualSavings": "توفّر {amount} ر.س سنوياً",
+  "regularPrice": "السعر الشهري المعتاد:",
+  "recommended": "موصى بها",
+  "customPricing": "تسعير مخصّص",
+  "customPricingNote": "حدود وأسعار تناسب حجم مجموعتك.",
+  "pricingNote": "الأسعار بالريال السعودي، ولا يتم أي دفع إلكتروني: بعد تقديم طلبك يتواصل معك فريقنا لتأكيد الباقة، ثم يُفعَّل حسابك بعد تأكيد الدفع.",
+  "limits": {
+    "branches": "{count, plural, one {فرع واحد} two {حتى فرعين} few {حتى {count} فروع} many {حتى {count} فرعاً} other {حتى {count} فرع}}",
+    "branchesUnlimited": "عدد غير محدود من الفروع",
+    "users": "{count, plural, one {مستخدم واحد} two {حتى مستخدمَين} few {حتى {count} مستخدمين} many {حتى {count} مستخدماً} other {حتى {count} مستخدم}}",
+    "usersUnlimited": "عدد غير محدود من المستخدمين",
+    "history": "{days, plural, =365 {حفظ السجل لمدة سنة} one {حفظ السجل ليوم واحد} two {حفظ السجل ليومين} few {حفظ السجل لمدة {days} أيام} many {حفظ السجل لمدة {days} يوماً} other {حفظ السجل لمدة {days} يوم}}",
+    "historyUnlimited": "حفظ السجل دون حد زمني"
+  },
+  "supportLevel": {
+    "email": "دعم عبر البريد الإلكتروني",
+    "priority": "دعم بأولوية",
+    "dedicated": "دعم مخصّص"
+  }
 }

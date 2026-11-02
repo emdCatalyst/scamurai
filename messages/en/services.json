@@ -2,16 +2,400 @@
   "dispute_orders": {
     "name": "Order Protection",
     "tagline": "Win delivery disputes with photo proof.",
-    "summary": "Staff photograph every delivery bag sealed and opened, linked to the order number and delivery app, so finance has proof ready whenever an app or a customer disputes an order."
+    "summary": "Staff photograph every delivery bag sealed and opened, linked to the order number and delivery app, so finance has proof ready whenever an app or a customer disputes an order.",
+    "seo": {
+      "title": "Order Protection: Photo Proof for Delivery Disputes",
+      "description": "Photograph every delivery bag open and sealed, linked to the order number, branch and delivery app, and answer HungerStation, Jahez or Keeta disputes with proof."
+    },
+    "hero": {
+      "highlights": {
+        "1": "Two photos per order: the items in the open bag, and the sealed bag",
+        "2": "Linked to the order number, branch and delivery app",
+        "3": "Runs on staff phones, even when the connection drops"
+      }
+    },
+    "problems": {
+      "title": "A dispute you can't prove is money you lose",
+      "description": "When a customer reports a missing item or a tampered bag, the delivery app asks the restaurant for proof. Without it, the cost usually lands on your branch.",
+      "items": {
+        "1": {
+          "problem": "A customer says an item was missing, and it's your word against theirs.",
+          "solution": "Open the photo of the bag with every item inside, taken before it left the branch."
+        },
+        "2": {
+          "problem": "The order reached the customer opened or tampered with on the way.",
+          "solution": "Show the photo of the bag sealed and ready for the driver."
+        },
+        "3": {
+          "problem": "Finance searches WhatsApp groups and camera rolls for evidence.",
+          "solution": "Every photo is filed by order number, branch, delivery app and date."
+        }
+      }
+    },
+    "steps": {
+      "title": "From the packing counter to proof in four steps",
+      "description": "Staff capture proof while they pack. Finance finds it the moment a dispute arrives.",
+      "items": {
+        "1": {
+          "title": "Choose the app and order",
+          "description": "Staff pick the delivery app and enter the order number and amount. Their branch is attached automatically."
+        },
+        "2": {
+          "title": "Photograph the bag",
+          "description": "One photo of the open bag with the items visible, and one of the bag sealed for the driver."
+        },
+        "3": {
+          "title": "Upload, even on a weak signal",
+          "description": "Photos are compressed on the phone. If the connection drops, the order waits in a queue and can be re-sent with one tap."
+        },
+        "4": {
+          "title": "Review and respond",
+          "description": "Finance and brand admins filter by date, branch or app, open both photos and answer the dispute with proof."
+        }
+      }
+    },
+    "features": {
+      "title": "Everything you need to answer a dispute",
+      "description": "One workflow for staff at the counter, finance in the office and the brand admin who runs it all.",
+      "items": {
+        "1": {
+          "title": "Two-photo proof",
+          "description": "Every order carries an open-bag photo and a sealed-bag photo, so you can show what was packed and how it left."
+        },
+        "2": {
+          "title": "Built for busy shifts",
+          "description": "Photos are compressed on the phone, and orders queue up when the signal drops, so no proof is lost at peak time."
+        },
+        "3": {
+          "title": "Find any order fast",
+          "description": "Filter by date range, branch and delivery app, search by order number or staff name, and view photos full screen."
+        },
+        "4": {
+          "title": "Dashboards at a glance",
+          "description": "See orders over time, by branch and by delivery app, with a team overview for brand admins."
+        },
+        "5": {
+          "title": "Roles for every team",
+          "description": "Brand admins manage branches and users, finance reviews orders, and staff submit proof for their own branch."
+        },
+        "6": {
+          "title": "Your apps, your brand",
+          "description": "Choose which delivery apps staff can submit for, and add your logo and brand colours to your portal."
+        }
+      }
+    },
+    "faq": {
+      "items": {
+        "1": {
+          "question": "Do we need to connect our delivery apps?",
+          "answer": "No integration is needed. Staff pick the delivery app from the list enabled for your brand, such as HungerStation, Jahez, Keeta or ToYou, and type the order number."
+        },
+        "2": {
+          "question": "What if the internet drops during a shift?",
+          "answer": "Photos are compressed and saved on the phone. If an upload fails, the order stays in a queue on the device, and staff can re-send it with one tap once the connection is back."
+        },
+        "3": {
+          "question": "Do staff need to install an app?",
+          "answer": "No. Staff sign in to your brand's portal from the browser on their phone and take the photos from there."
+        },
+        "4": {
+          "question": "Who can see the order photos?",
+          "answer": "Your brand admins and finance team review orders and photos in your brand's portal. Staff use it to submit orders for their own branch."
+        },
+        "5": {
+          "question": "Can we add branches or users later?",
+          "answer": "Yes. Each plan includes a set number of branches and users. When you need more, contact us and we'll move you to a larger plan."
+        },
+        "6": {
+          "question": "How does payment work?",
+          "answer": "Nothing is charged online. After you apply, our team contacts you to confirm your plan. Once payment is confirmed, your account is activated and you add your logo and brand colours."
+        }
+      }
+    },
+    "cta": {
+      "title": "Stop paying for disputes you can't prove",
+      "description": "Tell us about your branches and the delivery apps you sell on. Our team will contact you to set up your account."
+    }
   },
   "compliance": {
     "name": "Operations Compliance",
     "tagline": "See every branch every morning, without visiting.",
-    "summary": "Daily photo checklists for each branch (AC, lights, cleanliness, staff, displays) roll up into a pass/fail board for your operations manager, with maintenance tickets instead of WhatsApp threads."
+    "summary": "Daily photo checklists for each branch (AC, lights, cleanliness, staff, displays) roll up into a pass/fail board for your operations manager, with maintenance tickets instead of WhatsApp threads.",
+    "seo": {
+      "title": "Operations Compliance: Daily Branch Photo Checklists",
+      "description": "Daily photo checklists for every branch, a morning pass/fail board for your operations manager, and maintenance tickets instead of WhatsApp. Early access is open."
+    },
+    "hero": {
+      "highlights": {
+        "1": "A photo checklist for every branch, every day",
+        "2": "A pass/fail board ready each morning",
+        "3": "Maintenance tickets with photo evidence"
+      }
+    },
+    "problems": {
+      "title": "You can't visit every branch every morning",
+      "description": "Operations managers depend on calls and WhatsApp photos to know whether branches opened properly. Problems surface late, and nothing stays on record.",
+      "items": {
+        "1": {
+          "problem": "You learn the AC was off or the lights were out when a customer complains.",
+          "solution": "Branches photograph the essentials when they open, so issues surface before customers notice."
+        },
+        "2": {
+          "problem": "Maintenance requests get lost in WhatsApp chats and email threads.",
+          "solution": "Each issue becomes a ticket with photos and a status everyone can follow."
+        },
+        "3": {
+          "problem": "Before an inspection, nobody can show what was done day by day.",
+          "solution": "Checklists, temperature logs and contractor visits build a dated record you can show."
+        }
+      }
+    },
+    "steps": {
+      "title": "One routine for every branch, every morning",
+      "description": "Branches check, the operations manager reviews, and anything that fails turns into a ticket.",
+      "items": {
+        "1": {
+          "title": "Set the checklist",
+          "description": "Choose what each branch checks: AC running, lighting, cleanliness inside and out, glass, staff present and displays."
+        },
+        "2": {
+          "title": "Photograph every item",
+          "description": "Branch staff complete the checklist on their phone, with a photo for each item."
+        },
+        "3": {
+          "title": "Review the morning board",
+          "description": "The operations manager sees which branches passed and which need attention, without calling around."
+        },
+        "4": {
+          "title": "Fix it with a ticket",
+          "description": "Failed items become maintenance tickets with photos, followed until they're closed."
+        }
+      }
+    },
+    "features": {
+      "title": "What's planned for early access",
+      "description": "A connected set of tools for running branch standards, maintenance and food safety from one place.",
+      "items": {
+        "1": {
+          "title": "Daily photo checklists",
+          "description": "Per-branch checklists covering AC, lighting, cleanliness inside and out, glass, staff presence and displays."
+        },
+        "2": {
+          "title": "Morning pass/fail board",
+          "description": "One screen with every branch's result at the start of the day."
+        },
+        "3": {
+          "title": "Maintenance tickets",
+          "description": "Report issues with photos and track them to completion, instead of chasing WhatsApp messages and emails."
+        },
+        "4": {
+          "title": "Contractor visit proof",
+          "description": "Record contractor and technician visits with photos, so you know the work was actually done."
+        },
+        "5": {
+          "title": "Temperature logs",
+          "description": "Log fridge and freezer readings with a photo of each one, building a dated food-safety record."
+        },
+        "6": {
+          "title": "Inspection readiness",
+          "description": "Keep checklists, logs and fixes in one place, ready when an inspector or area manager visits."
+        }
+      }
+    },
+    "faq": {
+      "items": {
+        "1": {
+          "question": "When will Operations Compliance launch?",
+          "answer": "There's no public launch date yet. Register your interest and our team will contact you as soon as early access is available for your brand."
+        },
+        "2": {
+          "question": "Does registering interest cost anything?",
+          "answer": "No. Registering interest is free and doesn't commit you to anything. You only pay if you decide to subscribe."
+        },
+        "3": {
+          "question": "How much will it cost?",
+          "answer": "Pricing hasn't been announced yet. Our team will share it with you before launch."
+        },
+        "4": {
+          "question": "Can we choose what our branches check?",
+          "answer": "Yes, that's part of the planned scope: each brand sets its own checklist items. Tell us how your branches open today so we can take it into account."
+        },
+        "5": {
+          "question": "Will it work alongside Order Protection?",
+          "answer": "It's planned as part of the same Scamurai platform, so brands that already use Order Protection can add it when it's available."
+        },
+        "6": {
+          "question": "What does early access include?",
+          "answer": "Daily photo checklists, the morning pass/fail board, maintenance tickets, contractor visit proof, temperature logs and inspection readiness. The scope may change based on feedback from early-access brands."
+        }
+      }
+    },
+    "cta": {
+      "title": "Every branch's morning, on one screen",
+      "description": "Register your interest in early access. There's no payment now, and our team will contact you."
+    }
   },
   "receiving": {
     "name": "Receiving Proof",
     "tagline": "Every delivery into your branches, documented.",
-    "summary": "Photograph shipments sealed when sent and opened when received, record shortages and damage with evidence, and settle supplier and branch-transfer disputes in minutes."
+    "summary": "Photograph shipments sealed when sent and opened when received, record shortages and damage with evidence, and settle supplier and branch-transfer disputes in minutes.",
+    "seo": {
+      "title": "Receiving Proof: Documented Transfers and Deliveries",
+      "description": "Photograph transfers sealed at dispatch and opened on arrival, capture supplier invoices by photo or QR, and settle shortage and damage disputes with evidence."
+    },
+    "hero": {
+      "highlights": {
+        "1": "Transfers photographed at dispatch and on arrival",
+        "2": "Supplier deliveries received with an invoice photo or QR",
+        "3": "Shortages and damage recorded with evidence"
+      }
+    },
+    "problems": {
+      "title": "When stock goes missing, everyone has a different story",
+      "description": "Goods move between your central kitchen, branches and suppliers every day. Without proof, every shortage turns into an argument or a write-off.",
+      "items": {
+        "1": {
+          "problem": "A branch says a transfer arrived short, and the kitchen says it left complete.",
+          "solution": "Compare photos of the shipment sealed at dispatch and opened on arrival."
+        },
+        "2": {
+          "problem": "The supplier's invoice doesn't match what was actually delivered.",
+          "solution": "Capture the invoice by photo or QR at receipt and note any difference on the spot."
+        },
+        "3": {
+          "problem": "Damage is discovered hours later, and nobody is accountable.",
+          "solution": "Record damage with photos at the moment of receipt, linked to the shipment."
+        }
+      }
+    },
+    "steps": {
+      "title": "Proof at both ends of every handover",
+      "description": "Each shipment is checked twice: once when it leaves and once when it arrives.",
+      "items": {
+        "1": {
+          "title": "Photograph it sealed at dispatch",
+          "description": "The central kitchen or warehouse photographs the shipment sealed before it leaves."
+        },
+        "2": {
+          "title": "Photograph it opened on arrival",
+          "description": "The receiving branch photographs it opened and confirms what arrived."
+        },
+        "3": {
+          "title": "Record any difference",
+          "description": "Shortages and damaged items are logged with photos on the spot."
+        },
+        "4": {
+          "title": "Settle it with one file",
+          "description": "Each disputed transfer or supplier delivery gets a single file with all the evidence."
+        }
+      }
+    },
+    "features": {
+      "title": "What's planned for early access",
+      "description": "Proof for every way goods reach your branches, from your own kitchen or from suppliers.",
+      "items": {
+        "1": {
+          "title": "Transfer proof",
+          "description": "Central-kitchen and branch-to-branch transfers photographed sealed at dispatch and opened at receipt."
+        },
+        "2": {
+          "title": "Supplier receiving",
+          "description": "Receive supplier deliveries with a photo of the invoice or a scan of its QR code."
+        },
+        "3": {
+          "title": "Shortage and damage records",
+          "description": "Log missing or damaged items with photos and notes at the moment of receipt."
+        },
+        "4": {
+          "title": "Dispute files",
+          "description": "One file per disputed transfer or delivery, with every photo and note in order."
+        },
+        "5": {
+          "title": "Kitchens and branches together",
+          "description": "Follow receiving across your central kitchen, warehouse and branches in one place."
+        },
+        "6": {
+          "title": "Searchable history",
+          "description": "Look up past transfers and deliveries by branch, supplier and date whenever a question comes up."
+        }
+      }
+    },
+    "faq": {
+      "items": {
+        "1": {
+          "question": "When will Receiving Proof launch?",
+          "answer": "There's no public launch date yet. Register your interest and our team will contact you as soon as early access is available for your brand."
+        },
+        "2": {
+          "question": "Does registering interest cost anything?",
+          "answer": "No. Registering interest is free and doesn't commit you to anything. You only pay if you decide to subscribe."
+        },
+        "3": {
+          "question": "How much will it cost?",
+          "answer": "Pricing hasn't been announced yet. Our team will share it with you before launch."
+        },
+        "4": {
+          "question": "Will it work with our suppliers' invoices?",
+          "answer": "The planned scope covers photographing supplier invoices or scanning their QR code at receipt. Tell us how you receive goods today so we can fit your process."
+        },
+        "5": {
+          "question": "Does it cover central kitchen transfers?",
+          "answer": "Yes, that's a core part of the planned scope: shipments are photographed sealed at dispatch and opened when they reach the branch."
+        },
+        "6": {
+          "question": "What does early access include?",
+          "answer": "Transfer proof, supplier receiving with an invoice photo or QR, shortage and damage records, and dispute files. The scope may change based on feedback from early-access brands."
+        }
+      }
+    },
+    "cta": {
+      "title": "Know exactly what arrived, every time",
+      "description": "Register your interest in early access. There's no payment now, and our team will contact you."
+    }
+  },
+  "page": {
+    "breadcrumbLabel": "Breadcrumb",
+    "hero": {
+      "seePricing": "See pricing",
+      "glanceLabel": "At a glance",
+      "earlyAccessNote": "Early access is open. There's no payment now."
+    },
+    "problems": {
+      "eyebrow": "Why it matters",
+      "problemLabel": "The problem",
+      "solutionLabel": "With {name}"
+    },
+    "steps": {
+      "eyebrow": {
+        "live": "How it works",
+        "coming_soon": "How it will work"
+      },
+      "plannedNote": "This is the planned workflow. Details may change during early access."
+    },
+    "features": {
+      "eyebrow": {
+        "live": "Features",
+        "coming_soon": "Planned scope"
+      },
+      "plannedNote": "Planned scope for early access. Features may change based on feedback."
+    },
+    "earlyAccess": {
+      "eyebrow": "Early access",
+      "title": "Be among the first brands to use {name}",
+      "description": "{name} is in early access. Register your interest and our team will contact you to learn how your branches work before launch.",
+      "points": {
+        "1": "No payment now. Registering interest is free and commits you to nothing.",
+        "2": "Our team contacts you to understand how your branches work today.",
+        "3": "Feedback from early-access brands shapes what we build first."
+      }
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Questions about {name}"
+    },
+    "related": {
+      "eyebrow": "More from Scamurai",
+      "title": "Explore our other services"
+    }
   }
 }
