@@ -16,20 +16,10 @@
 import { config } from 'dotenv';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+import { assertLocalDatabaseUrl, assertNotCloudSql } from '../src/lib/db/localOnly';
 import * as schema from '../src/lib/db/schema';
 
 config({ path: '.env.local', quiet: true });
-
-const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
-
-function assertLocalDatabase(url: string | undefined): string {
-  if (!url) throw new Error('DATABASE_URL is not set (see .env.example).');
-  const host = new URL(url).hostname;
-  if (process.env.NODE_ENV === 'production' || !LOCAL_HOSTS.has(host)) {
-    throw new Error(`Refusing to seed "${host}": test data may only go into a local database.`);
-  }
-  return url;
-}
 
 /** Deterministic ids, so re-running the seed never duplicates rows. */
 const id = (group: number, n: number) =>
@@ -63,10 +53,11 @@ const TEAM = [
 const ORDER_COUNT = 36;
 
 async function main() {
-  const client = postgres(assertLocalDatabase(process.env.DATABASE_URL), { max: 1, onnotice: () => {} });
+  const client = postgres(assertLocalDatabaseUrl(process.env.DATABASE_URL, 'the seed'), { max: 1, onnotice: () => {} });
   const db = drizzle(client, { schema });
 
   try {
+    await assertNotCloudSql(client, 'the seed');
     await db.transaction(async (tx) => {
       // Delivery app catalog (natural key: name).
       await tx
