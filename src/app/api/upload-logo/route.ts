@@ -1,80 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { getSupabase } from '@/lib/supabase';
-import { db } from '@/lib/db';
-import { users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
+import { brandLogoKey } from '@/lib/storage/keys';
+import { storeLogo } from '@/lib/storage/logoUpload';
 
-export async function POST(req: NextRequest) {
-  const { userId, sessionClaims } = await auth();
-
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  let brandId = sessionClaims?.metadata?.brandId as string | undefined;
-
-  // Fallback to DB if brandId is missing from session claims
-  if (!brandId) {
-    const user = await db.query.users.findFirst({
-      where: eq(users.clerkUserId, userId),
-      columns: { brandId: true },
-    });
-    brandId = user?.brandId || undefined;
-  }
-
+/**
+ * Brand logo upload (onboarding and brand settings). Brand admins only. The
+ * file is stored under a new content-addressed key, so an upload can never
+ * overwrite the logo in use; it only takes effect when the admin saves the
+ * returned /media path through completeBrandSetup or updateBrandIdentity.
+ */
+export async function POST(request: Request) {
+  const { brandId } = await requireAuth(['brand_admin']);
   if (!brandId) {
     return NextResponse.json({ error: 'No brand associated' }, { status: 403 });
   }
 
   try {
-    const formData = await req.formData();
-    const file = formData.get('file') as File | null;
-
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-    }
-
-    // Validate type
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/svg+xml'];
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ error: 'Invalid file type' }, { status: 400 });
-    }
-
-    // Validate size (2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File too large (max 2MB)' }, { status: 400 });
-    }
-
-    // Determine extension
-    const ext = file.type === 'image/svg+xml' ? 'svg' : file.type === 'image/png' ? 'png' : 'jpg';
-    const storagePath = `brand-assets/${brandId}/logo.${ext}`;
-
-    // Convert File to buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = new Uint8Array(arrayBuffer);
-
-    // Upload to Supabase Storage
-    const { data, error } = await getSupabase().storage
-      .from('brand-assets')
-      .upload(storagePath, buffer, {
-        contentType: file.type,
-        upsert: true,
-      });
-
-    if (error) {
-      console.error('[upload-logo] Supabase upload error:', error);
-      return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
-    }
-
-    // Get public URL
-    const { data: urlData } = getSupabase().storage
-      .from('brand-assets')
-      .getPublicUrl(storagePath);
-
-    return NextResponse.json({ url: urlData.publicUrl });
-  } catch (err) {
-    console.error('[upload-logo] Error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const formData = await request.formData();
+    const file = formData.get('file');
+    const result = await storeLogo(file instanceof File ? file : null, (hash, ext) => brandLogoKey(brandId, hash, ext));
+    return result.ok
+      ? NextResponse.json({ url: result.url })
+      : NextResponse.json({ error: result.error }, { status: result.status });
+  } catch (error) {
+    console.error('[upload-logo] Error:', error);
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }

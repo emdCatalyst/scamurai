@@ -2,12 +2,17 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { orders, users, brandDeliveryApps } from "@/lib/db/schema";
-import { getSupabase } from "@/lib/supabase";
+import { getStorage, ORDER_IMAGE_MAX_BYTES, ORDER_IMAGE_UPLOAD_TTL_SECONDS } from "@/lib/storage";
+import { ORDER_IMAGE_TYPES, orderImageKey } from "@/lib/storage/keys";
 import { eq, and, isNull } from "drizzle-orm";
 
-const BUCKET = "order-images";
 const LOG = "[POST /api/orders/upload-urls]";
 
+/**
+ * Step 1 of a staff order submission: creates the order and returns one
+ * signed upload URL per photo (sealed, opened). The browser uploads directly
+ * to storage, then calls /api/orders/[orderId]/confirm.
+ */
 export async function POST(req: Request) {
   try {
     const { userId: clerkUserId, brandId } = await requireAuth(["staff"]);
@@ -53,7 +58,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Duplicate order number check (per branch)
+    // 3. Duplicate order number check (per branch). The same staff member
+    //    retrying an order whose photos never arrived (offline queue, dropped
+    //    connection) resumes it with fresh upload URLs instead of being
+    //    blocked by their own earlier attempt.
     const existing = await db.query.orders.findFirst({
       where: and(
         eq(orders.brandId, brandId),
@@ -61,50 +69,36 @@ export async function POST(req: Request) {
         eq(orders.orderNumber, orderNumber),
         isNull(orders.deletedAt)
       ),
+      columns: { id: true, submittedBy: true },
+      with: { images: { columns: { id: true } } },
     });
-    if (existing) {
+    const resuming = existing !== undefined && existing.submittedBy === user.id && existing.images.length === 0;
+    if (existing && !resuming) {
       return NextResponse.json(
         { error: "Order number already exists for this branch" },
         { status: 400 }
       );
     }
 
-    // 4. Sign upload URLs FIRST — if the bucket is missing or signing fails,
-    //    we surface the real error without leaving an orphan order behind.
-    const supabase = getSupabase();
-    const newOrderId = crypto.randomUUID();
-
-    const signUpload = async (type: "sealed" | "opened") => {
-      const path = `order-images/${brandId}/${newOrderId}/${type}.jpg`;
-      const { data, error } = await supabase.storage
-        .from(BUCKET)
-        .createSignedUploadUrl(path);
-      if (error) {
-        console.error(
-          `${LOG} createSignedUploadUrl(${type}) failed for path=${path}:`,
-          error
-        );
-        const hint =
-          /not found|does not exist/i.test(error.message || "")
-            ? ` (check that the "${BUCKET}" bucket exists in Supabase Storage)`
-            : "";
-        throw new Error(`Storage signing failed${hint}: ${error.message}`);
-      }
-      return data.signedUrl;
-    };
-
-    const [sealedUploadUrl, openedUploadUrl] = await Promise.all([
-      signUpload("sealed"),
-      signUpload("opened"),
-    ]);
+    // 4. Sign the upload URLs FIRST: if storage is misconfigured we surface
+    //    the real error without leaving an orphan order behind.
+    const storage = getStorage();
+    const orderId = existing?.id ?? crypto.randomUUID();
+    const [sealed, opened] = await Promise.all(
+      ORDER_IMAGE_TYPES.map((type) =>
+        storage.createUploadUrl("orderImages", orderImageKey(brandId, orderId, type), {
+          contentType: "image/jpeg",
+          maxBytes: ORDER_IMAGE_MAX_BYTES,
+          expiresInSeconds: ORDER_IMAGE_UPLOAD_TTL_SECONDS,
+        })
+      )
+    );
 
     // 5. Insert the order row only after signing succeeded.
-    let inserted;
-    try {
-      [inserted] = await db
-        .insert(orders)
-        .values({
-          id: newOrderId,
+    if (!resuming) {
+      try {
+        await db.insert(orders).values({
+          id: orderId,
           brandId,
           orderNumber,
           branchId: user.branchId,
@@ -114,27 +108,16 @@ export async function POST(req: Request) {
           currency: currency || "SAR",
           notes,
           status: "needs_review",
-        })
-        .returning();
-    } catch (dbErr) {
-      console.error(`${LOG} order insert failed:`, dbErr);
-      return NextResponse.json(
-        { error: dbErr instanceof Error ? dbErr.message : "Failed to create order" },
-        { status: 500 }
-      );
+        });
+      } catch (dbErr) {
+        console.error(`${LOG} order insert failed:`, dbErr);
+        return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+      }
     }
 
-    return NextResponse.json({
-      orderId: inserted.id,
-      orderNumber: inserted.orderNumber,
-      sealedUploadUrl,
-      openedUploadUrl,
-    });
+    return NextResponse.json({ orderId, orderNumber, uploads: { sealed, opened } });
   } catch (err) {
     console.error(`${LOG} Error:`, err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

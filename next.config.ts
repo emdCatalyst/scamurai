@@ -19,7 +19,7 @@ const PERMISSIONS_POLICY = ['camera=()', 'microphone=()', 'geolocation=()', 'pay
 /**
  * Baseline headers for every response. HSTS is production-only so local
  * http:// development is never pinned to HTTPS. No Content-Security-Policy yet:
- * Clerk, Supabase and inline styles need an audited allow-list first.
+ * Clerk, Cloud Storage and inline styles need an audited allow-list first.
  */
 const SECURITY_HEADERS: HttpHeader[] = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -48,8 +48,6 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       { protocol: 'https', hostname: 'img.clerk.com' },
-      { protocol: 'https', hostname: '*.supabase.co' },
-      { protocol: 'https', hostname: '*.supabase.in' },
     ],
   },
   allowedDevOrigins: ['192.168.1.4'],

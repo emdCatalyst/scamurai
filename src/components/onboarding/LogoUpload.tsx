@@ -39,7 +39,7 @@ export default function LogoUpload({ onUpload, onRemove, logoUrl, brandId }: Log
     setIsUploading(true);
 
     try {
-      // Upload to Supabase Storage via API route
+      // Upload through the API route (validated, stored, returns a /media path)
       const formData = new FormData();
       formData.append('file', file);
       formData.append('brandId', brandId);

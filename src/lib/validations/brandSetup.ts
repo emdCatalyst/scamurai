@@ -9,5 +9,6 @@ export const brandSetupSchema = z.object({
     surface: z.string().regex(hexColorRegex, 'Invalid hex color'),
     textAccent: z.string().regex(hexColorRegex, 'Invalid hex color'),
   }),
-  logoUrl: z.string().url().nullable().optional(),
+  // Only our own /media paths (from the upload endpoint); the action checks ownership.
+  logoUrl: z.string().startsWith('/media/').max(200).nullable().optional(),
 });

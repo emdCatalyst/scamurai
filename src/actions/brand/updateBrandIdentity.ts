@@ -1,6 +1,7 @@
 'use server';
 
 import { requireAuth } from "@/lib/auth";
+import { isBrandLogoPath } from "@/lib/storage/keys";
 import { db } from "@/lib/db";
 import { brands } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -23,6 +24,10 @@ export async function updateBrandIdentity(data: {
   const parsed = brandIdentitySchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
+  }
+  // A logo must be one uploaded for this brand, never another brand's file.
+  if (parsed.data.logoUrl && !isBrandLogoPath(parsed.data.logoUrl, brandId)) {
+    return { success: false, error: "Invalid logo" };
   }
 
   try {

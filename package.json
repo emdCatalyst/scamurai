@@ -22,8 +22,8 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.2.5",
+    "@google-cloud/storage": "^7.22.0",
     "@hookform/resolvers": "^5.2.2",
-    "@supabase/supabase-js": "^2.104.1",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
     "clsx": "^2.1.1",

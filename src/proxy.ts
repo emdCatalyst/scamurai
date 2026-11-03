@@ -15,6 +15,8 @@ const isPublicRoute = createRouteMatcher([
   '/:locale/brands/:brandSlug/suspended(.*)',
   '/:locale/brands/:brandSlug/inactive(.*)',
   '/api/webhooks(.*)',
+  // Development storage: every request carries its own signed, expiring token.
+  '/api/storage/local(.*)',
 ]);
 
 export const proxy = clerkMiddleware(async (auth, req) => {

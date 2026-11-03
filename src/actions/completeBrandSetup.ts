@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { brands, users } from '@/lib/db/schema';
 import { requireAuth } from '@/lib/auth';
+import { isBrandLogoPath } from '@/lib/storage/keys';
 
 export type BrandColors = {
   primary: string;
@@ -37,6 +38,10 @@ export async function completeBrandSetup(
   }
 
   const { brandColors, logoUrl } = parsed.data;
+  // A logo must be one uploaded for this brand, never another brand's file.
+  if (logoUrl && !isBrandLogoPath(logoUrl, brandId)) {
+    return { success: false, error: 'Invalid logo.' };
+  }
 
   try {
     // Update brand with colors and logo

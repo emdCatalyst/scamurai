@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+# local file storage (STORAGE_DRIVER=local)
+/.storage/
+
 # testing
 /coverage
 

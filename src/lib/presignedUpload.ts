@@ -1,3 +1,4 @@
+import type { UploadTarget } from "./storage/types";
 import { PendingOrder } from "./imageQueue";
 
 export interface UploadResponse {
@@ -11,9 +12,9 @@ const LOG = "[uploadOrder]";
 
 /**
  * Handles the full background upload flow for an order.
- * 1. Request presigned URLs from API
- * 2. Parallel upload to Supabase Storage
- * 3. Confirm with API
+ * 1. Request signed upload URLs from the API (it also creates the order)
+ * 2. Upload both photos in parallel, directly to storage
+ * 3. Confirm with the API (it derives the photo paths itself)
  */
 export async function uploadOrder(order: PendingOrder): Promise<UploadResponse> {
   try {
@@ -39,21 +40,17 @@ export async function uploadOrder(order: PendingOrder): Promise<UploadResponse> 
       throw new Error(msg);
     }
 
-    const { orderId, orderNumber, sealedUploadUrl, openedUploadUrl } = await urlResponse.json();
+    const { orderId, orderNumber, uploads } = (await urlResponse.json()) as {
+      orderId: string;
+      orderNumber: string;
+      uploads: Record<'sealed' | 'opened', UploadTarget>;
+    };
     console.log(`${LOG} step 1 ok: orderId=${orderId}`);
 
-    // 2. Parallel upload directly to Supabase Storage
-    const uploadFile = async (label: string, url: string, blob: Blob) => {
+    // 2. Parallel upload directly to storage, with exactly the signed headers
+    const uploadFile = async (label: string, target: UploadTarget, blob: Blob) => {
       console.log(`${LOG} step 2 (${label}): PUT to storage, size=${blob.size}`);
-      const res = await fetch(url, {
-        method: 'PUT',
-        body: blob,
-        headers: {
-          'Content-Type': 'image/jpeg',
-          'cache-control': '3600',
-          'x-upsert': 'true',
-        },
-      });
+      const res = await fetch(target.url, { method: target.method, body: blob, headers: target.headers });
       if (!res.ok) {
         const text = await res.text().catch(() => '');
         const msg = `Storage PUT (${label}) failed: ${res.status} ${res.statusText} ${text}`.trim();
@@ -64,19 +61,14 @@ export async function uploadOrder(order: PendingOrder): Promise<UploadResponse> 
     };
 
     await Promise.all([
-      uploadFile('sealed', sealedUploadUrl, order.sealedBlob),
-      uploadFile('opened', openedUploadUrl, order.openedBlob),
+      uploadFile('sealed', uploads.sealed, order.sealedBlob),
+      uploadFile('opened', uploads.opened, order.openedBlob),
     ]);
 
     // 3. Confirm submission
     console.log(`${LOG} step 3: confirming order ${orderId}`);
     const confirmResponse = await fetch(`/api/orders/${orderId}/confirm`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sealedStoragePath: `order-images/${order.brandId}/${orderId}/sealed.jpg`,
-        openedStoragePath: `order-images/${order.brandId}/${orderId}/opened.jpg`,
-      }),
     });
 
     if (!confirmResponse.ok) {
