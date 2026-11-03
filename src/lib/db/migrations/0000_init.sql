@@ -26,7 +26,6 @@ CREATE TABLE "applications" (
 	CONSTRAINT "applications_branch_count_range" CHECK ("applications"."branch_count" IS NULL OR "applications"."branch_count" BETWEEN 1 AND 10000)
 );
 --> statement-breakpoint
-ALTER TABLE "applications" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "branches" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"brand_id" uuid NOT NULL,
@@ -38,7 +37,6 @@ CREATE TABLE "branches" (
 	CONSTRAINT "branches_brand_id_name_unique" UNIQUE("brand_id","name")
 );
 --> statement-breakpoint
-ALTER TABLE "branches" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "brand_delivery_apps" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"brand_id" uuid NOT NULL,
@@ -49,7 +47,6 @@ CREATE TABLE "brand_delivery_apps" (
 	CONSTRAINT "brand_delivery_apps_brand_id_catalog_app_id_unique" UNIQUE("brand_id","catalog_app_id")
 );
 --> statement-breakpoint
-ALTER TABLE "brand_delivery_apps" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "brands" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
@@ -69,7 +66,6 @@ CREATE TABLE "brands" (
 	CONSTRAINT "brands_plan_values" CHECK ("brands"."plan" IN ('starter', 'growth', 'enterprise'))
 );
 --> statement-breakpoint
-ALTER TABLE "brands" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "delivery_app_catalog" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
@@ -81,7 +77,6 @@ CREATE TABLE "delivery_app_catalog" (
 	CONSTRAINT "delivery_app_catalog_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint
-ALTER TABLE "delivery_app_catalog" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "order_images" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"brand_id" uuid NOT NULL,
@@ -95,7 +90,6 @@ CREATE TABLE "order_images" (
 	CONSTRAINT "order_images_type_values" CHECK ("order_images"."type" IN ('opened', 'sealed'))
 );
 --> statement-breakpoint
-ALTER TABLE "order_images" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "orders" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"brand_id" uuid NOT NULL,
@@ -118,7 +112,6 @@ CREATE TABLE "orders" (
 	CONSTRAINT "orders_status_values" CHECK ("orders"."status" IN ('needs_review', 'approved', 'rejected'))
 );
 --> statement-breakpoint
-ALTER TABLE "orders" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "users" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"email" text NOT NULL,
@@ -139,7 +132,6 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_role_values" CHECK ("users"."role" IN ('master_admin', 'brand_admin', 'finance', 'staff'))
 );
 --> statement-breakpoint
-ALTER TABLE "users" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 ALTER TABLE "applications" ADD CONSTRAINT "applications_brand_id_brands_id_fk" FOREIGN KEY ("brand_id") REFERENCES "public"."brands"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "branches" ADD CONSTRAINT "branches_brand_id_brands_id_fk" FOREIGN KEY ("brand_id") REFERENCES "public"."brands"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "brand_delivery_apps" ADD CONSTRAINT "brand_delivery_apps_brand_id_brands_id_fk" FOREIGN KEY ("brand_id") REFERENCES "public"."brands"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

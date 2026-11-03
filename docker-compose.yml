@@ -1,0 +1,31 @@
+# Local development services. Production runs on Google Cloud (Cloud SQL for
+# PostgreSQL); keep the major version here equal to the Cloud SQL instance.
+#
+#   npm run db:up      start (data persists in the named volume)
+#   npm run db:down    stop, keep data
+#   npm run db:reset   wipe, re-create schema and test data
+#
+# Credentials below are for this local container only. Never reuse them.
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: scamurai-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: scamurai
+      POSTGRES_PASSWORD: scamurai_local
+      POSTGRES_DB: scamurai
+    ports:
+      # Loopback only: the database is not reachable from the network.
+      # Host port 54320 (not 5432) so it never clashes with another project's Postgres.
+      - "127.0.0.1:54320:5432"
+    volumes:
+      - scamurai-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scamurai -d scamurai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  scamurai-pgdata:

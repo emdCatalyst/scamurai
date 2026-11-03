@@ -9,15 +9,18 @@ const globalForDb = globalThis as unknown as {
   conn: postgres.Sql | undefined;
 };
 
-// Direct connection to Postgres (port 5432, host db.<ref>.supabase.co).
-// We deliberately do not use Supavisor's transaction pooler (port 6543) —
-// the `prepare:false` constraint plus stuck-socket bugs caused intermittent
-// page hangs that did not surface as errors. With direct connection,
-// prepared statements work normally and stuck queries are bounded by
-// `statement_timeout`.
+// Direct (session) connection to Postgres, so prepared statements work and
+// stuck queries are bounded by `statement_timeout`. Avoid transaction-mode
+// poolers: they need `prepare: false` and caused hangs in the past.
+//
+// TLS is required by default. Set DATABASE_SSL=disable only where the hop is
+// already private: the local Docker database, or the Cloud SQL Auth Proxy,
+// which encrypts the connection itself.
+const ssl = process.env.DATABASE_SSL === 'disable' ? false : 'require';
+
 const client = globalForDb.conn ?? postgres(connectionString, {
   max: 3,
-  ssl: 'require',
+  ssl,
   connect_timeout: 30,
   idle_timeout: 20,
   onnotice: () => {},

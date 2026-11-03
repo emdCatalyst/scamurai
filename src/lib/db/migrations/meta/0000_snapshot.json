@@ -1,5 +1,5 @@
 {
-  "id": "1bc1c332-f551-4d4d-ac28-77a12d4b8a02",
+  "id": "7a24d239-a46d-4210-b522-7eaaed4f7016",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -243,7 +243,7 @@
           "value": "\"applications\".\"branch_count\" IS NULL OR \"applications\".\"branch_count\" BETWEEN 1 AND 10000"
         }
       },
-      "isRLSEnabled": true
+      "isRLSEnabled": false
     },
     "public.branches": {
       "name": "branches",
@@ -342,7 +342,7 @@
       },
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": true
+      "isRLSEnabled": false
     },
     "public.brand_delivery_apps": {
       "name": "brand_delivery_apps",
@@ -462,7 +462,7 @@
       },
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": true
+      "isRLSEnabled": false
     },
     "public.brands": {
       "name": "brands",
@@ -641,7 +641,7 @@
           "value": "\"brands\".\"plan\" IN ('starter', 'growth', 'enterprise')"
         }
       },
-      "isRLSEnabled": true
+      "isRLSEnabled": false
     },
     "public.delivery_app_catalog": {
       "name": "delivery_app_catalog",
@@ -725,7 +725,7 @@
       },
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": true
+      "isRLSEnabled": false
     },
     "public.order_images": {
       "name": "order_images",
@@ -845,7 +845,7 @@
           "value": "\"order_images\".\"type\" IN ('opened', 'sealed')"
         }
       },
-      "isRLSEnabled": true
+      "isRLSEnabled": false
     },
     "public.orders": {
       "name": "orders",
@@ -1113,7 +1113,7 @@
           "value": "\"orders\".\"status\" IN ('needs_review', 'approved', 'rejected')"
         }
       },
-      "isRLSEnabled": true
+      "isRLSEnabled": false
     },
     "public.users": {
       "name": "users",
@@ -1340,7 +1340,7 @@
           "value": "\"users\".\"role\" IN ('master_admin', 'brand_admin', 'finance', 'staff')"
         }
       },
-      "isRLSEnabled": true
+      "isRLSEnabled": false
     }
   },
   "enums": {},
