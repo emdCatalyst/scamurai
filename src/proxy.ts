@@ -1,7 +1,7 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { clerkMiddleware, createRouteMatcher, type ClerkMiddlewareAuth } from '@clerk/nextjs/server';
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -19,7 +19,27 @@ const isPublicRoute = createRouteMatcher([
   '/api/storage/local(.*)',
 ]);
 
-export const proxy = clerkMiddleware(async (auth, req) => {
+/**
+ * Stricter headers for the master-admin console. They override the baseline
+ * from next.config.ts, and are set here at runtime because next.config.ts
+ * `headers()` runs at build time, where the secret admin slug doesn't belong.
+ */
+const ADMIN_HEADERS: Record<string, string> = {
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'no-referrer',
+};
+
+const LOCALES: readonly string[] = routing.locales;
+
+/** `/<locale>/<ADMIN_SLUG>/…`, or the unprefixed `/<ADMIN_SLUG>/…` that next-intl redirects. */
+function isAdminPath(pathname: string): boolean {
+  const adminSlug = process.env.ADMIN_SLUG;
+  if (!adminSlug) return false;
+  const [first = '', second] = pathname.split('/').filter(Boolean);
+  return first === adminSlug || (LOCALES.includes(first) && second === adminSlug);
+}
+
+async function route(auth: ClerkMiddlewareAuth, req: NextRequest): Promise<NextResponse> {
   const isApiRoute = req.nextUrl.pathname.startsWith('/api');
   
   const firstSegment = req.nextUrl.pathname.split('/')[1];
@@ -98,6 +118,14 @@ export const proxy = clerkMiddleware(async (auth, req) => {
 
   // 3. Always apply intlMiddleware at the end to ensure it handles localized routing
   return isApiRoute ? NextResponse.next() : intlMiddleware(req);
+}
+
+export const proxy = clerkMiddleware(async (auth, req) => {
+  const response = await route(auth, req);
+  if (isAdminPath(req.nextUrl.pathname)) {
+    for (const [name, value] of Object.entries(ADMIN_HEADERS)) response.headers.set(name, value);
+  }
+  return response;
 });
 
 export default proxy;

@@ -31,14 +31,9 @@ const SECURITY_HEADERS: HttpHeader[] = [
     : []),
 ];
 
-/** Stricter rules for the admin console; listed after the baseline, so these values win. */
-const ADMIN_HEADERS: HttpHeader[] = [
-  { key: 'X-Frame-Options', value: 'DENY' },
-  { key: 'X-Content-Type-Options', value: 'nosniff' },
-  { key: 'Referrer-Policy', value: 'no-referrer' },
-];
-
 const nextConfig: NextConfig = {
+  // Self-contained server for the container image (see Dockerfile).
+  output: 'standalone',
   turbopack: {
     root: projectRoot,
   },
@@ -51,15 +46,10 @@ const nextConfig: NextConfig = {
     ],
   },
   allowedDevOrigins: ['192.168.1.4'],
+  // Evaluated at build time. The admin console's stricter headers are added at
+  // runtime by src/proxy.ts instead, so the build never needs ADMIN_SLUG.
   async headers() {
-    const adminSlug = process.env.ADMIN_SLUG;
-
-    return [
-      { source: '/:path*', headers: SECURITY_HEADERS },
-      // Admin pages live under a locale prefix (/en/<slug>/…); the optional
-      // segment also covers the unprefixed URL that next-intl redirects.
-      ...(adminSlug ? [{ source: `/:locale?/${adminSlug}/:path*`, headers: ADMIN_HEADERS }] : []),
-    ];
+    return [{ source: '/:path*', headers: SECURITY_HEADERS }];
   },
 };
 

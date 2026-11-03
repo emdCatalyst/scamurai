@@ -1,0 +1,6 @@
+# Left out of `gcloud builds submit` uploads: everything git ignores (secrets,
+# local data, build output), plus the files below.
+.gcloudignore
+.git
+.claude
+#!include:.gitignore

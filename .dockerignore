@@ -1,0 +1,16 @@
+# Kept out of the image build: secrets, local data, build output and repo-only files.
+.env*
+.storage
+.next
+node_modules
+.git
+.claude
+coverage
+docs
+**/*.md
+*.dump
+npm-debug.log*
+Dockerfile
+.dockerignore
+.gcloudignore
+cloudbuild.yaml
