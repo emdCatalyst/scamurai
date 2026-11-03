@@ -3,8 +3,8 @@
 The plan for running Scamurai on Google Cloud in the Dammam region (`me-central2`), fully managed, and the checklist
 of what's left. Database details are in [DATABASE.md](DATABASE.md).
 
-Status (2026-11-04): the code is ready for Cloud SQL and Cloud Storage. Nothing is deployed, and there is no Google
-Cloud project yet.
+Status (2026-11-04): the code and the container image are ready for Cloud Run, Cloud SQL and Cloud Storage. Nothing
+is deployed, and there is no Google Cloud project yet.
 
 ## Architecture
 
@@ -30,23 +30,16 @@ Container images: Artifact Registry (me-central2). Builds: Cloud Build or GitHub
   signature, and object keys that the server derives itself.
 - Logos are saved as `/media/<key>` paths, so moving buckets or regions doesn't touch the data.
 - Marketing pages are static and don't read the database, so the build needs no database access.
-- The seed and the integration tests refuse non-local database hosts.
+- The image: `output: 'standalone'`, a multi-stage `Dockerfile` (Node 24, runs as a non-root user on port 8080),
+  `.dockerignore`, and `cloudbuild.yaml` for Cloud Build. The build needs only the two `NEXT_PUBLIC_*` values.
+- The admin console's stricter headers are set at runtime by `src/proxy.ts`, so the build never needs `ADMIN_SLUG`.
+- The rate limiter reads the client IP from the right of `X-Forwarded-For`, where Google's load balancer puts it:
+  it appends `<client-ip>,<load-balancer-ip>` to whatever the client sent. `TRUSTED_PROXY_HOPS` adjusts this.
+- The seed and the integration tests refuse non-local hosts and Cloud SQL itself, so the Auth Proxy on localhost
+  can't fool them.
 
-## Code to finish before the first deploy
+## Still to do in the code
 
-- [ ] **Container.** Add `output: 'standalone'` to `next.config.ts`, a multi-stage `Dockerfile` (Node 24 LTS) and a
-  `.dockerignore` that excludes `.env*`, `.storage/`, `.next/` and `node_modules/`.
-- [ ] **Build-time variables.** `next build` inlines `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
-  into the bundle, so pass them as build args (in a `cloudbuild.yaml`). `ADMIN_SLUG` is needed at build time too,
-  because `next build` evaluates `headers()` in `next.config.ts`. Without it, admin pages ship without their
-  stricter headers. Either give the build that secret (it then sits in the private image) or move the admin
-  headers into `src/proxy.ts`, which reads it at runtime.
-- [ ] **Client IP for rate limiting.** `getClientIp()` in `src/lib/ratelimit.ts` takes the first `X-Forwarded-For`
-  entry. Google's load balancer appends `<client-ip>,<load-balancer-ip>` to whatever the client sent, so the first
-  entry can be forged and the limit skipped. Use the second-to-last entry instead, and confirm it by logging the
-  header once in staging.
-- [ ] **Seed and test guards.** They only check that the host is localhost, and the Cloud SQL Auth Proxy also
-  listens on localhost. Make them refuse Cloud SQL too, for example when the `cloudsqlsuperuser` role exists.
 - [ ] **Content-Security-Policy** (none yet). When adding one, allow `https://storage.googleapis.com` in
   `connect-src` (uploads) and `img-src` (signed photo URLs), along with Clerk's domains.
 - [ ] **Photo retention.** Plans promise 90 days (Starter) or 365 days (Growth) of history (`historyDays` in
@@ -229,12 +222,13 @@ Create them in the console (Security → Secret Manager), so the values never pa
 | `NEXT_PUBLIC_SITE_URL` | `https://YOUR_DOMAIN` | build arg |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `pk_live_…` | build arg |
 | `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET` | | secret |
-| `ADMIN_SLUG` | | secret (and at build time, see above) |
+| `ADMIN_SLUG` | | secret |
 | `RESEND_API_KEY` | | secret |
 | `RESEND_FROM_ADDRESS` | `Scamurai <noreply@YOUR_DOMAIN>` | env |
 | `SUPER_ADMIN_EMAIL` | Where new-application emails go | env |
 | `UPSTASH_REDIS_REST_URL` | | env |
 | `UPSTASH_REDIS_REST_TOKEN` | | secret |
+| `TRUSTED_PROXY_HOPS` | Optional, default `1` (Google's external load balancer). Check the header once in staging | env |
 | `STORAGE_DRIVER` | `gcs` | env |
 | `STORAGE_BUCKET_ORDER_IMAGES`, `STORAGE_BUCKET_BRAND_ASSETS` | The bucket names | env |
 
@@ -250,7 +244,10 @@ reads such a host only from `PGHOST` or the `host` option. A URL like `user:pass
 ```bash
 gcloud artifacts repositories create scamurai --repository-format=docker --location=me-central2
 
-# Build and push the image with a cloudbuild.yaml that passes the NEXT_PUBLIC_* build args (still to write), then:
+# Build and push the image (cloudbuild.yaml passes the NEXT_PUBLIC_* build args):
+gcloud builds submit --config=cloudbuild.yaml \
+  --substitutions=_SITE_URL=https://YOUR_DOMAIN,_CLERK_PUBLISHABLE_KEY=pk_live_xxx,_TAG=$(git rev-parse --short HEAD)
+
 gcloud run deploy scamurai-web \
   --image=me-central2-docker.pkg.dev/PROJECT_ID/scamurai/web:TAG \
   --region=me-central2 \
@@ -264,6 +261,13 @@ gcloud run deploy scamurai-web \
 ```
 
 - `cloudrun.env.yaml` holds the plain variables from the table above (no secrets), one `KEY: "value"` per line.
+- The image listens on 8080 (Cloud Run's default `PORT`) and runs as a non-root user.
+- To try the image on your PC first, build it with `NEXT_PUBLIC_SITE_URL=http://localhost:3200` and the test
+  publishable key, then run it on the local database's network:
+  `docker run --rm -p 127.0.0.1:3200:8080 --network scamurai_default --env-file <file> scamurai-web`, where the
+  env file has the runtime variables and
+  `DATABASE_URL=postgresql://scamurai:scamurai_local@scamurai-postgres:5432/scamurai`. Keep that env file outside
+  the repo.
 - `--min-instances=1` avoids cold starts; one instance is always billed.
 - `--max-instances=4` × 3 connections = 12 database connections, well inside the small tier's limit.
 - `--ingress=internal-and-cloud-load-balancing` closes the public `run.app` URL, so all traffic comes through the
@@ -318,7 +322,8 @@ obligations before launch.
   (`users.clerk_user_id` is set).
 - [ ] Staff upload: both photos reach the bucket without a CORS error, confirm succeeds, and finance sees the photos.
 - [ ] A logo upload works and `/media/…` serves it.
-- [ ] A 4th application from the same IP within 24 hours is refused (after the `getClientIp` fix).
+- [ ] A 4th application from the same IP within 24 hours is refused. If not, log `X-Forwarded-For` once and set
+  `TRUSTED_PROXY_HOPS`.
 - [ ] Cloud SQL has backups, point-in-time recovery and deletion protection on.
 - [ ] Budget alerts are set.
 

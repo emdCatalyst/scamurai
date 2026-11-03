@@ -100,9 +100,11 @@ SQL shell: `docker exec -it scamurai-postgres psql -U scamurai -d scamurai`
 - 7 applications, covering every status.
 
 It uses fixed UUIDs, so running it again never duplicates rows. The seeded users have `.test` emails and no Clerk
-account: they exist for the data, not for signing in. The seed refuses to run when `NODE_ENV=production` or when
-`DATABASE_URL` isn't localhost. The Cloud SQL Auth Proxy also listens on localhost, so never point `DATABASE_URL`
-at it.
+account: they exist for the data, not for signing in.
+
+The seed and the integration tests refuse to run when `NODE_ENV=production`, when `DATABASE_URL` isn't localhost,
+or when the database is Cloud SQL (`src/lib/db/localOnly.ts`). The Cloud SQL Auth Proxy also listens on localhost,
+so they also check for the `cloudsqlsuperuser` role that every Cloud SQL instance has.
 
 ## Changing the schema
 
@@ -153,5 +155,5 @@ docker exec scamurai-postgres pg_restore -U scamurai -d scamurai --clean --if-ex
 | `password authentication failed` | The volume was created with other credentials. Run `npm run db:reset` (this wipes local data). |
 | `relation "…" does not exist` | Run `npm run db:migrate`. |
 | TLS errors, or the connection hangs, against the local database | Add `DATABASE_SSL=disable` to `.env.local` (local only). |
-| The seed says `Refusing to seed "<host>"` | Working as intended: test data only goes into a local database. |
+| The seed or the tests say `Refusing to run …` | Working as intended: test data only goes into the local database. |
 | Every page fails with `JSON.parse … position 512` | `next build` ran while `next dev` was running. Stop dev, delete `.next/dev`, then start it again. |
