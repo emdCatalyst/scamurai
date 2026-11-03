@@ -103,22 +103,25 @@ export default function ApplicationForm({ labelledBy }: { labelledBy?: string })
     revealFirstInvalid(invalid);
   }
 
-  const submit = handleSubmit(
-    async (data) => {
-      try {
-        const result = await submitApplication({ ...data, [HONEYPOT_FIELD]: honeypotRef.current?.value ?? '' });
-        if (result.success) {
-          setSubmitted(data);
-          return;
-        }
-        setServerError(result.error);
-        if (result.fieldErrors) showServerFieldErrors(result.fieldErrors);
-      } catch {
-        setServerError('errorGeneral');
+  async function sendApplication(data: ApplicationData) {
+    try {
+      const result = await submitApplication({ ...data, [HONEYPOT_FIELD]: honeypotRef.current?.value ?? '' });
+      if (result.success) {
+        setSubmitted(data);
+        return;
       }
-    },
-    (invalid) => revealFirstInvalid(APPLICATION_FIELDS.filter((field) => invalid[field]))
-  );
+      setServerError(result.error);
+      if (result.fieldErrors) showServerFieldErrors(result.fieldErrors);
+    } catch {
+      setServerError('errorGeneral');
+    }
+  }
+
+  // Built inside the event handler (not during render): it reads the honeypot ref.
+  const submit = () =>
+    handleSubmit(sendApplication, (invalid) =>
+      revealFirstInvalid(APPLICATION_FIELDS.filter((field) => invalid[field]))
+    )();
 
   async function continueToNextStep() {
     if (await trigger(getStepFields(nav.step), { shouldFocus: true })) nav.goNext();
@@ -144,7 +147,10 @@ export default function ApplicationForm({ labelledBy }: { labelledBy?: string })
 
   return (
     <ApplyCard>
-      <form noValidate aria-labelledby={labelledBy} onSubmit={handleFormSubmit} className="relative">
+      {/* method="post": if the form is ever submitted natively (e.g. before
+          hydration), personal details go in the request body, never the URL,
+          browser history or server logs. */}
+      <form method="post" noValidate aria-labelledby={labelledBy} onSubmit={handleFormSubmit} className="relative">
         <StepProgress
           label={t('progressLabel')}
           completedLabel={t('stepCompleted')}
