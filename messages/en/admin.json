@@ -47,7 +47,12 @@
     "topPerformers": "Top Performers",
     "topPerformersSubtitle": "Branches with highest order volume this month",
     "noOrderData": "No order data available for this month.",
-    "orders": "orders"
+    "orders": "orders",
+    "interest": "Interest",
+    "interestHint": "+{count, plural, one {# interest registration} other {# interest registrations}}",
+    "approvalRateHint": "Of decided applications",
+    "needsReview": "Needs review",
+    "service": "Service"
   },
   "shell": {
     "dashboard": "Dashboard",

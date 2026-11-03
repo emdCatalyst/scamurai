@@ -47,7 +47,12 @@
     "topPerformers": "الأفضل أداءً",
     "topPerformersSubtitle": "الفروع ذات أعلى حجم طلبات هذا الشهر",
     "noOrderData": "لا توجد بيانات طلبات متاحة لهذا الشهر.",
-    "orders": "طلبات"
+    "orders": "طلبات",
+    "interest": "تسجيل اهتمام",
+    "interestHint": "{count, plural, one {+ تسجيل اهتمام واحد} two {+ تسجيلا اهتمام} few {+ # تسجيلات اهتمام} other {+ # تسجيل اهتمام}}",
+    "approvalRateHint": "من الطلبات المحسومة",
+    "needsReview": "بانتظار المراجعة",
+    "service": "الخدمة"
   },
   "shell": {
     "dashboard": "لوحة التحكم",
