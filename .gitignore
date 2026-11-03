@@ -46,4 +46,7 @@ next-env.d.ts
 
 # Add these lines
 *.md
-!db/README.md
+!docs/*.md
+
+# local database dumps (see docs/DATABASE.md)
+*.dump
