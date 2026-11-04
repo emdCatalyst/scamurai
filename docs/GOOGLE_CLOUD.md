@@ -42,12 +42,20 @@ Container images: Artifact Registry (me-central2). Builds: Cloud Build or GitHub
   can't carry a nonce, so they allow inline scripts but still only load from listed origins (Clerk, Cloudflare
   Turnstile, Cloud Storage). Violations are logged as `[csp]` lines through `/api/csp-report`. `CSP_MODE`
   switches it: `enforce` (default), `report-only` or `off`.
+- The staff order APIs read at most 4 KB, check every field with the rules the phones use
+  (`src/lib/orders/input.ts`), and answer refusals with an error code (`src/lib/orders/errors.ts`) that tells the
+  phone whether to try again. They and `/api/staff-telemetry` are limited per signed-in user, counted in each
+  instance's memory (120 requests per 10 minutes), so the upload path makes no Redis call.
+- Days are counted in Riyadh time in the code (finance date filters, dashboards, branch counts), so the server's
+  zone, UTC on Cloud Run, doesn't matter.
 
 ## Still to do in the code
 
 - [ ] **Photo retention.** Plans promise 90 days (Starter) or 365 days (Growth) of history (`historyDays` in
   `src/config/services.ts`), but nothing deletes old photos yet. Don't add a bucket lifecycle rule shorter than the
-  longest plan. Deleting by plan needs a scheduled job.
+  longest plan. Deleting by plan needs a scheduled job. It should also remove what abandoned uploads leave behind:
+  orders never confirmed (including the soft-deleted ones a colleague took over) and any photo of theirs that
+  reached the bucket.
 
 ## Accounts, in order
 
@@ -345,6 +353,7 @@ log-based metrics can pull fields out with `REGEXP_EXTRACT`.
 | The app and the database answer | Uptime check on `https://YOUR_DOMAIN/api/health` (200, or 503 when the database doesn't reply within 2 s) | 2 failures in a row |
 | Orders stuck on phones | `[telemetry]` lines with `"type":"outbox"`, sent when an order waited 10+ minutes on a phone or was rejected | any |
 | Upload delay | `waitedSec` in `[orders] confirmed` lines: seconds from saving on the phone to confirmed | p95 above 10 minutes |
+| Abandoned uploads | `[orders] taken over` lines: a colleague resubmitted a number whose upload no phone had tried for 2 hours | more than a few a day |
 | Page speed on staff phones | `[telemetry]` lines with `"type":"vitals"` (LCP, INP, CLS, FCP, TTFB) | INP p75 above 500 ms |
 | Content the browser blocked | `[csp]` lines | any new kind |
 | Server errors | Cloud Run 5xx, and `Error` log lines | above 1% of requests |

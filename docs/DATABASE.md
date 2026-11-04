@@ -54,10 +54,19 @@ Conventions:
 - The row is created when a phone asks for upload URLs, and counts as an order once confirm has found both photos
   in storage: confirm sets `confirmed_at` in the same transaction that adds the two `order_images` rows. Finance
   lists, counts, dashboards and branch details read confirmed orders only, through partial indexes
-  (`WHERE deleted_at IS NULL AND confirmed_at IS NOT NULL`). New finance queries must filter the same way.
+  (`WHERE deleted_at IS NULL AND confirmed_at IS NOT NULL`). New finance queries must filter the same way, with
+  `confirmedOrdersOf` in `src/lib/queries/orders.ts`.
 - One live order per brand, branch, delivery app and order number (`orders_live_number_unique`, partial on
   `deleted_at IS NULL`): two delivery apps can hand out the same number. Order numbers are stored normalized
   (`normalizeOrderNumber` in `src/lib/orders/input.ts`), so `١٢٣٤` and `1234` are the same order.
+- The order's `id` is the phone's own id for the submission (`clientOrderId`). A retry with that id resumes the row,
+  in the branch where it was captured, and rewrites what the worker corrected; any other submission of a taken
+  number is refused. Each attempt sets `updated_at`. An unconfirmed order of another staff member that no phone
+  has tried for 2 hours gives its number up: upload-urls soft-deletes it (`deleted_at`) and logs
+  `[orders] taken over`. Nothing else deletes orders.
+- Dates are Riyadh days (UTC+3 all year, `src/lib/queries/riyadhDays.ts`), whatever zone the server runs in: date
+  filters take `submitted_at` from the day's start in Riyadh, and SQL groups by day with
+  `submitted_at AT TIME ZONE 'Asia/Riyadh'`. The database session stays in UTC.
 - CHECK constraints repeat the limits in `src/lib/orders/input.ts`: amount from 0 to 1,000,000, order number of 1 to
   40 characters, notes up to 500, a three-letter currency. They were added `NOT VALID`, so they hold for new and
   changed rows without checking older ones; `ALTER TABLE orders VALIDATE CONSTRAINT …` checks those too.
