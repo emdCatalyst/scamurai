@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useId } from "react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
@@ -13,53 +14,83 @@ interface DeliveryAppPickerProps {
   apps: DeliveryApp[];
   selectedId?: string;
   onSelect: (id: string) => void;
+  /** Id of the chips' group, so the form can bring the worker to it. */
+  id?: string;
+  disabled?: boolean;
+  /** The worker tried to save without a choice, or the choice was refused. */
+  invalid?: boolean;
+  /** Id of a message about the choice. */
+  describedBy?: string;
   className?: string;
 }
 
+/**
+ * The order's delivery app. The chips wrap onto more rows instead of
+ * scrolling sideways, so every app the brand offers is in sight. The form
+ * keeps the choice, and checks it is still one of these apps.
+ */
 export default function DeliveryAppPicker({
   apps,
   selectedId,
   onSelect,
+  id,
+  disabled = false,
+  invalid = false,
+  describedBy,
   className,
 }: DeliveryAppPickerProps) {
   const t = useTranslations("brand.submit");
-  // Persistence: last selected delivery app is stored in sessionStorage
-  useEffect(() => {
-    if (!selectedId) {
-      const lastId = sessionStorage.getItem("last_delivery_app_id");
-      if (lastId && apps.some(a => a.id === lastId)) {
-        onSelect(lastId);
-      }
-    }
-  }, [apps, selectedId, onSelect]);
-
-  const handleSelect = (id: string) => {
-    onSelect(id);
-    sessionStorage.setItem("last_delivery_app_id", id);
-  };
+  const labelId = useId();
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <label className="text-xs font-semibold uppercase tracking-wider text-[var(--brand-surface-fg-muted)]">
+      <span id={labelId} className="text-xs font-semibold uppercase tracking-wider text-[var(--brand-surface-fg-muted)]">
         {t('deliveryApp')}
-      </label>
-      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-        {apps.map((app) => (
-          <button
-            key={app.id}
-            type="button"
-            onClick={() => handleSelect(app.id)}
-            className={cn(
-              "flex-shrink-0 rounded-full px-5 py-2 text-sm font-medium transition-all border",
-              selectedId === app.id
-                ? "bg-[var(--brand-primary)] text-[var(--brand-primary-fg)] border-[var(--brand-primary)] shadow-md shadow-[var(--brand-primary)]/20"
-                : "bg-[var(--brand-surface)] text-[var(--brand-surface-fg)] border-[var(--brand-border)] hover:border-[var(--brand-primary)]/50"
-            )}
-          >
-            {app.name}
-          </button>
-        ))}
-      </div>
+      </span>
+      {apps.length === 0 ? (
+        <p
+          id={id}
+          tabIndex={-1}
+          className="rounded-xl border border-[var(--brand-danger-line)] bg-[var(--brand-danger-soft)] p-3 text-sm font-medium text-[var(--brand-surface-fg)] outline-none"
+        >
+          {t('noDeliveryApps')}
+        </p>
+      ) : (
+        <div
+          id={id}
+          tabIndex={-1}
+          role="group"
+          aria-labelledby={labelId}
+          aria-describedby={describedBy}
+          className={cn(
+            "flex flex-wrap gap-2 rounded-3xl outline-none",
+            invalid && "ring-2 ring-[var(--brand-danger)] ring-offset-2"
+          )}
+        >
+          {apps.map((app) => {
+            const selected = selectedId === app.id;
+            return (
+              <button
+                key={app.id}
+                type="button"
+                aria-pressed={selected}
+                disabled={disabled}
+                onClick={() => onSelect(app.id)}
+                className={cn(
+                  "flex min-h-12 items-center gap-1.5 rounded-full border px-5 text-sm font-semibold transition-colors",
+                  selected
+                    ? "border-[var(--brand-primary)] bg-[var(--brand-primary)] text-[var(--brand-primary-fg)] shadow-md shadow-[color:var(--brand-primary-soft)]"
+                    : "border-[var(--brand-surface-fg-muted)] bg-[var(--brand-surface)] text-[var(--brand-surface-fg)]"
+                )}
+              >
+                {/* Not by colour alone: the chosen app also has a tick. */}
+                {selected && <Check className="h-4 w-4 shrink-0" aria-hidden />}
+                {app.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

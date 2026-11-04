@@ -19,6 +19,13 @@ describe('parseTelemetry', () => {
       failed: 1,
       oldestWaitingSec: 1800,
     });
+    expect(parseTelemetry({ type: 'outbox', waiting: 0, failed: 0, oldestWaitingSec: 0, otherAccounts: 4 })).toEqual({
+      type: 'outbox',
+      waiting: 0,
+      failed: 0,
+      oldestWaitingSec: 0,
+      otherAccounts: 4,
+    });
   });
 
   it('drops anything else', () => {
@@ -31,6 +38,7 @@ describe('parseTelemetry', () => {
       { type: 'vitals', name: 'LCP', value: 100, rating: '<script>' },
       { type: 'outbox', waiting: 1.5, failed: 0, oldestWaitingSec: 1 },
       { type: 'outbox', waiting: 1 },
+      { type: 'outbox', waiting: 1, failed: 0, oldestWaitingSec: 1, otherAccounts: -2 },
       { type: 'other' },
     ]) {
       const parsed = parseTelemetry(body);

@@ -55,6 +55,8 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "fake-indexeddb": "^6.2.5",
+    "happy-dom": "^20.14.6",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5",

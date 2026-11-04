@@ -20,6 +20,8 @@ import {
 import { useClerk } from '@clerk/nextjs';
 import { useTranslations } from 'next-intl';
 import LocaleSwitcher from '@/components/ui/LocaleSwitcher';
+import { useToast } from '@/components/ui/Toast';
+import { signOutOfPhone } from '@/lib/staff/signOut';
 
 export default function BrandShell({
   children,
@@ -43,7 +45,9 @@ export default function BrandShell({
   const pathname = usePathname();
   const { signOut } = useClerk();
   const t = useTranslations('brand.shell');
-  
+  const tSubmit = useTranslations('brand.submit');
+  const { toast } = useToast();
+
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -90,9 +94,15 @@ export default function BrandShell({
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
-    // Pass redirectUrl directly so Clerk navigates to the brand login instead
-    // of its default `/`, eliminating the homepage flash.
-    await signOut({ redirectUrl: `/${locale}/brands/${brandSlug}/login` });
+    try {
+      // Pass redirectUrl directly so Clerk navigates to the brand login instead
+      // of its default `/`, eliminating the homepage flash. The phone's saved
+      // order screen goes first: it must not open for whoever signs in next.
+      await signOutOfPhone(() => signOut({ redirectUrl: `/${locale}/brands/${brandSlug}/login` }));
+    } catch {
+      setIsLoggingOut(false);
+      toast(tSubmit('signOutError'), 'error');
+    }
   };
 
   const isAr = locale === 'ar';

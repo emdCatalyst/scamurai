@@ -2,12 +2,13 @@
  * Reports staff phones send to /api/staff-telemetry, checked before they
  * become a `[telemetry]` log line:
  *   - vitals: page speed on the worker's own phone (next/web-vitals),
- *   - outbox: orders stuck on a phone (waiting long, or rejected).
+ *   - outbox: orders stuck on a phone (waiting long, or rejected), and how
+ *     many orders other accounts left on it.
  */
 
 export type Telemetry =
   | { type: 'vitals'; name: string; value: number; rating?: string }
-  | { type: 'outbox'; waiting: number; failed: number; oldestWaitingSec: number };
+  | { type: 'outbox'; waiting: number; failed: number; oldestWaitingSec: number; otherAccounts?: number };
 
 const VITALS = new Set(['TTFB', 'FCP', 'LCP', 'INP', 'CLS']);
 const RATINGS = new Set(['good', 'needs-improvement', 'poor']);
@@ -37,8 +38,10 @@ export function parseTelemetry(body: unknown): Telemetry | null {
     const waiting = count(data.waiting, 10_000);
     const failed = count(data.failed, 10_000);
     const oldestWaitingSec = count(data.oldestWaitingSec, 365 * 24 * 3600);
-    if (waiting === null || failed === null || oldestWaitingSec === null) return null;
-    return { type: 'outbox', waiting, failed, oldestWaitingSec };
+    // Optional: phones still on the previous version don't send it.
+    const otherAccounts = data.otherAccounts === undefined ? undefined : count(data.otherAccounts, 10_000);
+    if (waiting === null || failed === null || oldestWaitingSec === null || otherAccounts === null) return null;
+    return { type: 'outbox', waiting, failed, oldestWaitingSec, ...(otherAccounts !== undefined && { otherAccounts }) };
   }
 
   return null;

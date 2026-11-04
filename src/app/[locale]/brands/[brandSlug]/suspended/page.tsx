@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { BrandLoginBackground } from "@/components/brand/BrandLoginBackground";
 import { getBrandBySlug } from "@/lib/queries/brands";
 import { notFound } from "next/navigation";
-import { SignOutButton } from "@clerk/nextjs";
+import StaffSignOutButton from "@/components/staff/StaffSignOutButton";
 
 export default async function BrandSuspendedPage({
   params,
@@ -48,12 +48,13 @@ export default async function BrandSuspendedPage({
           {t("contactSupport")}
         </a>
         
-        <SignOutButton signOutOptions={{ redirectUrl: `/${locale}/brands/${brandSlug}/login` }}>
-          <button className="flex items-center justify-center gap-2 text-sm font-bold text-white/40 hover:text-white transition-colors py-2">
-            <LogOut size={16} />
-            {t("backToLogin")}
-          </button>
-        </SignOutButton>
+        <StaffSignOutButton
+          redirectUrl={`/${locale}/brands/${brandSlug}/login`}
+          className="flex items-center justify-center gap-2 text-sm font-bold text-white/40 hover:text-white transition-colors py-2"
+        >
+          <LogOut size={16} />
+          {t("backToLogin")}
+        </StaffSignOutButton>
       </div>
 
       <div className="pt-8 text-center border-t border-white/5 mt-4">
