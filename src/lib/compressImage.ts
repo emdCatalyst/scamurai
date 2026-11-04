@@ -1,84 +1,67 @@
 /**
- * Compresses an image file client-side using the Canvas API.
- * Target: ≤ 300KB. Visible quality is preserved for review purposes.
- * 
- * @param file The original image file from the input
- * @param maxSizeKB The target maximum size in KB (default 300)
- * @returns A Promise resolving to a compressed Blob
+ * Shrinks a camera photo for upload: longest side at most 1600 px, JPEG,
+ * usually 150–300 KB, which is plenty to read a bag seal or a receipt.
+ *
+ * Built for old, low-memory phones: the photo is decoded straight to the
+ * smaller size where the browser can (createImageBitmap), never through a
+ * base64 data URL, and the canvas memory is released right away. Call it once
+ * per photo, right after capture, so nothing is left to do on submit.
  */
-export async function compressImage(file: File, maxSizeKB = 300): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target?.result as string;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
 
-        // 1. Reduce dimensions if > 1920px on longest side (maintain aspect ratio)
-        const MAX_DIMENSION = 1920;
-        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
-          if (width > height) {
-            height = (height / width) * MAX_DIMENSION;
-            width = MAX_DIMENSION;
-          } else {
-            width = (width / height) * MAX_DIMENSION;
-            height = MAX_DIMENSION;
-          }
-        }
+const MAX_DIMENSION = 1600;
+/** Tried in order until the photo fits the target size. */
+const QUALITIES = [0.72, 0.6, 0.5];
 
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Failed to get canvas context'));
-          return;
-        }
+type Decoded = ImageBitmap | HTMLImageElement;
 
-        ctx.drawImage(img, 0, 0, width, height);
+async function decode(file: Blob): Promise<Decoded> {
+  if (typeof createImageBitmap === 'function') {
+    try {
+      // Width only: the browser keeps the aspect ratio and the EXIF rotation.
+      return await createImageBitmap(file, { resizeWidth: MAX_DIMENSION, resizeQuality: 'medium' });
+    } catch {
+      // Older browsers reject the options; fall through to <img>.
+    }
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    return img;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
 
-        // 2. Re-encode as JPEG at quality 0.82
-        // 3. If still > maxSizeKB, reduce quality iteratively (0.82 → 0.70 → 0.55)
-        const qualities = [0.82, 0.70, 0.55, 0.40, 0.25];
-        
-        const tryEncode = (qualityIndex: number) => {
-          if (qualityIndex >= qualities.length) {
-            // If all qualities fail to reach target, return the last one anyway
-            canvas.toBlob(
-              (blob) => {
-                if (blob) resolve(blob);
-                else reject(new Error('Failed to create blob'));
-              },
-              'image/jpeg',
-              qualities[qualities.length - 1]
-            );
-            return;
-          }
+function toJpeg(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
+  return new Promise((resolve, reject) =>
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Failed to encode photo'))), 'image/jpeg', quality)
+  );
+}
 
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                if (blob.size <= maxSizeKB * 1024 || qualityIndex === qualities.length - 1) {
-                  resolve(blob);
-                } else {
-                  tryEncode(qualityIndex + 1);
-                }
-              } else {
-                reject(new Error('Failed to create blob'));
-              }
-            },
-            'image/jpeg',
-            qualities[qualityIndex]
-          );
-        };
+export async function compressImage(file: Blob, maxSizeKB = 300): Promise<Blob> {
+  const source = await decode(file);
+  const scale = Math.min(1, MAX_DIMENSION / Math.max(source.width, source.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(source.width * scale);
+  canvas.height = Math.round(source.height * scale);
 
-        tryEncode(0);
-      };
-      img.onerror = () => reject(new Error('Failed to load image'));
-    };
-    reader.onerror = () => reject(new Error('Failed to read file'));
-  });
+  try {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Failed to get canvas context');
+    ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+    if ('close' in source) source.close();
+
+    let blob: Blob | undefined;
+    for (const quality of QUALITIES) {
+      blob = await toJpeg(canvas, quality);
+      if (blob.size <= maxSizeKB * 1024) break;
+    }
+    return blob!;
+  } finally {
+    // Release the pixel buffer now instead of waiting for garbage collection.
+    canvas.width = 0;
+    canvas.height = 0;
+  }
 }
