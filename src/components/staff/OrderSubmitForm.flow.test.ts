@@ -233,6 +233,9 @@ describe('drafts', () => {
     await render();
     expect(text()).toContain(submit.draftFound);
     expect(text()).not.toContain('Last changed');
+    // Its age stays unknown when the form writes it back, not 1970.
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    expect(((await orderStore.orderDrafts.get(DRAFT_ID)) as FormDraft).savedAt).toBeUndefined();
 
     button(submit.draftDiscard).click();
     await until(() => expect(field('number')!.value).toBe(''));
@@ -258,6 +261,15 @@ describe('drafts', () => {
     // The page reloads: the photo the camera took never arrived.
     await render();
     await until(() => expect(text()).toContain(submit.photoLost));
+  });
+
+  it('forgets the open camera once the worker closes it without a photo', async () => {
+    await render();
+    const tile = container.querySelector<HTMLButtonElement>('[id$="opened"]')!;
+    tile.click();
+    await until(async () => expect(await orderStore.orderDrafts.get(DRAFT_ID)).toMatchObject({ capturing: 'opened' }));
+    tile.parentElement!.querySelector('input[type="file"]')!.dispatchEvent(new Event('cancel'));
+    await until(async () => expect(((await orderStore.orderDrafts.get(DRAFT_ID)) as FormDraft | undefined)?.capturing).toBeUndefined());
   });
 });
 
@@ -313,6 +325,38 @@ describe('refused orders', () => {
     expect(corrected?.failed).toBeUndefined();
     expect(corrected?.errorCode).toBeUndefined();
     await until(() => expect(uploadOrder).toHaveBeenCalledWith(expect.objectContaining({ id: 'o1', orderNumber: '4521' }), expect.anything()));
+  });
+
+  it('offer sending again only while none is being corrected', async () => {
+    await orderStore.pendingOrders.save(refused('o3', { orderNumber: '77', errorCode: 'no_branch', createdAt: 3_000 }));
+    await render();
+    await until(() => expect(button(submit.showFailed)).toBeDefined());
+    button(submit.showFailed).click();
+    await until(() => expect(button(submit.retryFailed)).toBeDefined());
+    button(submit.editOrder).click();
+    await until(() => expect(field('number')!.value).toBe('4512'));
+    button(submit.showFailed).click();
+    await until(() => expect(button(submit.editingOrder)).toBeDefined());
+    expect(button(submit.retryFailed)).toBeUndefined();
+  });
+
+  it('are saved under a new id when the refused copy was sent again meanwhile', async () => {
+    await render();
+    await until(() => expect(button(submit.showFailed)).toBeDefined());
+    button(submit.showFailed).click();
+    await until(() => expect(button(submit.editOrder)).toBeDefined());
+    button(submit.editOrder).click();
+    await until(() => expect(field('number')!.value).toBe('4512'));
+    // E.g. another tab sent it again: it is waiting, not refused, and its upload will remove it when done.
+    await orderStore.pendingOrders.save({ ...(await orderStore.pendingOrders.get('o1'))!, failed: false });
+
+    type(field('number')!, '4521');
+    await until(() => expect(saveButton().getAttribute('aria-disabled')).toBe('false'));
+    saveButton().click();
+    await until(async () => expect((await orderStore.pendingOrders.getAll()).some((order) => order.orderNumber === '4521')).toBe(true));
+    const corrected = (await orderStore.pendingOrders.getAll()).find((order) => order.orderNumber === '4521')!;
+    expect(corrected.id).not.toBe('o1');
+    expect(await orderStore.pendingOrders.get('o1')).toMatchObject({ orderNumber: '4512' });
   });
 
   it('are not loaded over an order the worker is filling in', async () => {

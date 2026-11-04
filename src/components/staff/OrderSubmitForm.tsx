@@ -9,6 +9,7 @@ import { toLatinDigits } from "@/lib/digits";
 import { formatAmount, normalizeOrderNumber, NOTES_MAX_LENGTH, ORDER_NUMBER_MAX_LENGTH, parseAmount } from "@/lib/orders/input";
 import type { LocalDbProblem } from "@/lib/staff/localDb";
 import { newOrderId, orderDrafts } from "@/lib/staff/orderStore";
+import { withTimeout } from "@/lib/staff/timeout";
 import CameraCaptureZone from "./CameraCaptureZone";
 import DeliveryAppPicker from "./DeliveryAppPicker";
 import OutboxStatus from "./OutboxStatus";
@@ -60,6 +61,8 @@ interface PhotoNote {
 /** How long "Order saved" stays up (a tap skips it) before the form is ready for the next order. */
 const SUCCESS_MS = 1_500;
 const DRAFT_SAVE_MS = 400;
+/** A photo still not shrunk by then won't be: the worker is asked to take it again rather than wait. */
+const PHOTO_PREPARE_MS = 30_000;
 
 const toPhoto = (blob: Blob): Photo => ({ blob, preview: URL.createObjectURL(blob) });
 const blobOf = (draft: FormDraft, slot: Slot) => (slot === "sealed" ? draft.sealedBlob : draft.openedBlob);
@@ -138,6 +141,8 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
   const capturingRef = useRef<Slot | undefined>(undefined);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const titleRef = useRef<HTMLHeadingElement>(null);
+  /** Counts the orders the form has held: a photo still being shrunk for an earlier one is dropped. */
+  const formRunRef = useRef(0);
 
   useEffect(() => {
     photosRef.current = photos;
@@ -145,6 +150,7 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
 
   /** Fills the form from a draft. A delivery app the brand no longer offers isn't taken. */
   const applyDraft = (draft: FormDraft) => {
+    formRunRef.current++;
     for (const photo of Object.values(photosRef.current)) if (photo) URL.revokeObjectURL(photo.preview);
     const restoredPhotos = {
       ...(draft.sealedBlob && { sealed: toPhoto(draft.sealedBlob) }),
@@ -170,10 +176,11 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
     applyDraft(draft);
     // The camera was open when the page went: the photo it took never arrived.
     const lost = draft.capturing;
-    if (fresh && lost && !blobOf(draft, lost)) setPhotoNotes({ [lost]: { kind: "error", text: t("photoLost") } });
+    // A retake keeps the earlier photo, so the note then sits over it.
+    if (fresh && lost) setPhotoNotes({ [lost]: { kind: blobOf(draft, lost) ? "warning" : "error", text: t("photoLost") } });
     if (!hasOrder(draft)) return;
     if (fresh) setRestored(true);
-    else setHeld({ when: draft.savedAt === undefined ? undefined : format.relativeTime(draft.savedAt, now) });
+    else setHeld({ when: draft.savedAt ? format.relativeTime(draft.savedAt, now) : undefined });
   });
 
   useEffect(() => {
@@ -204,7 +211,8 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
       deliveryAppId,
       sealedBlob: photos.sealed?.blob,
       openedBlob: photos.opened?.blob,
-      savedAt: editedAtRef.current,
+      // Unknown for a draft saved before its time was kept; it stays unknown until the worker changes it.
+      savedAt: editedAtRef.current || undefined,
       capturing: capturingRef.current,
       correcting,
     };
@@ -215,6 +223,16 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
     return () => clearTimeout(timer);
   }, [ready, draftId, orderNumber, amount, notes, deliveryAppId, photos, correcting]);
 
+  /** The camera closed with this page still open: whatever it took arrives here, nothing was lost. */
+  const cameraClosed = () => {
+    capturingRef.current = undefined;
+    const draft = draftRef.current;
+    if (draft?.capturing && !submittingRef.current) {
+      draftRef.current = { ...draft, capturing: undefined };
+      persistDraft(draftRef.current);
+    }
+  };
+
   const onVisibilityChange = useEffectEvent(() => {
     const draft = draftRef.current;
     if (document.visibilityState === "hidden") {
@@ -222,16 +240,9 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
       if (draft && !submittingRef.current) persistDraft({ ...draft, capturing: capturingRef.current });
       return;
     }
-    if (capturingRef.current) {
-      // Back from the camera with the page still open: whatever it took arrives here.
-      capturingRef.current = undefined;
-      if (draft && !submittingRef.current) {
-        draftRef.current = { ...draft, capturing: undefined };
-        persistDraft(draftRef.current);
-      }
-      return;
-    }
-    // An installed app stays open for hours: the order on screen may be of a bag long gone.
+    if (capturingRef.current) cameraClosed();
+    // An installed app stays open for hours: the order on screen may be of a bag long gone. Opening the
+    // camera counts as a change, so coming back from it doesn't ask.
     const now = Date.now();
     if (draft && !held && !submittingRef.current && hasOrder(draft) && now - editedAtRef.current > DRAFT_FRESH_MS) {
       setHeld({ when: format.relativeTime(editedAtRef.current, now) });
@@ -264,10 +275,14 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
   const capture = async (slot: Slot, file: File) => {
     if (capturingRef.current === slot) capturingRef.current = undefined;
     const now = Date.now();
+    const run = formRunRef.current;
     setPhotoNotes((current) => ({ ...current, [slot]: undefined }));
     setBusy((b) => ({ ...b, [slot]: true }));
     try {
-      const photo = toPhoto(await compressImage(file));
+      const blob = await withTimeout(compressImage(file), PHOTO_PREPARE_MS, () => new Error("Preparing the photo took too long"));
+      // The form was cleared, saved or refilled meanwhile: this photo belongs to no order now.
+      if (run !== formRunRef.current) return;
+      const photo = toPhoto(blob);
       const previous = photosRef.current[slot];
       setPhotos((current) => ({ ...current, [slot]: photo }));
       if (previous) URL.revokeObjectURL(previous.preview);
@@ -278,6 +293,7 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
         setAnnouncement(text);
       }
     } catch {
+      if (run !== formRunRef.current) return;
       setPhotoNotes((current) => ({ ...current, [slot]: { kind: "error", text: t("photoError") } }));
       setAlertText(t("photoError"));
     } finally {
@@ -286,6 +302,7 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
   };
 
   const resetForm = () => {
+    formRunRef.current++;
     clearTimeout(resetTimerRef.current);
     for (const photo of Object.values(photosRef.current)) if (photo) URL.revokeObjectURL(photo.preview);
     photosRef.current = {};
@@ -376,12 +393,13 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
     setSaving(true);
 
     const correction = correcting;
-    // A corrected order leaves the list of refused ones now, and is saved again under its own id.
+    // A corrected order leaves the list of refused ones now, and is saved again under its own id. If that copy
+    // isn't refused any more (sent again meanwhile), a new id keeps its upload from removing this one.
     const taken = correction ? await outbox.takeBack(correction.id).catch(() => undefined) : undefined;
     const order = orderFromForm(
       { orderNumber, amount, notes, deliveryAppId, sealedBlob: photos.sealed.blob, openedBlob: photos.opened.blob },
       { userId, brandId, brandSlug },
-      { id: taken?.id ?? correction?.id ?? newOrderId(), createdAt: correction?.createdAt ?? Date.now() }
+      { id: taken?.id ?? newOrderId(), createdAt: correction?.createdAt ?? Date.now() }
     );
     if (!order) {
       // Not reached: `missing` already checked the amount.
@@ -422,7 +440,7 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
     const order = outbox.failed.find((candidate) => candidate.id === id);
     if (!order || !window.confirm(t("removeConfirm", { number: order.orderNumber }))) return false;
     const removed = await outbox.discard(id).catch(() => false);
-    if (correcting?.id === id) {
+    if (removed && correcting?.id === id) {
       resetForm();
       keepOnlyApp();
     }
@@ -541,6 +559,7 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
               label={t('openedBag')}
               onCapture={(file) => capture("opened", file)}
               onOpenCamera={() => openingCamera("opened")}
+              onCameraCancel={cameraClosed}
               previewUrl={photos.opened?.preview}
               busy={busy.opened}
               disabled={!ready}
@@ -553,6 +572,7 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
               label={t('sealedBag')}
               onCapture={(file) => capture("sealed", file)}
               onOpenCamera={() => openingCamera("sealed")}
+              onCameraCancel={cameraClosed}
               previewUrl={photos.sealed?.preview}
               busy={busy.sealed}
               disabled={!ready}

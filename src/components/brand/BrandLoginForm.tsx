@@ -511,7 +511,6 @@ function PasswordInput({
         onClick={onToggle}
         disabled={disabled}
         aria-label={toggleLabel}
-        aria-pressed={show}
         className={cn(
           'absolute top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-white/40 hover:text-white/80 transition-colors disabled:opacity-50',
           isAr ? 'left-1' : 'right-1'

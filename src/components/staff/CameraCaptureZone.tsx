@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useId, useRef, useState } from "react";
 import { AlertTriangle, Camera, Eye, Loader2, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,8 @@ interface CameraCaptureZoneProps {
   onCapture: (file: File) => void;
   /** Just before the camera opens: a low-memory phone may close this page while it is open. */
   onOpenCamera?: () => void;
+  /** The worker closed the camera without a photo (where the browser says so). */
+  onCameraCancel?: () => void;
   previewUrl?: string;
   /** The photo is being shrunk for upload. */
   busy?: boolean;
@@ -38,6 +40,7 @@ export default function CameraCaptureZone({
   label,
   onCapture,
   onOpenCamera,
+  onCameraCancel,
   previewUrl,
   busy = false,
   disabled = false,
@@ -51,6 +54,15 @@ export default function CameraCaptureZone({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [reviewing, setReviewing] = useState(false);
   const warningId = useId();
+  const cancelled = useEffectEvent(() => onCameraCancel?.());
+
+  // React has no prop for a file input's "cancel" (Chrome 113+, Safari 16.4+).
+  useEffect(() => {
+    const input = fileInputRef.current;
+    const listener = () => cancelled();
+    input?.addEventListener("cancel", listener);
+    return () => input?.removeEventListener("cancel", listener);
+  }, []);
 
   const openCamera = () => {
     onOpenCamera?.();

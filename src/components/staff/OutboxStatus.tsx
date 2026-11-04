@@ -55,6 +55,7 @@ export default function OutboxStatus({
   const t = useTranslations("brand.submit");
   const [listOpen, setListOpen] = useState(false);
   const listId = useId();
+  const textId = useId();
   const showList = listOpen && failed.length > 0;
 
   // The list closes once the worker has dealt with it, so a later refusal can't open it by itself.
@@ -106,6 +107,7 @@ export default function OutboxStatus({
         onClick={() => setListOpen((open) => !open)}
         aria-expanded={showList}
         aria-controls={listId}
+        aria-describedby={textId}
         className="flex min-h-11 shrink-0 items-center gap-1 rounded-lg border border-[var(--brand-danger)] bg-[var(--brand-surface)] px-3 text-sm font-bold text-[var(--brand-surface-fg)]"
       >
         {showList ? t("hideFailed") : t("showFailed")}
@@ -124,10 +126,11 @@ export default function OutboxStatus({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className={cn("flex min-h-14 items-center gap-3 rounded-xl border px-3 py-1.5", TONES[tone])}>
+      {/* A fixed height, room for three lines on a 320 px phone: the tiles below must not move. */}
+      <div className={cn("flex h-[4.5rem] items-center gap-3 rounded-xl border px-3 py-1.5", TONES[tone])}>
         {icon}
         {/* Always in the page, so screen readers hear each change. */}
-        <span aria-live="polite" className="line-clamp-3 min-w-0 flex-1 text-sm font-semibold">
+        <span id={textId} aria-live="polite" className="line-clamp-3 min-w-0 flex-1 text-sm font-semibold">
           {text}
         </span>
         {action}
@@ -171,8 +174,9 @@ export default function OutboxStatus({
           })}
           <li className="flex flex-col gap-2">
             <p className="text-xs">{t("failedHint")}</p>
-            {/* Sending the same order again only helps once the office fixed the cause, e.g. assigned a branch. */}
-            {failed.some((order) => retryCanHelp(order.errorCode)) && (
+            {/* Sending the same order again only helps once the office fixed the cause, e.g. assigned a branch;
+                and not while one of them is being corrected in the form, which would send the old version. */}
+            {!editingId && failed.some((order) => retryCanHelp(order.errorCode)) && (
               <button
                 type="button"
                 onClick={retry}
