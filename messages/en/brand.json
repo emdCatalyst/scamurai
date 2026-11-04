@@ -486,6 +486,25 @@
     "installApp": "Install app",
     "signOutUnsent": "{count, plural, one {# order hasn't been uploaded yet. It stays on this phone and uploads when you sign in here again. Sign out anyway?} other {# orders haven't been uploaded yet. They stay on this phone and upload when you sign in here again. Sign out anyway?}}",
     "signOutUnsaved": "{count, plural, one {# order isn't saved on this phone and will be lost if you sign out now. Sign out anyway?} other {# orders aren't saved on this phone and will be lost if you sign out now. Sign out anyway?}}",
-    "signOutError": "Couldn't sign out. Check the connection and try again."
+    "signOutError": "Couldn't sign out. Check the connection and try again.",
+    "saveProblem": {
+      "quota": "This phone's storage is full, so the order couldn't be saved on it. Free up some space.",
+      "blocked": "The app is also open in another tab or window, so the order couldn't be saved on this phone. Close the other one.",
+      "timeout": "Saving the order on this phone took too long.",
+      "unavailable": "This phone couldn't save the order."
+    },
+    "unsavedOrders": "{count, plural, one {Only this page holds # order: keep it open until it's uploaded.} other {Only this page holds # orders: keep it open until they're uploaded.}}",
+    "otherAccountsWaiting": "{count, plural, one {# order from another account is waiting on this phone. It uploads when its owner signs in here.} other {# orders from other accounts are waiting on this phone. They upload when their owners sign in here.}}",
+    "wrongAccount": "This screen was opened for another account. Reloading…",
+    "failedReason": {
+      "duplicate_order": "This order number was already sent for this branch and delivery app.",
+      "order_conflict": "This order clashed with another submission. Check it and send it again.",
+      "invalid_input": "Some details aren't valid. Correct them and send the order again.",
+      "app_unavailable": "This delivery app is no longer available. Choose another one or tell your manager.",
+      "no_branch": "Your account has no branch. Ask your manager to assign one, then try again.",
+      "forbidden": "This account isn't allowed to send orders. Tell your manager.",
+      "not_found": "The server no longer has this order. Send it again or delete it.",
+      "other": "This order was refused. Tell your manager."
+    }
   }
 }
