@@ -1,3 +1,5 @@
+import type { OrderErrorCode, OrderInputField } from '@/lib/orders/errors';
+import type { OutboxItem } from '@/lib/outbox';
 import { localStore } from './localDb';
 
 /**
@@ -6,11 +8,9 @@ import { localStore } from './localDb';
  * or killed by the phone while the camera app is open.
  */
 
-export interface PendingOrder {
+export interface PendingOrder extends OutboxItem {
   /** Also the order's id on the server, so a retried upload never duplicates it. */
   id: string;
-  /** Clerk user id of the staff member who submitted it: branch phones are shared. */
-  userId: string;
   brandId: string;
   brandSlug: string;
   orderNumber: string;
@@ -20,12 +20,8 @@ export interface PendingOrder {
   notes?: string;
   sealedBlob: Blob;
   openedBlob: Blob;
-  createdAt: number;
-  attempts: number;
-  nextAttemptAt?: number;
-  /** Rejected for good (e.g. a duplicate order number); kept so the worker sees it. */
-  failed?: boolean;
-  lastError?: string;
+  errorCode?: OrderErrorCode;
+  errorField?: OrderInputField;
 }
 
 export interface OrderDraft {
