@@ -39,16 +39,28 @@ const CONTENT_TYPES: Record<string, string> = {
   '.svg': 'image/svg+xml',
 };
 
+/** Every logical bucket (TypeScript keeps the list complete). Anything else is refused. */
+const BUCKETS = { orderImages: true, brandAssets: true } satisfies Record<StorageBucket, true>;
+
+const isBucket = (value: unknown): value is StorageBucket => typeof value === 'string' && Object.hasOwn(BUCKETS, value);
+
 export function createLocalDriver({ rootDir, secret }: LocalDriverOptions): ObjectStorage & {
   verifyToken(token: string, op: TokenPayload['op']): TokenPayload | null;
   write(payload: TokenPayload, body: Uint8Array): Promise<void>;
 } {
   const root = path.resolve(rootDir);
 
-  /** Absolute file path for an object; refuses anything that escapes the root. */
+  /** Absolute file path for an object, or null for an unknown bucket or a key that escapes its bucket. */
+  function resolveObject(bucket: unknown, key: unknown): string | null {
+    if (!isBucket(bucket) || typeof key !== 'string') return null;
+    const bucketDir = path.join(root, bucket);
+    const resolved = path.resolve(bucketDir, key);
+    return resolved.startsWith(bucketDir + path.sep) ? resolved : null;
+  }
+
   function filePath(bucket: StorageBucket, key: string): string {
-    const resolved = path.resolve(root, bucket, key);
-    if (!resolved.startsWith(path.join(root, bucket) + path.sep)) throw new Error('Invalid object key');
+    const resolved = resolveObject(bucket, key);
+    if (!resolved) throw new Error('Invalid object key');
     return resolved;
   }
 
@@ -64,14 +76,15 @@ export function createLocalDriver({ rootDir, secret }: LocalDriverOptions): Obje
     const expected = createHmac('sha256', secret).update(body).digest();
     const given = Buffer.from(mac, 'base64url');
     if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null;
-    let payload: TokenPayload;
+    let payload: Partial<TokenPayload> | null;
     try {
       payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
     } catch {
       return null;
     }
-    if (payload.op !== op || payload.exp < Math.floor(Date.now() / 1000)) return null;
-    return payload;
+    if (payload?.op !== op || typeof payload.exp !== 'number' || payload.exp < Math.floor(Date.now() / 1000)) return null;
+    // Even a correctly signed token may only name an object inside a known bucket.
+    return resolveObject(payload.b, payload.k) ? (payload as TokenPayload) : null;
   }
 
   const urlFor = (payload: TokenPayload) => `${LOCAL_STORAGE_ROUTE}?token=${encodeURIComponent(sign(payload))}`;
