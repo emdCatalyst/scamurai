@@ -1,11 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
+import { staffRateLimits } from "@/lib/ratelimit";
 import { readBody } from "@/lib/readBody";
 import { parseTelemetry } from "@/lib/telemetry";
 
 /**
  * Reports from staff phones (src/lib/telemetry.ts), one `[telemetry]` log
  * line each: page speed on real devices, and orders stuck on a phone.
- * Signed-in users only. Always 204 otherwise: nothing to read back.
+ * Signed-in users only, and a limited number per user, since each costs a
+ * log line. Always 204 otherwise: nothing to read back.
  */
 
 const MAX_BODY_BYTES = 2 * 1024;
@@ -14,6 +16,7 @@ const NO_CONTENT = () => new Response(null, { status: 204 });
 export async function POST(req: Request) {
   const { userId, sessionClaims } = await auth();
   if (!userId) return new Response(null, { status: 401 });
+  if (staffRateLimits.telemetry(userId)) return new Response(null, { status: 429 });
 
   const body = await readBody(req, MAX_BODY_BYTES);
   if (!body) return NO_CONTENT();

@@ -285,6 +285,19 @@ describe('roles on the order APIs', () => {
     expect(res.status).toBe(401);
     expect(await res.json()).toMatchObject({ code: 'unauthenticated' });
   });
+
+  it('answers 429 rate_limited once one user sends more than 120 confirms in 10 minutes', async () => {
+    asStaff(`user_${TAG}_flood`, brandA);
+    const statuses: number[] = [];
+    let last: Response | undefined;
+    for (let i = 0; i <= 120; i++) {
+      last = await confirm.PATCH(new Request('http://localhost:3000', { method: 'PATCH' }), orderParams(crypto.randomUUID()));
+      statuses.push(last.status);
+    }
+    expect(statuses.slice(0, 120)).not.toContain(429);
+    expect(statuses[120]).toBe(429);
+    expect(await last!.json()).toMatchObject({ code: 'rate_limited' });
+  });
 });
 
 // ───────────────────────────────────────────────────────────────────────────

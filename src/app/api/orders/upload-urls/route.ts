@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { ORDER_SUBMITTER_ROLES, requireApiAuth } from "@/lib/auth";
 import { staffDb } from "@/lib/db";
 import { orders, users, brandDeliveryApps } from "@/lib/db/schema";
+import { staffRateLimits } from "@/lib/ratelimit";
 import { getStorage, ORDER_IMAGE_MAX_BYTES, ORDER_IMAGE_UPLOAD_TTL_SECONDS } from "@/lib/storage";
 import { ORDER_IMAGE_TYPES, orderImageKey } from "@/lib/storage/keys";
 import { eq, and, isNull } from "drizzle-orm";
+import { orderError } from "../respond";
 
 const LOG = "[POST /api/orders/upload-urls]";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -19,6 +21,9 @@ export async function POST(req: Request) {
     const session = await requireApiAuth(ORDER_SUBMITTER_ROLES);
     if (session instanceof Response) return session;
     const { userId: clerkUserId, brandId } = session;
+    if (staffRateLimits.uploadUrls(clerkUserId)) {
+      return orderError("rate_limited", "Too many requests; try again later");
+    }
 
     if (!brandId) {
       return NextResponse.json({ error: "User has no brand" }, { status: 403 });

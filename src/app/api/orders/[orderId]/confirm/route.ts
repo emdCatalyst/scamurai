@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { ORDER_SUBMITTER_ROLES, requireApiAuth } from "@/lib/auth";
 import { staffDb } from "@/lib/db";
 import { orders, orderImages, users } from "@/lib/db/schema";
+import { staffRateLimits } from "@/lib/ratelimit";
 import { getStorage } from "@/lib/storage";
 import { ORDER_IMAGE_TYPES, orderImageKey } from "@/lib/storage/keys";
 import { eq, and, isNull } from "drizzle-orm";
+import { orderError } from "../../respond";
 
 /**
  * Step 2 of a staff order submission, after both photos were uploaded to the
@@ -40,6 +42,9 @@ export async function PATCH(
     const session = await requireApiAuth(ORDER_SUBMITTER_ROLES);
     if (session instanceof Response) return session;
     const { userId: clerkUserId, brandId } = session;
+    if (staffRateLimits.confirm(clerkUserId)) {
+      return orderError("rate_limited", "Too many requests; try again later");
+    }
     if (!brandId) {
       return NextResponse.json({ error: "User has no brand" }, { status: 403 });
     }
