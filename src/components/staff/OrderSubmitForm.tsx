@@ -420,12 +420,13 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
 
   const removeRefused = async (id: string) => {
     const order = outbox.failed.find((candidate) => candidate.id === id);
-    if (!order || !window.confirm(t("removeConfirm", { number: order.orderNumber }))) return;
-    await outbox.discard(id).catch(() => false);
+    if (!order || !window.confirm(t("removeConfirm", { number: order.orderNumber }))) return false;
+    const removed = await outbox.discard(id).catch(() => false);
     if (correcting?.id === id) {
       resetForm();
       keepOnlyApp();
     }
+    return removed;
   };
 
   const continueHeld = () => {

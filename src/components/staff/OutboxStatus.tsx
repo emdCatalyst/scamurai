@@ -19,7 +19,8 @@ interface OutboxStatusProps extends OutboxState {
   onUploadNow: () => void;
   onRetryFailed: () => void;
   onEdit: (id: string) => void;
-  onRemove: (id: string) => void;
+  /** Resolves true once the order is gone (the worker may say no). */
+  onRemove: (id: string) => Promise<boolean>;
 }
 
 type Tone = "quiet" | "waiting" | "danger";
@@ -55,6 +56,19 @@ export default function OutboxStatus({
   const [listOpen, setListOpen] = useState(false);
   const listId = useId();
   const showList = listOpen && failed.length > 0;
+
+  // The list closes once the worker has dealt with it, so a later refusal can't open it by itself.
+  const edit = (id: string) => {
+    setListOpen(false);
+    onEdit(id);
+  };
+  const remove = async (id: string) => {
+    if ((await onRemove(id)) && failed.length === 1) setListOpen(false);
+  };
+  const retry = () => {
+    setListOpen(false);
+    onRetryFailed();
+  };
 
   const uploadNow = (
     <button
@@ -138,7 +152,7 @@ export default function OutboxStatus({
                 <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={() => onEdit(order.id)}
+                    onClick={() => edit(order.id)}
                     disabled={editing}
                     className="min-h-11 flex-1 rounded-lg bg-[var(--brand-primary)] px-3 text-sm font-bold text-[var(--brand-primary-fg)] disabled:bg-[var(--brand-surface-fg-soft)] disabled:text-[var(--brand-surface-fg)]"
                   >
@@ -146,7 +160,7 @@ export default function OutboxStatus({
                   </button>
                   <button
                     type="button"
-                    onClick={() => onRemove(order.id)}
+                    onClick={() => void remove(order.id)}
                     className="min-h-11 flex-1 rounded-lg border border-[var(--brand-danger)] bg-[var(--brand-surface)] px-3 text-sm font-bold text-[var(--brand-danger)]"
                   >
                     {t("removeOrder")}
@@ -161,7 +175,7 @@ export default function OutboxStatus({
             {failed.some((order) => retryCanHelp(order.errorCode)) && (
               <button
                 type="button"
-                onClick={onRetryFailed}
+                onClick={retry}
                 className="min-h-11 self-start rounded-lg border border-current px-4 text-sm font-bold"
               >
                 {t("retryFailed")}
