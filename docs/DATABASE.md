@@ -87,6 +87,7 @@ so it never clashes with another project's Postgres.
 | `npm run db:reset` | Wipe the volume, then migrate and seed again |
 | `npm run db:studio` | Browse the data in Drizzle Studio |
 | `npm run test:integration` | Tests against the local database (needs `db:up`, `db:migrate` and `db:seed`) |
+| `npm run test:load` | Many staff uploading orders at once on one instance; prints latency percentiles |
 
 SQL shell: `docker exec -it scamurai-postgres psql -U scamurai -d scamurai`
 

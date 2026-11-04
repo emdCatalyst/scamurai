@@ -332,8 +332,29 @@ obligations before launch.
   check the logs for `[csp]` lines. With none left, remove `CSP_MODE` so the policy is enforced.
 - [ ] Cloud SQL has backups, point-in-time recovery and deletion protection on.
 - [ ] Budget alerts are set.
+- [ ] The uptime check on `/api/health` and the alerts in "Monitoring and alerts" are set.
+
+## Monitoring and alerts
+
+Set these up in Cloud Monitoring once the service runs. The app's log lines are a `[prefix]` followed by JSON, so
+log-based metrics can pull fields out with `REGEXP_EXTRACT`.
+
+| Signal | Source | Alert when |
+| --- | --- | --- |
+| The app and the database answer | Uptime check on `https://YOUR_DOMAIN/api/health` (200, or 503 when the database doesn't reply within 2 s) | 2 failures in a row |
+| Orders stuck on phones | `[telemetry]` lines with `"type":"outbox"`, sent when an order waited 10+ minutes on a phone or was rejected | any |
+| Upload delay | `waitedSec` in `[orders] confirmed` lines: seconds from saving on the phone to confirmed | p95 above 10 minutes |
+| Page speed on staff phones | `[telemetry]` lines with `"type":"vitals"` (LCP, INP, CLS, FCP, TTFB) | INP p75 above 500 ms |
+| Content the browser blocked | `[csp]` lines | any new kind |
+| Server errors | Cloud Run 5xx, and `Error` log lines | above 1% of requests |
 
 ## Operations
+
+- **Load test (local):** `npm run test:load`, tuned with `ORDERS` and `CONCURRENCY`. On one instance with its 3
+  database connections (local Docker database, 2026-11-04) it handled about 160 orders per second at any
+  concurrency, with no errors. A whole order took 33 ms with 5 at once, 0.3 s with 50 and 1.3 s with 200 (waiting
+  for the pool). A busy branch sends a few orders a minute, so the server has a wide margin. Clerk, Cloud Storage
+  signing and HTTP aren't included: before launch, run a smaller HTTP test against staging.
 
 - **Before a risky migration:** `gcloud sql backups create --instance=scamurai-db`.
 - **Test a restore** now and then: `gcloud sql instances clone scamurai-db scamurai-db-restore-test
