@@ -1,10 +1,11 @@
 import { sql } from "drizzle-orm";
-import { db } from "@/lib/db";
+import { staffDb } from "@/lib/db";
 
 /**
  * Health check for uptime monitoring (a Cloud Monitoring uptime check, with
  * an alert when it fails): the server answers and the database replies
- * within 2 s. Says nothing but up or down.
+ * within 2 s. Says nothing but up or down. It asks through the staff
+ * uploads' own connections, so busy finance pages can't fail it.
  */
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export async function GET() {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     await Promise.race([
-      db.execute(sql`select 1`),
+      staffDb.execute(sql`select 1`),
       new Promise((_, reject) => {
         timer = setTimeout(() => reject(new Error(`no answer within ${DB_TIMEOUT_MS} ms`)), DB_TIMEOUT_MS);
       }),
