@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { branches, users, orders } from "@/lib/db/schema";
 import { eq, and, isNull, count, sql } from "drizzle-orm";
 import { requireAuth } from "@/lib/auth";
+import { confirmedOrdersOf } from "@/lib/queries/orders";
+import { startOfRiyadhMonth } from "@/lib/queries/riyadhDays";
 
 export async function getBranchDetails(branchId: string) {
   try {
@@ -25,15 +27,13 @@ export async function getBranchDetails(branchId: string) {
       isActive: users.isActive,
     }).from(users).where(and(eq(users.branchId, branchId), isNull(users.deletedAt)));
 
-    // 3. Get Order Stats
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+    // 3. Get Order Stats: confirmed orders only, months in Riyadh time
+    const startOfMonth = startOfRiyadhMonth();
 
     const [stats] = await db.select({
       totalOrders: count(orders.id),
       ordersThisMonth: sql<number>`count(${orders.id}) FILTER (WHERE ${orders.submittedAt} >= ${startOfMonth.toISOString()})`
-    }).from(orders).where(and(eq(orders.branchId, branchId), isNull(orders.deletedAt)));
+    }).from(orders).where(and(confirmedOrdersOf(authBrandId), eq(orders.branchId, branchId)));
 
     return {
       success: true,

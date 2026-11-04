@@ -2,18 +2,17 @@ import { requireAuth } from "@/lib/auth";
 import { getBrandBySlug } from "@/lib/queries/brands";
 import {
   getOrders,
-  getOrdersSummary,
   getActiveBranchOptions,
   getEnabledDeliveryAppOptions,
   type GetOrdersParams,
   type OrderSort,
 } from "@/lib/queries/orders";
+import { DAY_MS, parseRiyadhDate } from "@/lib/queries/riyadhDays";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import OrdersFilterBar from "@/components/brand/orders/OrdersFilterBar";
 import OrdersTable from "@/components/brand/orders/OrdersTable";
 import OrdersPagination from "@/components/brand/orders/OrdersPagination";
-import OrderSummaryBar from "@/components/brand/orders/OrderSummaryBar";
 import OrderDetailDrawer from "@/components/brand/orders/OrderDetailDrawer";
 import { OrdersDrawerProvider } from "@/components/brand/orders/OrdersDrawerProvider";
 
@@ -26,13 +25,14 @@ const VALID_SORTS: OrderSort[] = [
   "amount_low",
 ];
 
-function parseDate(value: string | undefined, endOfDay = false): Date | undefined {
-  if (!value) return undefined;
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return undefined;
-  if (endOfDay) d.setHours(23, 59, 59, 999);
-  else d.setHours(0, 0, 0, 0);
-  return d;
+/** The picked days are Riyadh days, whatever the server's time zone. */
+function dayStart(value: string | undefined): Date | undefined {
+  return value ? parseRiyadhDate(value) : undefined;
+}
+
+function dayEnd(value: string | undefined): Date | undefined {
+  const start = dayStart(value);
+  return start && new Date(start.getTime() + DAY_MS);
 }
 
 export default async function OrdersPage({
@@ -72,8 +72,8 @@ export default async function OrdersPage({
     search: sp.q || undefined,
     branchId: sp.branch || undefined,
     deliveryAppId: sp.app || undefined,
-    dateFrom: parseDate(sp.date_from),
-    dateTo: parseDate(sp.date_to, true),
+    dateFrom: dayStart(sp.date_from),
+    dateBefore: dayEnd(sp.date_to),
     sort,
     page: currentPage,
     pageSize: PAGE_SIZE,
@@ -82,7 +82,6 @@ export default async function OrdersPage({
   // Sequential awaits — concurrent dispatch on max:1 + Supavisor transaction
   // pool surfaces as `error in input stream` and intermittent skeleton hangs.
   const { rows, total } = await getOrders(queryParams);
-  const summary = await getOrdersSummary(queryParams);
   const branchOptions = await getActiveBranchOptions(brand.id);
   const appOptions = await getEnabledDeliveryAppOptions(brand.id);
 
