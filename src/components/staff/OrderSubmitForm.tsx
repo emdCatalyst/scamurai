@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { compressImage } from "@/lib/compressImage";
+import { newOrderId, orderDrafts, type OrderDraft, type PendingOrder } from "@/lib/imageQueue";
 import CameraCaptureZone from "./CameraCaptureZone";
 import DeliveryAppPicker from "./DeliveryAppPicker";
+import OutboxStatus from "./OutboxStatus";
 import SubmitSuccessOverlay from "./SubmitSuccessOverlay";
-import { compressImage } from "@/lib/compressImage";
-import { imageQueue, PendingOrder } from "@/lib/imageQueue";
-import { uploadOrder } from "@/lib/presignedUpload";
-
-import { useTranslations } from "next-intl";
+import { useOutbox } from "./useOutbox";
 
 interface DeliveryApp {
   id: string;
@@ -18,169 +18,223 @@ interface DeliveryApp {
 }
 
 interface OrderSubmitFormProps {
+  /** Clerk user id of the signed-in staff member. */
+  userId: string;
   brandId: string;
   brandSlug: string;
   apps: DeliveryApp[];
 }
 
-export default function OrderSubmitForm({
-  brandId,
-  brandSlug,
-  apps,
-}: OrderSubmitFormProps) {
+type Slot = "sealed" | "opened";
+interface Photo {
+  blob: Blob;
+  preview: string;
+}
+
+/** How long "Order saved" stays up before the form is ready for the next order. */
+const SUCCESS_MS = 900;
+const DRAFT_SAVE_MS = 400;
+
+const toPhoto = (blob: Blob): Photo => ({ blob, preview: URL.createObjectURL(blob) });
+
+function persistDraft(draft: OrderDraft) {
+  // The delivery app stays selected between orders, so it alone isn't a draft.
+  const empty = !draft.orderNumber && !draft.amount && !draft.notes && !draft.sealedBlob && !draft.openedBlob;
+  void (empty ? orderDrafts.remove(draft.id) : orderDrafts.save(draft)).catch(() => {});
+}
+
+/**
+ * The staff order screen. Built so a worker on an old phone never waits:
+ * each photo is shrunk right after it is taken, "Submit" only saves the order
+ * on the phone (well under a second), and the outbox uploads it in the
+ * background. The half-filled form is kept as a draft, because a low-memory
+ * phone may kill this page while the camera app is open.
+ */
+export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: OrderSubmitFormProps) {
   const t = useTranslations("brand.submit");
-  const [sealedPhoto, setSealedPhoto] = useState<File | null>(null);
-  const [openedPhoto, setOpenedPhoto] = useState<File | null>(null);
-  const [sealedPreview, setSealedPreview] = useState<string>("");
-  const [openedPreview, setOpenedPreview] = useState<string>("");
-  const [deliveryAppId, setDeliveryAppId] = useState<string>("");
-  const [orderNumber, setOrderNumber] = useState<string>("");
-  const [amount, setAmount] = useState<string>("");
-  const [notes, setNotes] = useState<string>("");
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const outbox = useOutbox(userId);
+  const draftId = `${userId}:${brandSlug}`;
+
+  const [photos, setPhotos] = useState<Partial<Record<Slot, Photo>>>({});
+  const [busy, setBusy] = useState<Partial<Record<Slot, boolean>>>({});
+  const [deliveryAppId, setDeliveryAppId] = useState("");
+  const [orderNumber, setOrderNumber] = useState("");
+  const [amount, setAmount] = useState("");
+  const [notes, setNotes] = useState("");
+  const [ready, setReady] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [isBackgroundUploading, setIsBackgroundUploading] = useState(false);
-  const [lastOrderNumber, setLastOrderNumber] = useState<string>("");
-  const [error, setError] = useState<string>("");
+  const [lastOrderNumber, setLastOrderNumber] = useState("");
+  const [error, setError] = useState("");
 
-  // Revoke each preview's blob URL when it's replaced or on unmount. Keep the
-  // two effects separate so capturing one photo doesn't fire a cleanup that
-  // also revokes the other (still-in-state) preview.
-  useEffect(() => {
-    if (!sealedPreview) return;
-    return () => URL.revokeObjectURL(sealedPreview);
-  }, [sealedPreview]);
+  const photosRef = useRef(photos);
+  const draftRef = useRef<OrderDraft | null>(null);
+  // Set from submit until reset: no draft may be written for an order already saved.
+  const submittingRef = useRef(false);
 
   useEffect(() => {
-    if (!openedPreview) return;
-    return () => URL.revokeObjectURL(openedPreview);
-  }, [openedPreview]);
+    photosRef.current = photos;
+  }, [photos]);
 
-  const handleCaptureSealed = (file: File) => {
-    setSealedPhoto(file);
-    if (sealedPreview) URL.revokeObjectURL(sealedPreview);
-    setSealedPreview(URL.createObjectURL(file));
-  };
+  // Bring back a draft, e.g. after the phone reloaded the page behind the camera.
+  useEffect(() => {
+    let cancelled = false;
+    orderDrafts
+      .get(draftId)
+      .then((draft) => {
+        if (cancelled || !draft) return;
+        setOrderNumber(draft.orderNumber);
+        setAmount(draft.amount);
+        setNotes(draft.notes);
+        if (draft.deliveryAppId) setDeliveryAppId(draft.deliveryAppId);
+        setPhotos({
+          ...(draft.sealedBlob && { sealed: toPhoto(draft.sealedBlob) }),
+          ...(draft.openedBlob && { opened: toPhoto(draft.openedBlob) }),
+        });
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [draftId]);
 
-  const handleCaptureOpened = (file: File) => {
-    setOpenedPhoto(file);
-    if (openedPreview) URL.revokeObjectURL(openedPreview);
-    setOpenedPreview(URL.createObjectURL(file));
-  };
+  useEffect(() => {
+    if (!ready) return;
+    const draft: OrderDraft = {
+      id: draftId,
+      orderNumber,
+      amount,
+      notes,
+      deliveryAppId,
+      sealedBlob: photos.sealed?.blob,
+      openedBlob: photos.opened?.blob,
+    };
+    draftRef.current = draft;
+    const timer = setTimeout(() => {
+      if (!submittingRef.current) persistDraft(draft);
+    }, DRAFT_SAVE_MS);
+    return () => clearTimeout(timer);
+  }, [ready, draftId, orderNumber, amount, notes, deliveryAppId, photos]);
 
-  const canSubmit = sealedPhoto && openedPhoto && deliveryAppId && orderNumber && amount && !isSubmitting;
+  // Opening the camera sends this page to the background: save at once.
+  useEffect(() => {
+    const onHidden = () => {
+      if (document.visibilityState === "hidden" && draftRef.current && !submittingRef.current) {
+        persistDraft(draftRef.current);
+      }
+    };
+    document.addEventListener("visibilitychange", onHidden);
+    return () => document.removeEventListener("visibilitychange", onHidden);
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!canSubmit) return;
+  useEffect(
+    () => () => {
+      for (const photo of Object.values(photosRef.current)) if (photo) URL.revokeObjectURL(photo.preview);
+    },
+    []
+  );
 
-    setIsSubmitting(true);
+  const capture = async (slot: Slot, file: File) => {
     setError("");
-
+    setBusy((b) => ({ ...b, [slot]: true }));
     try {
-      // 1. Show success state immediately (optimistic)
-      setShowSuccess(true);
-
-      // 2. Background task: Compress and Queue
-      const processSubmission = async () => {
-        setIsBackgroundUploading(true);
-        setLastOrderNumber(orderNumber); // Set immediately for overlay
-
-        try {
-          // Compress images in parallel
-          const [sealedBlob, openedBlob] = await Promise.all([
-            compressImage(sealedPhoto!),
-            compressImage(openedPhoto!),
-          ]);
-
-          const pendingOrder: PendingOrder = {
-            id: crypto.randomUUID(),
-            brandId,
-            brandSlug,
-            orderNumber,
-            deliveryAppId,
-            subtotal: amount,
-            currency: "SAR",
-            notes: notes || undefined,
-            sealedBlob,
-            openedBlob,
-            createdAt: Date.now(),
-            attempts: 0,
-          };
-
-          // Try immediate upload
-          const result = await uploadOrder(pendingOrder);
-
-          if (!result.success) {
-            // If failed, enqueue for background retry
-            await imageQueue.enqueue(pendingOrder);
-            console.warn("Upload failed, enqueued for retry:", result.error);
-          }
-        } catch (err) {
-          console.error("Background processing failed:", err);
-        } finally {
-          setIsBackgroundUploading(false);
-          // Keep success overlay for 1.5s total
-          setTimeout(() => {
-            resetForm();
-          }, 1500);
-        }
-      };
-
-      processSubmission();
-    } catch (err) {
-      console.error("Submission error:", err);
-      setError(t('errorGeneral'));
-      setIsSubmitting(false);
-      setShowSuccess(false);
+      const photo = toPhoto(await compressImage(file));
+      const previous = photosRef.current[slot];
+      setPhotos((current) => ({ ...current, [slot]: photo }));
+      if (previous) URL.revokeObjectURL(previous.preview);
+    } catch {
+      setError(t("photoError"));
+    } finally {
+      setBusy((b) => ({ ...b, [slot]: false }));
     }
   };
 
   const resetForm = () => {
-    setSealedPhoto(null);
-    setOpenedPhoto(null);
+    for (const photo of Object.values(photosRef.current)) if (photo) URL.revokeObjectURL(photo.preview);
+    setPhotos({});
     setOrderNumber("");
     setAmount("");
     setNotes("");
-    if (sealedPreview) URL.revokeObjectURL(sealedPreview);
-    if (openedPreview) URL.revokeObjectURL(openedPreview);
-    setSealedPreview("");
-    setOpenedPreview("");
-    setIsSubmitting(false);
+    setSaving(false);
     setShowSuccess(false);
+    submittingRef.current = false;
+  };
+
+  const canSubmit =
+    Boolean(photos.sealed && photos.opened && deliveryAppId && orderNumber.trim() && amount) &&
+    !saving &&
+    !busy.sealed &&
+    !busy.opened;
+
+  const handleSubmit = async () => {
+    if (!canSubmit || !photos.sealed || !photos.opened) return;
+    submittingRef.current = true;
+    setSaving(true);
     setError("");
+
+    const order: PendingOrder = {
+      id: newOrderId(),
+      userId,
+      brandId,
+      brandSlug,
+      orderNumber: orderNumber.trim(),
+      deliveryAppId,
+      subtotal: amount,
+      currency: "SAR",
+      notes: notes.trim() || undefined,
+      sealedBlob: photos.sealed.blob,
+      openedBlob: photos.opened.blob,
+      createdAt: Date.now(),
+      attempts: 0,
+    };
+
+    try {
+      // Resolves once the order is on the phone's disk; uploading continues in the background.
+      await outbox.submit(order);
+    } catch {
+      submittingRef.current = false;
+      setSaving(false);
+      setError(t("saveError"));
+      return;
+    }
+
+    void orderDrafts.remove(draftId).catch(() => {});
+    setLastOrderNumber(order.orderNumber);
+    setShowSuccess(true);
+    setTimeout(resetForm, SUCCESS_MS);
   };
 
   return (
     <div className="flex flex-col gap-6 p-4 pb-24">
-      <SubmitSuccessOverlay 
-        isVisible={showSuccess} 
-        orderNumber={lastOrderNumber}
-        isUploading={isBackgroundUploading}
+      <SubmitSuccessOverlay isVisible={showSuccess} orderNumber={lastOrderNumber} />
+
+      <OutboxStatus
+        waiting={outbox.waiting}
+        failed={outbox.failed}
+        uploading={outbox.uploading}
+        onUploadNow={outbox.uploadNow}
+        onRetryFailed={outbox.retryFailed}
       />
 
       <div className="grid grid-cols-1 gap-4">
         <CameraCaptureZone
           label={t('openedBag')}
-          onCapture={handleCaptureOpened}
-          previewUrl={openedPreview}
-          className={cn(!openedPhoto && isSubmitting && "border-[var(--brand-danger)]")}
+          onCapture={(file) => capture("opened", file)}
+          previewUrl={photos.opened?.preview}
+          busy={busy.opened}
         />
         <CameraCaptureZone
           label={t('sealedBag')}
-          onCapture={handleCaptureSealed}
-          previewUrl={sealedPreview}
-          className={cn(!sealedPhoto && isSubmitting && "border-[var(--brand-danger)]")}
+          onCapture={(file) => capture("sealed", file)}
+          previewUrl={photos.sealed?.preview}
+          busy={busy.sealed}
         />
       </div>
 
-      <DeliveryAppPicker
-        apps={apps}
-        selectedId={deliveryAppId}
-        onSelect={setDeliveryAppId}
-        className={cn(!deliveryAppId && isSubmitting && "ring-2 ring-[var(--brand-danger)] rounded-lg p-1")}
-      />
+      <DeliveryAppPicker apps={apps} selectedId={deliveryAppId} onSelect={setDeliveryAppId} />
 
       <div className="flex flex-col gap-2">
         <label className="text-xs font-semibold uppercase tracking-wider text-[var(--brand-surface-fg-muted)]">
@@ -191,10 +245,7 @@ export default function OrderSubmitForm({
           placeholder={t('orderNumberPlaceholder')}
           value={orderNumber}
           onChange={(e) => setOrderNumber(e.target.value)}
-          className={cn(
-            "w-full rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-4 text-xl font-bold text-[var(--brand-surface-fg)] outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]",
-            !orderNumber && isSubmitting && "border-[var(--brand-danger)]"
-          )}
+          className="w-full rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-4 text-xl font-bold text-[var(--brand-surface-fg)] outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]"
         />
       </div>
 
@@ -210,10 +261,7 @@ export default function OrderSubmitForm({
             placeholder={t('amountPlaceholder')}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className={cn(
-              "w-full rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-4 text-2xl font-bold text-[var(--brand-surface-fg)] outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]",
-              !amount && isSubmitting && "border-[var(--brand-danger)]"
-            )}
+            className="w-full rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-4 py-4 text-2xl font-bold text-[var(--brand-surface-fg)] outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]"
           />
           <div className="absolute end-4 top-1/2 -translate-y-1/2 font-bold text-[var(--brand-surface-fg-muted)]">
             {t('currency')}
@@ -247,12 +295,12 @@ export default function OrderSubmitForm({
           disabled={!canSubmit}
           className={cn(
             "w-full rounded-xl py-4 text-lg font-bold transition-all shadow-lg",
-            canSubmit 
-              ? "bg-[var(--brand-primary)] text-[var(--brand-primary-fg)] active:scale-95 shadow-[var(--brand-primary)]/20" 
+            canSubmit
+              ? "bg-[var(--brand-primary)] text-[var(--brand-primary-fg)] active:scale-95 shadow-[var(--brand-primary)]/20"
               : "bg-[var(--brand-surface-fg)]/10 text-[var(--brand-surface-fg-muted)] cursor-not-allowed"
           )}
         >
-          {isSubmitting ? (
+          {saving ? (
             <div className="flex items-center justify-center gap-2">
               <Loader2 className="h-5 w-5 animate-spin" />
               <span>{t('processing')}</span>

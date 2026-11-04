@@ -457,8 +457,6 @@
     "signOut": "Sign Out",
     "processing": "Processing...",
     "submitOrder": "Submit Order",
-    "orderSubmitted": "Order Submitted",
-    "uploadingImages": "Uploading images...",
     "reference": "Ref",
     "sealedBag": "Sealed Bag",
     "openedBag": "Opened Bag",
@@ -474,11 +472,16 @@
     "retake": "Retake",
     "review": "Review",
     "errorGeneral": "Something went wrong. Please try again.",
-    "pendingUploads": "{count} Pending Upload | {count} Pending Uploads",
-    "syncNow": "Sync Now",
-    "syncing": "Syncing...",
-    "offlineWarning": "Offline or failed earlier.",
-    "syncSuccess": "Successfully uploaded {count} pending order | Successfully uploaded {count} pending orders.",
-    "syncError": "Failed to upload {count} order | Failed to upload {count} orders. Still in queue."
+    "orderSaved": "Order saved",
+    "uploadsInBackground": "Photos upload in the background. Start the next order.",
+    "waitingUploads": "{count, plural, one {# order waiting to upload} other {# orders waiting to upload}}",
+    "uploadNow": "Upload now",
+    "uploading": "Uploading…",
+    "failedUploads": "{count, plural, one {# order couldn't be uploaded} other {# orders couldn't be uploaded}}",
+    "failedHint": "Check the order number, then try again or tell your manager.",
+    "retryFailed": "Try again",
+    "preparingPhoto": "Preparing photo…",
+    "photoError": "Couldn't read that photo. Please take it again.",
+    "saveError": "Couldn't save the order on this phone. Please try again."
   }
 }

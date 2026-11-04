@@ -118,7 +118,8 @@ export default async function StaffSubmitPage({
       </header>
 
       <main className="mx-auto max-w-md">
-        <OrderSubmitForm 
+        <OrderSubmitForm
+          userId={clerkUserId}
           brandId={brand.id}
           brandSlug={brand.slug}
           apps={appsResult}

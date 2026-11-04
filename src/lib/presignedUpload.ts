@@ -1,88 +1,89 @@
 import type { UploadTarget } from "./storage/types";
-import { PendingOrder } from "./imageQueue";
+import type { PendingOrder } from "./imageQueue";
+import type { UploadOutcome } from "./outbox";
 
-export interface UploadResponse {
-  success: boolean;
-  orderId?: string;
-  orderNumber?: string;
-  error?: string;
+/** A hung request would hold up the whole outbox, so every step gives up in time. */
+const API_TIMEOUT_MS = 20_000;
+const PHOTO_TIMEOUT_MS = 60_000;
+
+class StepError extends Error {
+  constructor(message: string, readonly retry: boolean) {
+    super(message);
+  }
 }
 
-const LOG = "[uploadOrder]";
+/** Worth trying again later: expired session, rate limit, server trouble. */
+const retryable = (status: number) => status === 401 || status === 408 || status === 429 || status >= 500;
+
+async function send(url: string, init: RequestInit, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (err) {
+    throw new StepError(err instanceof Error && err.name === "AbortError" ? "Timed out" : "Network error", true);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fail(step: string, res: Response, retry: boolean): Promise<never> {
+  const body = await res.json().catch(() => ({}));
+  throw new StepError(`${step}: ${body.error ?? res.status}`, retry);
+}
 
 /**
- * Handles the full background upload flow for an order.
- * 1. Request signed upload URLs from the API (it also creates the order)
- * 2. Upload both photos in parallel, directly to storage
- * 3. Confirm with the API (it derives the photo paths itself)
+ * Uploads one saved order. Every step is safe to repeat, so the outbox can
+ * retry after any failure:
+ * 1. ask for signed upload URLs; this creates the order under the phone's own id,
+ * 2. upload both photos straight to storage,
+ * 3. confirm; the API checks that both photos arrived.
  */
-export async function uploadOrder(order: PendingOrder): Promise<UploadResponse> {
+export async function uploadOrder(order: PendingOrder): Promise<UploadOutcome> {
   try {
-    // 1. Get presigned URLs
-    console.log(`${LOG} step 1: requesting upload URLs for orderNumber=${order.orderNumber}`);
-    const urlResponse = await fetch('/api/orders/upload-urls', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        brandSlug: order.brandSlug,
-        orderNumber: order.orderNumber,
-        deliveryAppId: order.deliveryAppId,
-        subtotal: order.subtotal,
-        currency: order.currency,
-        notes: order.notes,
-      }),
-    });
+    const res = await send(
+      "/api/orders/upload-urls",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientOrderId: order.id,
+          orderNumber: order.orderNumber,
+          deliveryAppId: order.deliveryAppId,
+          subtotal: order.subtotal,
+          currency: order.currency,
+          notes: order.notes,
+        }),
+      },
+      API_TIMEOUT_MS
+    );
+    if (!res.ok) await fail("upload-urls", res, retryable(res.status));
 
-    if (!urlResponse.ok) {
-      const errorData = await urlResponse.json().catch(() => ({}));
-      const msg = errorData.error || `upload-urls returned ${urlResponse.status}`;
-      console.error(`${LOG} step 1 failed:`, msg, errorData);
-      throw new Error(msg);
-    }
-
-    const { orderId, orderNumber, uploads } = (await urlResponse.json()) as {
+    const data = (await res.json()) as {
       orderId: string;
-      orderNumber: string;
-      uploads: Record<'sealed' | 'opened', UploadTarget>;
+      alreadyConfirmed?: boolean;
+      uploads: Record<"sealed" | "opened", UploadTarget>;
     };
-    console.log(`${LOG} step 1 ok: orderId=${orderId}`);
+    // An earlier attempt finished but its answer never reached the phone.
+    if (data.alreadyConfirmed) return { ok: true };
 
-    // 2. Parallel upload directly to storage, with exactly the signed headers
-    const uploadFile = async (label: string, target: UploadTarget, blob: Blob) => {
-      console.log(`${LOG} step 2 (${label}): PUT to storage, size=${blob.size}`);
-      const res = await fetch(target.url, { method: target.method, body: blob, headers: target.headers });
-      if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        const msg = `Storage PUT (${label}) failed: ${res.status} ${res.statusText} ${text}`.trim();
-        console.error(`${LOG} step 2 (${label}) failed:`, msg);
-        throw new Error(msg);
-      }
-      console.log(`${LOG} step 2 (${label}) ok`);
-    };
+    await Promise.all(
+      (["sealed", "opened"] as const).map(async (type) => {
+        const target = data.uploads[type];
+        const body = type === "sealed" ? order.sealedBlob : order.openedBlob;
+        const put = await send(target.url, { method: target.method, body, headers: target.headers }, PHOTO_TIMEOUT_MS);
+        // The next attempt gets fresh signed URLs.
+        if (!put.ok) throw new StepError(`photo ${type}: ${put.status}`, true);
+      })
+    );
 
-    await Promise.all([
-      uploadFile('sealed', uploads.sealed, order.sealedBlob),
-      uploadFile('opened', uploads.opened, order.openedBlob),
-    ]);
-
-    // 3. Confirm submission
-    console.log(`${LOG} step 3: confirming order ${orderId}`);
-    const confirmResponse = await fetch(`/api/orders/${orderId}/confirm`, {
-      method: 'PATCH',
-    });
-
-    if (!confirmResponse.ok) {
-      const errorData = await confirmResponse.json().catch(() => ({}));
-      const msg = errorData.error || `confirm returned ${confirmResponse.status}`;
-      console.error(`${LOG} step 3 failed:`, msg, errorData);
-      throw new Error(msg);
-    }
-    console.log(`${LOG} step 3 ok: order ${orderId} confirmed`);
-
-    return { success: true, orderId, orderNumber };
+    const confirm = await send(`/api/orders/${data.orderId}/confirm`, { method: "PATCH" }, API_TIMEOUT_MS);
+    // 422: a photo didn't arrive, and the next attempt uploads it again.
+    if (!confirm.ok) await fail("confirm", confirm, retryable(confirm.status) || confirm.status === 422);
+    return { ok: true };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown upload error';
-    console.error(`${LOG} aborted:`, message);
-    return { success: false, error: message };
+    const error = err instanceof Error ? err.message : "Upload failed";
+    console.warn("[uploadOrder]", order.orderNumber, error);
+    return { ok: false, retry: err instanceof StepError ? err.retry : true, error };
   }
 }

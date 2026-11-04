@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Camera, RefreshCw, Eye } from "lucide-react";
+import { Camera, RefreshCw, Eye, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import ImageLightbox from "@/components/brand/orders/ImageLightbox";
@@ -12,6 +12,8 @@ interface CameraCaptureZoneProps {
   label: string;
   onCapture: (file: File) => void;
   previewUrl?: string;
+  /** The photo is being shrunk for upload. */
+  busy?: boolean;
   className?: string;
 }
 
@@ -19,6 +21,7 @@ export default function CameraCaptureZone({
   label,
   onCapture,
   previewUrl,
+  busy = false,
   className,
 }: CameraCaptureZoneProps) {
   const t = useTranslations("brand.submit");
@@ -31,6 +34,8 @@ export default function CameraCaptureZone({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    // Clear the input so the next shot always fires a change, even if identical.
+    e.target.value = "";
     if (file) {
       onCapture(file);
     }
@@ -39,7 +44,7 @@ export default function CameraCaptureZone({
   return (
     <>
       <div
-        onClick={previewUrl ? undefined : handleClick}
+        onClick={previewUrl || busy ? undefined : handleClick}
         className={cn(
           "relative flex h-32 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all",
           previewUrl
@@ -57,7 +62,12 @@ export default function CameraCaptureZone({
           onChange={handleFileChange}
         />
 
-        {previewUrl ? (
+        {busy ? (
+          <div className="flex flex-col items-center gap-2 text-[var(--brand-surface-fg-muted)]">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="text-sm font-medium">{t('preparingPhoto')}</span>
+          </div>
+        ) : previewUrl ? (
           <div className="relative h-full w-full overflow-hidden rounded-lg">
             <Image
               src={previewUrl}
