@@ -26,6 +26,7 @@ const localStorage = await import('@/app/api/storage/local/route');
 
 const TAG = 'uploadtest';
 const STAFF_CLERK_ID = `user_${TAG}_staff`;
+const OTHER_STAFF_CLERK_ID = `user_${TAG}_staff2`;
 const FINANCE_CLERK_ID = `user_${TAG}_finance`;
 const JPEG = (marker: number) => Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, marker, 0x10, 0x4a, 0x46]);
 
@@ -33,17 +34,17 @@ let brandId = '';
 let branchId = '';
 let deliveryAppId = '';
 
-const asStaff = () => (session.current = { userId: STAFF_CLERK_ID, role: 'staff', brandId });
+const asStaff = (clerkId = STAFF_CLERK_ID) => (session.current = { userId: clerkId, role: 'staff', brandId });
 const asFinance = (brand = brandId) => (session.current = { userId: FINANCE_CLERK_ID, role: 'finance', brandId: brand });
 const absolute = (url: string) => new URL(url, 'http://localhost:3000').toString();
 const orderParams = (orderId: string) => ({ params: Promise.resolve({ orderId }) });
 
-async function requestUploads(orderNumber: string) {
-  asStaff();
+async function requestUploads(orderNumber: string, clientOrderId?: string, clerkId = STAFF_CLERK_ID) {
+  asStaff(clerkId);
   const response = await uploadUrls.POST(
     new Request('http://localhost:3000/api/orders/upload-urls', {
       method: 'POST',
-      body: JSON.stringify({ orderNumber, deliveryAppId, subtotal: 42.5 }),
+      body: JSON.stringify({ orderNumber, deliveryAppId, subtotal: 42.5, clientOrderId }),
     })
   );
   return { status: response.status, body: await response.json() };
@@ -70,6 +71,7 @@ beforeAll(async () => {
   deliveryAppId = app.id;
   await db.insert(schema.users).values([
     { email: `staff.${TAG}@integration.test`, fullName: 'Upload staff', role: 'staff', brandId, branchId, clerkUserId: STAFF_CLERK_ID },
+    { email: `staff2.${TAG}@integration.test`, fullName: 'Other staff', role: 'staff', brandId, branchId, clerkUserId: OTHER_STAFF_CLERK_ID },
     { email: `finance.${TAG}@integration.test`, fullName: 'Upload finance', role: 'finance', brandId, clerkUserId: FINANCE_CLERK_ID },
   ]);
 });
@@ -147,5 +149,26 @@ describe('staff order upload (local storage driver)', () => {
     asStaff();
     await confirm.PATCH(new Request('http://localhost:3000'), orderParams(retry.body.orderId));
     expect((await requestUploads(`${TAG}-3`)).status).toBe(400);
+  });
+
+  it("keeps a retried submission to one order, under the phone's own id", async () => {
+    const clientOrderId = crypto.randomUUID();
+    const first = await requestUploads(`${TAG}-4`, clientOrderId);
+    expect(first.body.orderId).toBe(clientOrderId);
+
+    // The photos never arrived: the outbox tries again later.
+    const again = await requestUploads(`${TAG}-4`, clientOrderId);
+    expect(again.body.orderId).toBe(clientOrderId);
+    await put(again.body.uploads.sealed, JPEG(6));
+    await put(again.body.uploads.opened, JPEG(7));
+    asStaff();
+    await confirm.PATCH(new Request('http://localhost:3000'), orderParams(clientOrderId));
+
+    // The confirm answer was lost on the way back, so the phone retries once more.
+    expect((await requestUploads(`${TAG}-4`, clientOrderId)).body).toMatchObject({ orderId: clientOrderId, alreadyConfirmed: true });
+    expect(await db.select().from(schema.orders).where(eq(schema.orders.orderNumber, `${TAG}-4`))).toHaveLength(1);
+
+    // Nobody else can claim that id.
+    expect((await requestUploads(`${TAG}-5`, clientOrderId, OTHER_STAFF_CLERK_ID)).status).toBe(409);
   });
 });

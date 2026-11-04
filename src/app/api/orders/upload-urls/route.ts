@@ -7,6 +7,7 @@ import { ORDER_IMAGE_TYPES, orderImageKey } from "@/lib/storage/keys";
 import { eq, and, isNull } from "drizzle-orm";
 
 const LOG = "[POST /api/orders/upload-urls]";
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Step 1 of a staff order submission: creates the order and returns one
@@ -23,6 +24,8 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const { deliveryAppId, subtotal, currency, notes, orderNumber } = body;
+    // The phone's own id for this submission: retries reuse it, so they can't duplicate the order.
+    const clientOrderId: string | undefined = typeof body.clientOrderId === "string" && UUID.test(body.clientOrderId) ? body.clientOrderId : undefined;
 
     if (!orderNumber) {
       return NextResponse.json({ error: "Order number is required" }, { status: 400 });
@@ -58,7 +61,23 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Duplicate order number check (per branch). The same staff member
+    // 3. A retry of a submission that already reached the server: report it
+    //    done, or fall through and resume it below.
+    if (clientOrderId) {
+      const prior = await db.query.orders.findFirst({
+        where: eq(orders.id, clientOrderId),
+        columns: { id: true, brandId: true, submittedBy: true, orderNumber: true },
+        with: { images: { columns: { id: true } } },
+      });
+      if (prior && (prior.brandId !== brandId || prior.submittedBy !== user.id)) {
+        return NextResponse.json({ error: "Order id belongs to another submission" }, { status: 409 });
+      }
+      if (prior && prior.images.length > 0) {
+        return NextResponse.json({ orderId: prior.id, orderNumber: prior.orderNumber, alreadyConfirmed: true });
+      }
+    }
+
+    // 4. Duplicate order number check (per branch). The same staff member
     //    retrying an order whose photos never arrived (offline queue, dropped
     //    connection) resumes it with fresh upload URLs instead of being
     //    blocked by their own earlier attempt.
@@ -80,10 +99,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. Sign the upload URLs FIRST: if storage is misconfigured we surface
+    // 5. Sign the upload URLs FIRST: if storage is misconfigured we surface
     //    the real error without leaving an orphan order behind.
     const storage = getStorage();
-    const orderId = existing?.id ?? crypto.randomUUID();
+    const orderId = existing?.id ?? clientOrderId ?? crypto.randomUUID();
     const [sealed, opened] = await Promise.all(
       ORDER_IMAGE_TYPES.map((type) =>
         storage.createUploadUrl("orderImages", orderImageKey(brandId, orderId, type), {
@@ -94,7 +113,7 @@ export async function POST(req: Request) {
       )
     );
 
-    // 5. Insert the order row only after signing succeeded.
+    // 6. Insert the order row only after signing succeeded.
     if (!resuming) {
       try {
         await db.insert(orders).values({
