@@ -31,7 +31,7 @@ export async function GET(
 
     const storage = getStorage();
 
-    // The browser scales the (already compressed, ≤1920px) photo for thumbnails.
+    // The browser scales the (already compressed, ≤1600px) photo for thumbnails.
     const sign = async (path: string | undefined) => {
       if (!path) return null;
       const url = await storage.createReadUrl("orderImages", path, { expiresInSeconds: ORDER_IMAGE_READ_TTL_SECONDS });

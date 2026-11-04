@@ -17,7 +17,8 @@ export async function generateMetadata({
   return {
     robots: NO_INDEX,
     manifest: `/${locale}/brands/${brandSlug}/manifest.webmanifest`,
-    appleWebApp: { capable: true, title: brand?.name, statusBarStyle: "black-translucent" },
+    // "default": the bar sits above every brand page, so sign-in and password pages need no safe-area padding.
+    appleWebApp: { capable: true, title: brand?.name, statusBarStyle: "default" },
     icons: { apple: "/icons/apple-touch-icon.png" },
   };
 }
