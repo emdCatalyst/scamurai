@@ -352,7 +352,7 @@ export default function OrderSubmitForm({ userId, brandId, brandSlug, apps }: Or
   /** Brings the worker to what is missing; the Save button already says what it is. */
   const pointAt = (item: MissingItem) => {
     setAttention(item);
-    setAmountChecked(true);
+    if (item === "amountInvalid") setAmountChecked(true);
     setAnnouncement(t(item));
     const target = document.getElementById(MISSING_TARGET[item] ?? "");
     target?.scrollIntoView({ block: "center" });
