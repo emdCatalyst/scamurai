@@ -1,12 +1,14 @@
 import type { BrandColors } from '@/types/brand';
 
-export const DEFAULT_BRAND_COLORS: BrandColors = {
+export const DEFAULT_BRAND_COLORS: Required<BrandColors> = {
   primary: '#4fc5df',   // Scamurai sky
   background: '#172b49',   // Scamurai navy
   surface: '#ffffff',
   textAccent: '#4fc5df',
   danger: '#DC2626',
 };
+
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
 // --- Utilities ---
 
@@ -113,11 +115,25 @@ function getBorderColor(bgHex: string): string {
     : 'rgba(255,255,255,0.12)';
 }
 
-export function deriveBrandTokens(colors: BrandColors): Record<string, string> {
+// The brand's colour if it is #rrggbb, else the default: the tokens are written
+// into a <style> element, so nothing else may pass through
+function hexOr(value: unknown, fallback: string): string {
+  return typeof value === 'string' && HEX_COLOR.test(value) ? value : fallback;
+}
+
+export function deriveBrandTokens(brandColors: Partial<BrandColors> | null | undefined): Record<string, string> {
+  // Checked here as well as when saved: a stored row may predate that check
+  const colors: Required<BrandColors> = {
+    primary:    hexOr(brandColors?.primary, DEFAULT_BRAND_COLORS.primary),
+    background: hexOr(brandColors?.background, DEFAULT_BRAND_COLORS.background),
+    surface:    hexOr(brandColors?.surface, DEFAULT_BRAND_COLORS.surface),
+    textAccent: hexOr(brandColors?.textAccent, DEFAULT_BRAND_COLORS.textAccent),
+    danger:     hexOr(brandColors?.danger, DEFAULT_BRAND_COLORS.danger),
+  };
   const bgFg      = getForeground(colors.background);
   const surfaceFg = getForeground(colors.surface);
   const primaryFg = getForeground(colors.primary);
-  const dangerFg  = getForeground(colors.danger ?? '#DC2626');
+  const dangerFg  = getForeground(colors.danger);
 
   return {
     '--brand-primary':              colors.primary,
@@ -130,8 +146,15 @@ export function deriveBrandTokens(colors: BrandColors): Record<string, string> {
     '--brand-surface-fg':           surfaceFg,
     '--brand-surface-fg-muted':     withOpacity(surfaceFg, 0.6),
     '--brand-text-accent':          colors.textAccent,
-    '--brand-danger':               colors.danger ?? '#DC2626',
+    '--brand-danger':               colors.danger,
     '--brand-danger-fg':            dangerFg,
     '--brand-border':               getBorderColor(colors.background),
   };
+}
+
+// The tokens as one `:root` rule for a <style> element. "<" is escaped too, so
+// no value could ever close the element.
+export function brandTokensCss(tokens: Record<string, string>): string {
+  const declarations = Object.entries(tokens).map(([name, value]) => `${name}: ${value};`);
+  return `:root { ${declarations.join(' ')} }`.replace(/</g, '\\3c ');
 }
