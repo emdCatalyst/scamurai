@@ -14,6 +14,7 @@
  * invitation → add staff from the brand portal.
  */
 import { config } from 'dotenv';
+import { and, inArray, isNull, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { assertLocalDatabaseUrl, assertNotCloudSql } from '../src/lib/db/localOnly';
@@ -125,12 +126,23 @@ async function main() {
               reviewedAt: status === 'needs_review' ? null : new Date(submittedAt.getTime() + 2 * 60 * 60 * 1000),
               rejectionReason: status === 'rejected' ? 'Seal not visible in the sealed photo' : null,
               submittedAt,
+              confirmedAt: submittedAt,
               createdAt: submittedAt,
               updatedAt: submittedAt,
             };
           })
         )
         .onConflictDoNothing();
+      // Databases seeded before orders had confirmed_at: the demo orders count as confirmed there too.
+      await tx
+        .update(schema.orders)
+        .set({ confirmedAt: sql`${schema.orders.submittedAt}` })
+        .where(
+          and(
+            inArray(schema.orders.id, Array.from({ length: ORDER_COUNT }, (_, i) => id(5, i + 1))),
+            isNull(schema.orders.confirmedAt)
+          )
+        );
 
       // Applications: every status, every service, interest registrations included.
       await tx
