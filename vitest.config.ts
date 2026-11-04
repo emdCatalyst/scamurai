@@ -6,9 +6,10 @@ export default defineConfig({
     alias: { '@': path.resolve(__dirname, 'src') },
   },
   test: {
+    // Browser code opts in per file: `// @vitest-environment happy-dom`, and fake-indexeddb for IndexedDB.
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
     // Integration tests need the local database: npm run test:integration.
-    exclude: [...configDefaults.exclude, 'src/**/*.int.test.ts', 'src/**/*.load.test.ts'],
+    exclude: [...configDefaults.exclude, 'src/**/*.int.test.{ts,tsx}', 'src/**/*.load.test.{ts,tsx}'],
   },
 });
