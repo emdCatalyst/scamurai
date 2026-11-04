@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { parseCspReports } from './cspReport';
+import { createLogBudget, parseCspReports } from './cspReport';
 
 const SLUG = 'secret-admin-path';
+
+describe('createLogBudget', () => {
+  it('lets a set number of lines through per window, then starts afresh', () => {
+    let now = 1_000;
+    const take = createLogBudget(2, 60_000, () => now);
+    expect([take(), take(), take()]).toEqual([true, true, false]);
+    now += 59_999;
+    expect(take()).toBe(false);
+    now += 1;
+    expect([take(), take(), take()]).toEqual([true, true, false]);
+  });
+});
 
 describe('parseCspReports', () => {
   it('reads the report-uri format', () => {
