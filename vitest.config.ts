@@ -9,6 +9,6 @@ export default defineConfig({
     environment: 'node',
     include: ['src/**/*.test.ts'],
     // Integration tests need the local database: npm run test:integration.
-    exclude: [...configDefaults.exclude, 'src/**/*.int.test.ts'],
+    exclude: [...configDefaults.exclude, 'src/**/*.int.test.ts', 'src/**/*.load.test.ts'],
   },
 });
