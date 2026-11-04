@@ -52,7 +52,8 @@ export default function StaffSignOutButton({ redirectUrl, className, children, t
   };
 
   return (
-    <button type="button" title={title} className={className} onClick={onClick} disabled={busy} aria-busy={busy}>
+    // `title` also names an icon-only button for screen readers.
+    <button type="button" title={title} aria-label={title} className={className} onClick={onClick} disabled={busy} aria-busy={busy}>
       {busy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> : children}
     </button>
   );

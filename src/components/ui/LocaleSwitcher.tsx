@@ -29,6 +29,8 @@ export default function LocaleSwitcher({
   const nextLocale = locale === 'ar' ? 'en' : 'ar';
   // The label always shows the *other* locale — what the click will switch to.
   const label = nextLocale === 'ar' ? 'AR' : 'EN';
+  // Each language named in itself: the hint reads right whichever language the page is in.
+  const nativeName = nextLocale === 'ar' ? 'العربية' : 'English';
 
   const onClick = () => {
     startTransition(() => {
@@ -41,7 +43,7 @@ export default function LocaleSwitcher({
       type="button"
       onClick={onClick}
       disabled={isPending}
-      title={`Switch to ${nextLocale === 'ar' ? 'العربية' : 'English'}`}
+      title={nativeName}
       className={cn(
         'inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/60 px-3 py-1.5 text-[11px] font-bold tracking-wider text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900 disabled:opacity-60',
         className

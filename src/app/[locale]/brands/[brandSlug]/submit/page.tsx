@@ -1,18 +1,31 @@
+import type { Viewport } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { requireAuth } from "@/lib/auth";
+import { ORDER_SUBMITTER_ROLES, requireAuth } from "@/lib/auth";
 import { getBrandBySlug } from "@/lib/queries/brands";
+import { getEnabledDeliveryAppOptions } from "@/lib/queries/orders";
 import { db } from "@/lib/db";
-import { users, brandDeliveryApps, deliveryAppCatalog } from "@/lib/db/schema";
+import { users } from "@/lib/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
-import { LogOut } from "lucide-react";
+import { LogOut, UserRound } from "lucide-react";
 import StaffSignOutButton from "@/components/staff/StaffSignOutButton";
 import OrderSubmitForm from "@/components/staff/OrderSubmitForm";
 import InstallAppButton from "@/components/staff/InstallAppButton";
+import ServiceWorker from "@/components/staff/ServiceWorker";
 import StaffVitals from "@/components/staff/StaffVitals";
 import LocaleSwitcher from "@/components/ui/LocaleSwitcher";
-import { deriveBrandTokens, DEFAULT_BRAND_COLORS } from "@/lib/brandTokens";
+
+/**
+ * Installed on an iPhone, the app draws under the status bar (the brand
+ * layout asks for a translucent one), so the screen pads itself by the
+ * safe areas.
+ */
+export const viewport: Viewport = { viewportFit: "cover" };
+
+/** Header buttons: 44 px, for a thumb on an old touchscreen. */
+const HEADER_BUTTON =
+  "flex h-11 w-11 items-center justify-center rounded-full text-[var(--brand-background-fg-muted)] transition-colors hover:bg-[var(--brand-background-active)] hover:text-[var(--brand-background-fg)]";
 
 export default async function StaffSubmitPage({
   params,
@@ -23,21 +36,18 @@ export default async function StaffSubmitPage({
   setRequestLocale(locale);
 
   // 1. Auth check
-  const { userId: clerkUserId, role, brandId: sessionBrandId } = await requireAuth(["staff", "brand_admin"]);
+  const { userId: clerkUserId, role, brandId: sessionBrandId } = await requireAuth();
 
   // 2. Resolve Brand
   const brand = await getBrandBySlug(brandSlug);
-  const t = await getTranslations("brand.submit");
+  if (!brand || sessionBrandId !== brand.id) notFound();
 
-  if (!brand) notFound();
-
-  // 3. Multi-tenant check
-  if (sessionBrandId !== brand.id && role !== 'master_admin') {
-    notFound();
+  // 3. Only staff send orders, and the order APIs refuse everyone else: the brand's other members go to their own screens.
+  if (!ORDER_SUBMITTER_ROLES.includes(role)) {
+    redirect(`/${locale}/brands/${brandSlug}/${role === "finance" ? "orders" : "dashboard"}`);
   }
 
-  // Derive tokens
-  const tokens = deriveBrandTokens(brand.brandColors || DEFAULT_BRAND_COLORS);
+  const t = await getTranslations("brand.submit");
 
   // 4. Fetch User & Branch Info
   const user = await db.query.users.findFirst({
@@ -47,13 +57,10 @@ export default async function StaffSubmitPage({
     },
   });
 
-  if (!user || (!user.branchId && role === 'staff')) {
+  if (!user || !user.branchId) {
     // If staff has no branch, they can't submit orders
     return (
-      <div 
-        style={tokens as any}
-        className="flex h-screen flex-col items-center justify-center p-6 text-center bg-[var(--brand-surface)]"
-      >
+      <div className="flex h-screen flex-col items-center justify-center p-6 text-center bg-[var(--brand-surface)]">
         <h1 className="text-xl font-bold text-[var(--brand-text-accent)] mb-2">
           {t('noBranchTitle')}
         </h1>
@@ -62,7 +69,7 @@ export default async function StaffSubmitPage({
         </p>
         <StaffSignOutButton
           redirectUrl={`/${locale}/brands/${brandSlug}/login`}
-          className="text-[var(--brand-primary)] font-semibold"
+          className="min-h-11 px-4 text-[var(--brand-primary)] font-semibold"
         >
           {t('signOut')}
         </StaffSignOutButton>
@@ -70,53 +77,58 @@ export default async function StaffSubmitPage({
     );
   }
 
-  // 5. Fetch Delivery Apps for this brand
-  const appsResult = await db
-    .select({
-      id: brandDeliveryApps.id,
-      name: deliveryAppCatalog.name,
-    })
-    .from(brandDeliveryApps)
-    .innerJoin(deliveryAppCatalog, eq(brandDeliveryApps.catalogAppId, deliveryAppCatalog.id))
-    .where(and(eq(brandDeliveryApps.brandId, brand.id), eq(brandDeliveryApps.isActive, true)))
-    .execute();
+  // 5. The brand's delivery apps that are turned on
+  const apps = (await getEnabledDeliveryAppOptions(brand.id)).map(({ id, name }) => ({ id, name }));
+  const signedInAs = t("signedInAs", { name: user.fullName });
 
   return (
-    <div style={tokens as any} className="min-h-screen bg-[var(--brand-surface)] text-[var(--brand-surface-fg)]">
+    <div className="min-h-screen bg-[var(--brand-surface)] text-[var(--brand-surface-fg)]">
+      <ServiceWorker />
       {/* Minimal Header */}
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between bg-[var(--brand-background)] px-4 border-b border-[var(--brand-border)]">
-        <div className="flex items-center gap-3">
-          {brand.logoUrl ? (
-            <div className="relative h-8 w-8">
-              <Image
-                src={brand.logoUrl}
-                alt={brand.name}
-                fill
-                className="object-contain"
-              />
+      <header className="sticky top-0 z-30 border-b border-[var(--brand-border)] bg-[var(--brand-background)] pt-[env(safe-area-inset-top)]">
+        <div className="flex h-14 items-center justify-between gap-3 px-4">
+          <div className="flex min-w-0 items-center gap-3">
+            {brand.logoUrl ? (
+              <div className="relative h-8 w-8 shrink-0">
+                <Image
+                  src={brand.logoUrl}
+                  alt={brand.name}
+                  fill
+                  sizes="32px"
+                  className="object-contain"
+                />
+              </div>
+            ) : (
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-[var(--brand-primary)] text-[10px] font-bold text-[var(--brand-primary-fg)]">
+                {brand.name.substring(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="flex min-w-0 flex-col leading-tight">
+              <span className="truncate text-xs font-bold text-[var(--brand-background-fg)]">{brand.name}</span>
+              <span className="truncate text-[10px] font-medium text-[var(--brand-background-fg-muted)]">
+                {user.branch?.name || t('noBranchTitle')}
+              </span>
+              {/* On a shared phone, whoever picks it up sees whose orders they would be saving. */}
+              <span className="flex min-w-0 items-center gap-1 text-[10px] font-semibold text-[var(--brand-background-fg)]" title={signedInAs}>
+                <UserRound className="h-3 w-3 shrink-0" aria-hidden />
+                <span className="sr-only">{signedInAs}</span>
+                <span className="truncate" aria-hidden>{user.fullName}</span>
+              </span>
             </div>
-          ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-[var(--brand-primary)] text-[10px] font-bold text-[var(--brand-primary-fg)]">
-              {brand.name.substring(0, 2).toUpperCase()}
-            </div>
-          )}
-          <div className="flex flex-col leading-tight">
-            <span className="text-xs font-bold text-[var(--brand-background-fg)] line-clamp-1">{brand.name}</span>
-            <span className="text-[10px] font-medium text-[var(--brand-background-fg-muted)] line-clamp-1">
-              {user.branch?.name || t('noBranchTitle')}
-            </span>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2">
-          <InstallAppButton className="rounded-full p-2 text-[var(--brand-background-fg-muted)] hover:bg-[var(--brand-background-active)] hover:text-[var(--brand-background-fg)] transition-colors" />
-          <LocaleSwitcher className="border-[var(--brand-border)] bg-[var(--brand-background)]/40 text-[var(--brand-background-fg-muted)] hover:text-[var(--brand-background-fg)]" />
-          <StaffSignOutButton
-            redirectUrl={`/${locale}/brands/${brandSlug}/login`}
-            className="rounded-full p-2 text-[var(--brand-background-fg-muted)] hover:bg-[var(--brand-background-active)] hover:text-[var(--brand-background-fg)] transition-colors"
-          >
-            <LogOut className="h-5 w-5" />
-          </StaffSignOutButton>
+          <div className="flex shrink-0 items-center gap-2">
+            <InstallAppButton className={HEADER_BUTTON} />
+            <LocaleSwitcher className="min-h-11 border-[var(--brand-border)] bg-transparent px-4 text-[var(--brand-background-fg-muted)] hover:text-[var(--brand-background-fg)]" />
+            {/* Set apart from the language button: signing out by mistake means typing the password again. */}
+            <StaffSignOutButton
+              redirectUrl={`/${locale}/brands/${brandSlug}/login`}
+              title={t('signOut')}
+              className={`${HEADER_BUTTON} ms-2`}
+            >
+              <LogOut className="h-5 w-5" aria-hidden />
+            </StaffSignOutButton>
+          </div>
         </div>
       </header>
 
@@ -126,7 +138,7 @@ export default async function StaffSubmitPage({
           userId={clerkUserId}
           brandId={brand.id}
           brandSlug={brand.slug}
-          apps={appsResult}
+          apps={apps}
         />
       </main>
     </div>
