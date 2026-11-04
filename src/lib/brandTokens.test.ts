@@ -49,6 +49,17 @@ describe('deriveBrandTokens', () => {
     });
   });
 
+  it('has the tints as plain rgba() colours, for browsers without color-mix()', () => {
+    const tokens = deriveBrandTokens({ primary: '#336699', surface: '#ffffff', danger: '#DC2626' });
+    expect(tokens).toMatchObject({
+      '--brand-primary-soft': 'rgba(51, 102, 153, 0.2)',
+      '--brand-danger-soft': 'rgba(220, 38, 38, 0.1)',
+      '--brand-danger-line': 'rgba(220, 38, 38, 0.25)',
+      // Navy, the text colour on a white surface.
+      '--brand-surface-fg-soft': 'rgba(10, 22, 40, 0.1)',
+    });
+  });
+
   it('measures contrast as WCAG 2.1 does', () => {
     expect(contrastRatio('#000000', '#FFFFFF')).toBeCloseTo(21);
     expect(contrastRatio('#FFFFFF', '#000000')).toBeCloseTo(21);

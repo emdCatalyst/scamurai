@@ -145,9 +145,12 @@ export function deriveBrandTokens(brandColors: Partial<BrandColors> | null | und
   const primaryFg = getForeground(colors.primary);
   const dangerFg  = getForeground(colors.danger);
 
+  // The -soft and -line tints are ready-made rgba() values: Tailwind's `/10` on
+  // a var() colour needs color-mix(), which iOS 15 Safari doesn't have
   return {
     '--brand-primary':              colors.primary,
     '--brand-primary-fg':           primaryFg,
+    '--brand-primary-soft':         withOpacity(colors.primary, 0.2),
     '--brand-background':           colors.background,
     '--brand-background-fg':        bgFg,
     '--brand-background-fg-muted':  withOpacity(bgFg, 0.6),
@@ -155,9 +158,12 @@ export function deriveBrandTokens(brandColors: Partial<BrandColors> | null | und
     '--brand-surface':              colors.surface,
     '--brand-surface-fg':           surfaceFg,
     '--brand-surface-fg-muted':     withOpacity(surfaceFg, 0.6),
+    '--brand-surface-fg-soft':      withOpacity(surfaceFg, 0.1),
     '--brand-text-accent':          colors.textAccent,
     '--brand-danger':               colors.danger,
     '--brand-danger-fg':            dangerFg,
+    '--brand-danger-soft':          withOpacity(colors.danger, 0.1),
+    '--brand-danger-line':          withOpacity(colors.danger, 0.25),
     '--brand-border':               getBorderColor(colors.background),
   };
 }
