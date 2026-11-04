@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createOutbox, retryDelay, type UploadOutcome } from './outbox';
+import { createOutbox, retryDelay, withMemoryFallback, type UploadOutcome } from './outbox';
 import type { PendingOrder } from './staff/orderStore';
 
 const order = (id: string, overrides: Partial<PendingOrder> = {}): PendingOrder => ({
@@ -239,5 +239,38 @@ describe('outbox', () => {
     expect(retryDelay(1, mid)).toBe(5_000);
     expect(retryDelay(3, mid)).toBe(20_000);
     expect(retryDelay(20, mid)).toBe(300_000);
+  });
+});
+
+describe('withMemoryFallback', () => {
+  const broken = () => ({
+    get: async () => Promise.reject(new Error('broken')),
+    getAll: async () => Promise.reject(new Error('broken')),
+    save: async () => Promise.reject(new Error('broken')),
+    remove: async () => Promise.reject(new Error('broken')),
+  });
+
+  it('still sends an order the phone could not save, while the page is open', async () => {
+    const store = withMemoryFallback<PendingOrder>(broken());
+    store.keep(order('o1'));
+    expect(store.unsaved).toBe(1);
+    const uploaded: string[] = [];
+    // A broken store doesn't turn the sent order into a failed round.
+    await createOutbox({ store, upload: async (o) => (uploaded.push(o.id), sent) }).flush('user_a');
+    expect(uploaded).toEqual(['o1']);
+    expect(store.unsaved).toBe(0);
+    await expect(store.remove('not-kept')).rejects.toThrow('broken');
+  });
+
+  it('keeps a retried order in memory when the phone can no longer save it', async () => {
+    const rows = memoryStore([order('o1')]);
+    const store = withMemoryFallback<PendingOrder>({ ...rows, save: async () => Promise.reject(new Error('full')) });
+    await createOutbox({ store, upload: async (): Promise<Outcome> => ({ status: 'retry', error: 'Timed out' }) }).flush('user_a');
+    expect(store.unsaved).toBe(1);
+    expect(await store.getAll()).toMatchObject([{ id: 'o1', attempts: 1 }]);
+  });
+
+  it('fails like the store when nothing is kept in memory', async () => {
+    await expect(withMemoryFallback<PendingOrder>(broken()).getAll()).rejects.toThrow('broken');
   });
 });

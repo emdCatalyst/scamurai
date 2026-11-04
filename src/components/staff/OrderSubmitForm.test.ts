@@ -1,9 +1,12 @@
 import { createElement, type ComponentProps } from 'react';
 import { renderToString } from 'react-dom/server';
 import { NextIntlClientProvider } from 'next-intl';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import brand from '../../../messages/ar/brand.json';
 import OrderSubmitForm from './OrderSubmitForm';
+
+// On the server, Clerk answers with the user the page is made for.
+vi.mock('@clerk/nextjs', () => ({ useAuth: () => ({ userId: 'user_test' }) }));
 
 describe('OrderSubmitForm', () => {
   it('renders the order screen on the server without the browser-only parts', () => {

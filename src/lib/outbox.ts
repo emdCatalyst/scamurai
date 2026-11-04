@@ -220,3 +220,49 @@ export function createOutbox<T extends OutboxItem>(deps: {
     },
   };
 }
+
+/**
+ * `store`, except that an item the phone can't save (storage full or
+ * broken) is kept in memory: it still uploads while the page stays open.
+ */
+export function withMemoryFallback<T extends OutboxItem>(store: OutboxStore<T>) {
+  const kept = new Map<string, T>();
+  return {
+    async get(id: string): Promise<T | undefined> {
+      return kept.get(id) ?? store.get(id);
+    },
+    async getAll(): Promise<T[]> {
+      // With items in memory, a broken store must not keep them from being sent.
+      const saved = await store.getAll().catch((err) => {
+        if (kept.size === 0) throw err;
+        return [] as T[];
+      });
+      return [...saved.filter((item) => !kept.has(item.id)), ...kept.values()];
+    },
+    async save(item: T): Promise<void> {
+      try {
+        await store.save(item);
+        kept.delete(item.id);
+      } catch {
+        kept.set(item.id, item);
+      }
+    },
+    async remove(id: string): Promise<void> {
+      const wasKept = kept.delete(id);
+      try {
+        await store.remove(id);
+      } catch (err) {
+        // Kept because the store fails: a copy it may still hold is recognised as sent next time.
+        if (!wasKept) throw err;
+      }
+    },
+    /** Keeps an item that couldn't be saved. */
+    keep(item: T): void {
+      kept.set(item.id, item);
+    },
+    /** Items only in memory: lost if the page closes before they are sent. */
+    get unsaved(): number {
+      return kept.size;
+    },
+  };
+}
