@@ -11,7 +11,7 @@ Last reviewed: 2026-11-04.
 | What | Where |
 | --- | --- |
 | Schema (source of truth) | `src/lib/db/schema.ts` |
-| Migrations (generated, committed) | `src/lib/db/migrations/` (baseline: `0000_init.sql`) |
+| Migrations (generated, committed) | `src/lib/db/migrations/` (baseline: `0000_init.sql`, then one file per change) |
 | Runtime connection | `src/lib/db/index.ts` |
 | drizzle-kit config | `drizzle.config.ts` (reads `MIGRATE_URL` from `.env.local`) |
 | Local database | `docker-compose.yml` |
@@ -48,6 +48,19 @@ Conventions:
 - Files live in object storage, never in the database. `order_images.storage_path` is the object key
   (`<brandId>/<orderId>/sealed.jpg`) and `brands.logo_url` is a `/media/<key>` path. Neither changes when the
   bucket, region or provider changes.
+
+### Orders
+
+- The row is created when a phone asks for upload URLs, and counts as an order once confirm has found both photos
+  in storage: confirm sets `confirmed_at` in the same transaction that adds the two `order_images` rows. Finance
+  lists, counts, dashboards and branch details read confirmed orders only, through partial indexes
+  (`WHERE deleted_at IS NULL AND confirmed_at IS NOT NULL`). New finance queries must filter the same way.
+- One live order per brand, branch, delivery app and order number (`orders_live_number_unique`, partial on
+  `deleted_at IS NULL`): two delivery apps can hand out the same number. Order numbers are stored normalized
+  (`normalizeOrderNumber` in `src/lib/orders/input.ts`), so `١٢٣٤` and `1234` are the same order.
+- CHECK constraints repeat the limits in `src/lib/orders/input.ts`: amount from 0 to 1,000,000, order number of 1 to
+  40 characters, notes up to 500, a three-letter currency. They were added `NOT VALID`, so they hold for new and
+  changed rows without checking older ones; `ALTER TABLE orders VALIDATE CONSTRAINT …` checks those too.
 
 ## Connection settings
 
