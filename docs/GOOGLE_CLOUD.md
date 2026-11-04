@@ -351,11 +351,11 @@ log-based metrics can pull fields out with `REGEXP_EXTRACT`.
 | Signal | Source | Alert when |
 | --- | --- | --- |
 | The app and the database answer | Uptime check on `https://YOUR_DOMAIN/api/health` (200, or 503 when the database doesn't reply within 2 s) | 2 failures in a row |
-| Orders stuck on phones | `[telemetry]` lines with `"type":"outbox"`, sent when an order waited 10+ minutes on a phone or was rejected | any |
+| Orders stuck on phones | `[telemetry]` lines with `"type":"outbox"`: sent when an order waited 10+ minutes on a phone (at most every 5 minutes), once per refused order, and when a worker signs out leaving orders behind. `otherAccounts` counts orders other workers left on that phone | any |
 | Upload delay | `waitedSec` in `[orders] confirmed` lines: seconds from saving on the phone to confirmed | p95 above 10 minutes |
 | Abandoned uploads | `[orders] taken over` lines: a colleague resubmitted a number whose upload no phone had tried for 2 hours | more than a few a day |
 | Page speed on staff phones | `[telemetry]` lines with `"type":"vitals"` (LCP, INP, CLS, FCP, TTFB) | INP p75 above 500 ms |
-| Content the browser blocked | `[csp]` lines | any new kind |
+| Content the browser blocked | `[csp]` lines, at most 60 a minute per instance (more are dropped, so a steady 60 means a flood or a policy problem) | any new kind |
 | Server errors | Cloud Run 5xx, and `Error` log lines | above 1% of requests |
 
 ## Operations
