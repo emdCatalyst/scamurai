@@ -67,6 +67,10 @@ Conventions:
 - Dates are Riyadh days (UTC+3 all year, `src/lib/queries/riyadhDays.ts`), whatever zone the server runs in: date
   filters take `submitted_at` from the day's start in Riyadh, and SQL groups by day with
   `submitted_at AT TIME ZONE 'Asia/Riyadh'`. The database session stays in UTC.
+- `submitted_at` is when the worker saved the order on the phone (set by confirm), so an order saved at 23:55 that
+  uploads after midnight counts on its own day. A phone time more than 48 hours before the order first reached the
+  server, or more than 5 minutes after it, is a wrong clock and is not used; `created_at` (first arrival) is used
+  instead, and always stays the arrival time (`orderDate` in `src/lib/validations/orders.ts`).
 - CHECK constraints repeat the limits in `src/lib/orders/input.ts`: amount from 0 to 1,000,000, order number of 1 to
   40 characters, notes up to 500, a three-letter currency. They were added `NOT VALID`, so they hold for new and
   changed rows without checking older ones; `ALTER TABLE orders VALIDATE CONSTRAINT …` checks those too.

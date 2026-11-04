@@ -6,6 +6,7 @@ import {
   isOrderId,
   savedByOtherAccount,
   uploadUrlsRequestSchema,
+  orderDate,
   waitedSeconds,
 } from './orders';
 
@@ -111,5 +112,25 @@ describe('waitedSeconds', () => {
     expect(waitedSeconds(1_000, 91_000)).toBe(90);
     expect(waitedSeconds(100_000, 1_000)).toBe(0);
     for (const junk of [0, -5, Number.NaN, '1000', null, undefined]) expect(waitedSeconds(junk, 1_000)).toBeUndefined();
+  });
+});
+
+describe('orderDate', () => {
+  const received = new Date('2026-11-03T21:10:00Z'); // 00:10 in Riyadh
+  const hour = 60 * 60 * 1000;
+
+  it('dates the order when the phone saved it', () => {
+    const saved = Date.parse('2026-11-03T20:55:00Z'); // 23:55 in Riyadh, the evening before
+    expect(orderDate(saved, received)).toEqual(new Date(saved));
+  });
+
+  it('allows a phone clock a few minutes ahead, without dating after arrival', () => {
+    expect(orderDate(received.getTime() + 2 * 60_000, received)).toEqual(received);
+  });
+
+  it('ignores a wrong clock or junk and dates by arrival', () => {
+    for (const savedAt of [received.getTime() - 49 * hour, received.getTime() + hour, Number.NaN, 'x', undefined]) {
+      expect(orderDate(savedAt, received)).toEqual(received);
+    }
   });
 });

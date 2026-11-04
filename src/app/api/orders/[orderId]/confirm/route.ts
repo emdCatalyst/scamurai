@@ -5,7 +5,7 @@ import { orders, orderImages, users } from "@/lib/db/schema";
 import { staffRateLimits } from "@/lib/ratelimit";
 import { getStorage } from "@/lib/storage";
 import { ORDER_IMAGE_TYPES, orderImageKey } from "@/lib/storage/keys";
-import { CONFIRM_REQUEST_MAX_BYTES, confirmRequestSchema, isOrderId, waitedSeconds } from "@/lib/validations/orders";
+import { CONFIRM_REQUEST_MAX_BYTES, confirmRequestSchema, isOrderId, orderDate, waitedSeconds } from "@/lib/validations/orders";
 import { eq, and, isNull } from "drizzle-orm";
 import { orderError, queryCause, readJson } from "../../respond";
 
@@ -20,14 +20,15 @@ const LOG = "[PATCH /api/orders/[orderId]/confirm]";
 
 /**
  * What the phone says about the upload: when the worker saved the order and
- * how many attempts it took. Logged only, never stored and never a reason to
- * refuse: phone clocks can be wrong. The `[orders] confirmed` line shows how
- * long orders wait on phones.
+ * how many attempts it took. Never a reason to refuse: phone clocks can be
+ * wrong. The save time dates the order when it is believable (orderDate);
+ * the `[orders] confirmed` line shows how long orders wait on phones.
  */
 async function uploadReport(req: Request) {
   const report = confirmRequestSchema.safeParse(await readJson(req, CONFIRM_REQUEST_MAX_BYTES));
   if (!report.success) return {};
-  return { waitedSec: waitedSeconds(report.data.savedAt), attempts: report.data.attempts ?? undefined };
+  const { savedAt, attempts } = report.data;
+  return { savedAt: savedAt ?? undefined, waitedSec: waitedSeconds(savedAt), attempts: attempts ?? undefined };
 }
 
 const replaced = () => orderError("duplicate_order", "Another submission of this order number replaced this one");
@@ -68,7 +69,7 @@ export async function PATCH(
         eq(orders.brandId, brandId),
         eq(orders.submittedBy, user.id)
       ),
-      columns: { id: true, confirmedAt: true, deletedAt: true },
+      columns: { id: true, confirmedAt: true, deletedAt: true, createdAt: true },
     });
     if (!order) {
       return orderError("not_found", "Order not found or unauthorized");
@@ -97,7 +98,7 @@ export async function PATCH(
       // Unless a colleague took the number over while the photos were on their way (upload-urls).
       const open = await tx
         .update(orders)
-        .set({ confirmedAt: now, submittedAt: now, updatedAt: now })
+        .set({ confirmedAt: now, submittedAt: orderDate(report.savedAt, order.createdAt), updatedAt: now })
         .where(and(eq(orders.id, orderId), isNull(orders.deletedAt)))
         .returning({ id: orders.id });
       if (open.length === 0) return false;
@@ -109,7 +110,7 @@ export async function PATCH(
     });
     if (!confirmed) return replaced();
 
-    console.info("[orders] confirmed", JSON.stringify({ orderId, brandId, ...report }));
+    console.info("[orders] confirmed", JSON.stringify({ orderId, brandId, waitedSec: report.waitedSec, attempts: report.attempts }));
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error(`${LOG} Error:`, JSON.stringify({ orderId }), queryCause(err));

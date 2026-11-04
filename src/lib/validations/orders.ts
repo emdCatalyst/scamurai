@@ -43,7 +43,7 @@ export const uploadUrlsRequestSchema = z.object({
   notes: z.string().transform(normalizeNotes).pipe(z.string().max(NOTES_MAX_LENGTH)).nullish(),
 });
 
-/** PATCH /api/orders/[orderId]/confirm: what the phone says about the upload, for the logs. */
+/** PATCH /api/orders/[orderId]/confirm: what the phone says about the upload (the save time also dates the order). */
 export const confirmRequestSchema = z.object({
   savedAt: z.number().nullish(),
   attempts: z.number().int().min(0).nullish(),
@@ -72,4 +72,25 @@ export function waitedSeconds(savedAt: unknown, now = Date.now()): number | unde
   return typeof savedAt === 'number' && Number.isFinite(savedAt) && savedAt > 0
     ? Math.max(0, Math.round((now - savedAt) / 1000))
     : undefined;
+}
+
+/** Orders are saved before they upload, mostly minutes and at most a few hours before. */
+const SAVED_BEFORE_ARRIVAL_MAX_MS = 48 * 60 * 60 * 1000;
+/** A phone clock this far ahead of the server still counts as right. */
+const CLOCK_AHEAD_MAX_MS = 5 * 60 * 1000;
+
+/**
+ * The time finance dates an order by: when the worker saved it on the phone,
+ * so an order saved at 23:55 that uploads after midnight belongs to its own
+ * day. A phone time outside the believable window (a wrong clock) is not
+ * used; the order is then dated by when it first reached the server.
+ */
+export function orderDate(savedAt: unknown, receivedAt: Date): Date {
+  const received = receivedAt.getTime();
+  const believable =
+    typeof savedAt === 'number' &&
+    Number.isFinite(savedAt) &&
+    savedAt >= received - SAVED_BEFORE_ARRIVAL_MAX_MS &&
+    savedAt <= received + CLOCK_AHEAD_MAX_MS;
+  return believable ? new Date(Math.min(savedAt, received)) : receivedAt;
 }
