@@ -7,6 +7,7 @@ import { requireAuth } from "@/lib/auth";
 import { clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { brandUserSchema } from "@/lib/validations/brandUser";
+import { isLiveBranchOf } from "@/lib/queries/branches";
 
 export async function updateBrandUser(
   userId: string,
@@ -28,6 +29,9 @@ export async function updateBrandUser(
 
     const { fullName, email, role } = parsed.data;
     const branchId = parsed.data.branchId;
+    if (branchId && !(await isLiveBranchOf(brandId, branchId))) {
+      return { success: false, error: "Invalid branch selection" };
+    }
 
     const existingUser = await db.query.users.findFirst({
       where: and(eq(users.id, userId), eq(users.brandId, brandId), isNull(users.deletedAt)),

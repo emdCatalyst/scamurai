@@ -199,3 +199,16 @@ export async function getOtherActiveBranches(brandId: string, currentBranchId: s
     ),
   });
 }
+
+/**
+ * Whether a branch is a live branch of this brand. Staff are only ever put in
+ * their own brand's branches: orders take the brand from the session but the
+ * branch from the staff member, so a foreign branch would mix two brands' data.
+ */
+export async function isLiveBranchOf(brandId: string, branchId: string): Promise<boolean> {
+  const branch = await db.query.branches.findFirst({
+    where: and(eq(branches.id, branchId), eq(branches.brandId, brandId), isNull(branches.deletedAt)),
+    columns: { id: true },
+  });
+  return branch !== undefined;
+}
