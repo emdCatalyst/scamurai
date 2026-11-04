@@ -108,8 +108,13 @@ export function contrastRatio(a: string, b: string): number {
 }
 
 // Returns whichever of Scamurai navy and white contrasts more with the background
-function getForeground(bgHex: string): string {
+export function textColorOn(bgHex: string): string {
   return contrastRatio(bgHex, NAVY) >= contrastRatio(bgHex, WHITE) ? NAVY : WHITE;
+}
+
+// Whether text on this colour stays below WCAG AA (4.5:1) even in the better of navy and white
+export function hasLowContrastText(hex: string): boolean {
+  return contrastRatio(hex, textColorOn(hex)) < 4.5;
 }
 
 // Returns a tinted/shaded version of a hex for active states
@@ -140,10 +145,10 @@ export function deriveBrandTokens(brandColors: Partial<BrandColors> | null | und
     textAccent: hexOr(brandColors?.textAccent, DEFAULT_BRAND_COLORS.textAccent),
     danger:     hexOr(brandColors?.danger, DEFAULT_BRAND_COLORS.danger),
   };
-  const bgFg      = getForeground(colors.background);
-  const surfaceFg = getForeground(colors.surface);
-  const primaryFg = getForeground(colors.primary);
-  const dangerFg  = getForeground(colors.danger);
+  const bgFg      = textColorOn(colors.background);
+  const surfaceFg = textColorOn(colors.surface);
+  const primaryFg = textColorOn(colors.primary);
+  const dangerFg  = textColorOn(colors.danger);
 
   // The -soft and -line tints are ready-made rgba() values: Tailwind's `/10` on
   // a var() colour needs color-mix(), which iOS 15 Safari doesn't have

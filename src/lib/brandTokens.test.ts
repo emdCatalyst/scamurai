@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { brandTokensCss, contrastRatio, DEFAULT_BRAND_COLORS, deriveBrandTokens } from './brandTokens';
+import { brandTokensCss, contrastRatio, DEFAULT_BRAND_COLORS, deriveBrandTokens, hasLowContrastText, textColorOn } from './brandTokens';
 
 const INJECTION = 'red}</style><meta http-equiv="refresh" content="0;url=https://evil.example/login">';
 const NAVY = '#0A1628';
@@ -77,5 +77,19 @@ describe('brandTokensCss', () => {
 
   it('can never close its <style> element', () => {
     expect(brandTokensCss({ '--brand-danger': INJECTION })).not.toContain('<');
+  });
+});
+
+describe('textColorOn and hasLowContrastText', () => {
+  it('picks navy on light colours and white on dark ones', () => {
+    expect(textColorOn('#FFFFFF')).toBe(NAVY);
+    expect(textColorOn('#172b49')).toBe(WHITE);
+  });
+
+  it('flags only colours where neither navy nor white reaches 4.5:1', () => {
+    expect(hasLowContrastText('#7B7B7B')).toBe(true); // mid grey: about 4.3:1 at best
+    expect(hasLowContrastText('#4CAF50')).toBe(false); // navy text on it
+    expect(hasLowContrastText('#172b49')).toBe(false);
+    expect(hasLowContrastText('#FFFFFF')).toBe(false);
   });
 });
