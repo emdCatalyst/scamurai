@@ -342,6 +342,10 @@ export const orders = pgTable(
     index("idx_orders_submitted_at")
       .on(table.brandId, sql`${table.submittedAt} DESC`)
       .where(sql`${table.deletedAt} IS NULL AND ${table.confirmedAt} IS NOT NULL`),
+    // The admin dashboard counts confirmed orders of every brand by date.
+    index("idx_orders_confirmed_submitted_at")
+      .on(sql`${table.submittedAt} DESC`)
+      .where(sql`${table.deletedAt} IS NULL AND ${table.confirmedAt} IS NOT NULL`),
     check(
       "orders_status_values",
       sql`${table.status} IN ('needs_review', 'approved', 'rejected')`

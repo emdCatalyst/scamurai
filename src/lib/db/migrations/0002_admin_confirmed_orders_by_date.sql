@@ -1,0 +1,1 @@
+CREATE INDEX "idx_orders_confirmed_submitted_at" ON "orders" USING btree ("submitted_at" DESC) WHERE "orders"."deleted_at" IS NULL AND "orders"."confirmed_at" IS NOT NULL;
