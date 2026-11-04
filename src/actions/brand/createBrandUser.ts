@@ -17,6 +17,7 @@ import {
   emailButton,
   emailMutedNote,
 } from "@/lib/email-templates";
+import { isLiveBranchOf } from "@/lib/queries/branches";
 
 function generateTempPassword() {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
@@ -46,6 +47,9 @@ export async function createBrandUser(data: {
 
     const { fullName, email, role } = parsed.data;
     const branchId = parsed.data.branchId;
+    if (branchId && !(await isLiveBranchOf(brandId, branchId))) {
+      return { success: false, error: "Invalid branch selection" };
+    }
 
     // 2. Plan Limit Check
     const userCount = await countNonDeletedUsers(brandId);

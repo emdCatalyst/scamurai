@@ -64,3 +64,43 @@ export async function isApplicationRateLimited(headerList: Pick<Headers, 'get'>)
     return false;
   }
 }
+
+/**
+ * A limit per key (a signed-in user), counted in this server's memory: no
+ * network call, so it can sit on the staff upload path. Each instance counts
+ * on its own, so the real ceiling is the limit times the instances running.
+ * Fixed windows; windows that ended are dropped once per window.
+ */
+export function createMemoryRateLimit({ limit, windowMs }: { limit: number; windowMs: number }) {
+  const windows = new Map<string, { start: number; count: number }>();
+  let sweptAt = 0;
+
+  /** Counts a request; true once `key` went over `limit` in the current window. */
+  return function isLimited(key: string, now = Date.now()): boolean {
+    if (now - sweptAt >= windowMs) {
+      for (const [other, window] of windows) if (now - window.start >= windowMs) windows.delete(other);
+      sweptAt = now;
+    }
+    const window = windows.get(key);
+    if (!window || now - window.start >= windowMs) {
+      windows.set(key, { start: now, count: 1 });
+      return false;
+    }
+    window.count += 1;
+    return window.count > limit;
+  };
+}
+
+const TEN_MINUTES = 10 * 60_000;
+
+/**
+ * The staff APIs, per signed-in user: one upload-urls and one confirm per
+ * order, far more than a worker sends in a rush. They stop a script; a phone
+ * sending a long backlog after a day offline is only slowed down, since it
+ * tries a 429 again later.
+ */
+export const staffRateLimits = {
+  uploadUrls: createMemoryRateLimit({ limit: 120, windowMs: TEN_MINUTES }),
+  confirm: createMemoryRateLimit({ limit: 120, windowMs: TEN_MINUTES }),
+  telemetry: createMemoryRateLimit({ limit: 120, windowMs: TEN_MINUTES }),
+};

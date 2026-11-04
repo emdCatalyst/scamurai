@@ -1,8 +1,7 @@
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import { getBrandBySlug } from "@/lib/queries/brands";
-import { deriveBrandTokens, DEFAULT_BRAND_COLORS } from "@/lib/brandTokens";
-import type { BrandColors } from "@/types/brand";
+import { deriveBrandTokens } from "@/lib/brandTokens";
 
 /**
  * The staff app of one brand. Installed from the brand's sign-in or order
@@ -14,7 +13,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ locale:
   const brand = hasLocale(routing.locales, locale) ? await getBrandBySlug(brandSlug) : undefined;
   if (!brand) return new Response("Not found", { status: 404 });
 
-  const background = deriveBrandTokens((brand.brandColors as BrandColors) || DEFAULT_BRAND_COLORS)["--brand-background"];
+  const background = deriveBrandTokens(brand.brandColors)["--brand-background"];
   const base = `/${locale}/brands/${brand.slug}`;
 
   return Response.json(

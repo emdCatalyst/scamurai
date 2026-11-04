@@ -9,6 +9,7 @@ import {
   cspHeaderName,
   cspMode,
 } from './lib/security/csp';
+import { isCrossSiteApiWrite } from './lib/security/csrf';
 import { getSiteUrl } from './lib/seo/site';
 
 const intlMiddleware = createMiddleware(routing);
@@ -90,7 +91,7 @@ async function route(auth: ClerkMiddlewareAuth, req: NextRequest): Promise<NextR
   const isApiRoute = req.nextUrl.pathname.startsWith('/api');
   
   const firstSegment = req.nextUrl.pathname.split('/')[1];
-  const locale = ['en', 'ar'].includes(firstSegment || '') ? firstSegment : 'en';
+  const locale = LOCALES.includes(firstSegment) ? firstSegment : routing.defaultLocale;
 
   // 1. Check if it's a public route
   const isPublic = isPublicRoute(req);
@@ -168,6 +169,10 @@ async function route(auth: ClerkMiddlewareAuth, req: NextRequest): Promise<NextR
 }
 
 export const proxy = clerkMiddleware(async (auth, req) => {
+  if (isCrossSiteApiWrite(req.method, req.nextUrl.pathname, req.headers)) {
+    return NextResponse.json({ error: 'Cross-site request refused' }, { status: 403 });
+  }
+
   const csp = pagePolicy(req.nextUrl.pathname);
 
   // Next.js reads the nonce from the request's CSP header and puts it on its

@@ -11,7 +11,7 @@ Last reviewed: 2026-11-04.
 | What | Where |
 | --- | --- |
 | Schema (source of truth) | `src/lib/db/schema.ts` |
-| Migrations (generated, committed) | `src/lib/db/migrations/` (baseline: `0000_init.sql`) |
+| Migrations (generated, committed) | `src/lib/db/migrations/` (baseline: `0000_init.sql`, then one file per change) |
 | Runtime connection | `src/lib/db/index.ts` |
 | drizzle-kit config | `drizzle.config.ts` (reads `MIGRATE_URL` from `.env.local`) |
 | Local database | `docker-compose.yml` |
@@ -49,6 +49,32 @@ Conventions:
   (`<brandId>/<orderId>/sealed.jpg`) and `brands.logo_url` is a `/media/<key>` path. Neither changes when the
   bucket, region or provider changes.
 
+### Orders
+
+- The row is created when a phone asks for upload URLs, and counts as an order once confirm has found both photos
+  in storage: confirm sets `confirmed_at` in the same transaction that adds the two `order_images` rows. Finance
+  lists, counts, dashboards and branch details read confirmed orders only, through partial indexes
+  (`WHERE deleted_at IS NULL AND confirmed_at IS NOT NULL`). New finance queries must filter the same way, with
+  `confirmedOrdersOf` in `src/lib/queries/orders.ts`.
+- One live order per brand, branch, delivery app and order number (`orders_live_number_unique`, partial on
+  `deleted_at IS NULL`): two delivery apps can hand out the same number. Order numbers are stored normalized
+  (`normalizeOrderNumber` in `src/lib/orders/input.ts`), so `١٢٣٤` and `1234` are the same order.
+- The order's `id` is the phone's own id for the submission (`clientOrderId`). A retry with that id resumes the row,
+  in the branch where it was captured, and rewrites what the worker corrected; any other submission of a taken
+  number is refused. Each attempt sets `updated_at`. An unconfirmed order of another staff member that no phone
+  has tried for 2 hours gives its number up: upload-urls soft-deletes it (`deleted_at`) and logs
+  `[orders] taken over`. Nothing else deletes orders.
+- Dates are Riyadh days (UTC+3 all year, `src/lib/queries/riyadhDays.ts`), whatever zone the server runs in: date
+  filters take `submitted_at` from the day's start in Riyadh, and SQL groups by day with
+  `submitted_at AT TIME ZONE 'Asia/Riyadh'`. The database session stays in UTC.
+- `submitted_at` is when the worker saved the order on the phone (set by confirm), so an order saved at 23:55 that
+  uploads after midnight counts on its own day. A phone time more than 48 hours before the order first reached the
+  server, or more than 5 minutes after it, is a wrong clock and is not used; `created_at` (first arrival) is used
+  instead, and always stays the arrival time (`orderDate` in `src/lib/validations/orders.ts`).
+- CHECK constraints repeat the limits in `src/lib/orders/input.ts`: amount from 0 to 1,000,000, order number of 1 to
+  40 characters, notes up to 500, a three-letter currency. They were added `NOT VALID`, so they hold for new and
+  changed rows without checking older ones; `ALTER TABLE orders VALIDATE CONSTRAINT …` checks those too.
+
 ## Connection settings
 
 | Variable | Used by | Local value |
@@ -60,8 +86,14 @@ Conventions:
 The app requires TLS unless `DATABASE_SSL=disable`. Use `disable` only where the connection is already private or
 encrypted: local Docker, the Cloud SQL Auth Proxy, or Cloud Run's built-in Cloud SQL socket.
 
-Each server instance opens at most 3 connections (`statement_timeout` 10 s, connect timeout 30 s). On Cloud Run
-the total is max instances × 3, which must stay below the Cloud SQL instance's `max_connections`.
+Each server instance has two pools of at most 3 connections (`statement_timeout` 10 s, connect timeout 30 s), so at
+most 6 connections:
+
+- `staffDb`: only the staff upload APIs (`upload-urls` and `confirm`). Phones upload in the background, so these
+  must answer even while finance or admin pages run long queries.
+- `db`: everything else (pages, server actions, webhooks, the health check).
+
+On Cloud Run the total is max instances × 6, which must stay below the Cloud SQL instance's `max_connections`.
 
 ## Local setup (any machine)
 

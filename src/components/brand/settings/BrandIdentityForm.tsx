@@ -9,6 +9,7 @@ import LogoUpload from '../../onboarding/LogoUpload';
 import ColorSlotPicker, { type ColorSlot } from '../../onboarding/ColorSlotPicker';
 import { updateBrandIdentity } from '@/actions/brand/updateBrandIdentity';
 import { brandIdentitySchema } from '@/lib/validations/brandSettings';
+import { hasLowContrastText, textColorOn } from '@/lib/brandTokens';
 import { useToast } from '@/components/ui/Toast';
 
 interface BrandIdentityFormProps {
@@ -33,29 +34,6 @@ const DEFAULT_COLORS = {
   textAccent: '#4fc5df',
 };
 
-function isLowContrastWithWhite(hex: string): boolean {
-  const r = parseInt(hex.slice(1, 3), 16) / 255;
-  const g = parseInt(hex.slice(3, 5), 16) / 255;
-  const b = parseInt(hex.slice(5, 7), 16) / 255;
-
-  const toLinear = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
-  const L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
-
-  const ratio = (1.05) / (L + 0.05);
-  return ratio < 4.5;
-}
-
-function isTooDark(hex: string): boolean {
-  const r = parseInt(hex.slice(1, 3), 16) / 255;
-  const g = parseInt(hex.slice(3, 5), 16) / 255;
-  const b = parseInt(hex.slice(5, 7), 16) / 255;
-
-  const toLinear = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
-  const L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
-
-  return L > 0.7;
-}
-
 export default function BrandIdentityForm({ brandId, initialData }: BrandIdentityFormProps) {
   const t = useTranslations('brand.settings.identity');
   const commonT = useTranslations('brand.settings');
@@ -79,11 +57,11 @@ export default function BrandIdentityForm({ brandId, initialData }: BrandIdentit
 
   const warnings = useMemo(() => {
     const w: Record<string, string> = {};
-    if (isLowContrastWithWhite(colors.primary)) {
+    if (hasLowContrastText(colors.primary)) {
       w.primary = onboardingT('contrastWarning');
     }
-    if (isTooDark(colors.background)) {
-      w.background = onboardingT('darkWarning');
+    if (hasLowContrastText(colors.background)) {
+      w.background = onboardingT('contrastWarning');
     }
     return w;
   }, [colors, onboardingT]);
@@ -240,7 +218,7 @@ export default function BrandIdentityForm({ brandId, initialData }: BrandIdentit
                 <div className="flex gap-2">
                   <div
                     className="rounded-md ps-3 pe-3 py-1.5 text-xs font-semibold"
-                    style={{ backgroundColor: colors.primary, color: isLowContrastWithWhite(colors.primary) ? '#ffffff' : '#000000' }}
+                    style={{ backgroundColor: colors.primary, color: textColorOn(colors.primary) }}
                   >
                     Primary Button
                   </div>

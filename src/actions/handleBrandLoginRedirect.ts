@@ -6,20 +6,20 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
+/**
+ * Where a signed-in user goes from a brand's sign-in page. It runs on every
+ * sign-in, so it logs only failures, naming the user by Clerk id, never by
+ * e-mail address.
+ */
 export async function handleBrandLoginRedirect(brandSlug: string) {
-  console.log('[handleBrandLoginRedirect] 1. Action initiated for brand:', brandSlug);
-  
   const { userId } = await auth();
-  console.log('[handleBrandLoginRedirect] 2. Clerk Auth result, userId:', userId);
 
   if (!userId) {
     console.warn('[handleBrandLoginRedirect] No userId found in auth()');
     return { success: false, error: "Unauthorized" };
   }
 
-  console.log('[handleBrandLoginRedirect] 3. Fetching user from DB...');
   const user = await getUserByClerkId(userId);
-  console.log('[handleBrandLoginRedirect] 4. DB User fetch result:', user ? { email: user.email, role: user.role } : 'NOT_FOUND');
 
   if (!user) {
     console.error('[handleBrandLoginRedirect] User not found in DB for Clerk ID:', userId);
@@ -33,28 +33,19 @@ export async function handleBrandLoginRedirect(brandSlug: string) {
         .update(users)
         .set({ joinedAt: new Date(), updatedAt: new Date() })
         .where(eq(users.id, user.id));
-      console.log(`[handleBrandLoginRedirect] Set joinedAt for user: ${user.email}`);
     } catch (err) {
-      console.error(`[handleBrandLoginRedirect] Failed to set joinedAt for user: ${user.email}`, err);
+      console.error('[handleBrandLoginRedirect] Failed to set joinedAt for Clerk ID:', userId, err);
     }
   }
 
-  console.log('[handleBrandLoginRedirect] Found user:', {
-    email: user.email,
-    role: user.role,
-    isActive: user.isActive,
-    brandId: user.brandId,
-    brandSlug: user.brand?.slug
-  });
-
   if (!user.isActive) {
-    console.warn('[handleBrandLoginRedirect] USER_INACTIVE:', user.email);
+    console.warn('[handleBrandLoginRedirect] USER_INACTIVE:', userId);
     return { success: false, error: "inactive" };
   }
 
   // Check if brand exists (for non-master-admins)
   if (user.role !== 'master_admin' && !user.brand) {
-    console.error('[handleBrandLoginRedirect] User has no brand assigned:', user.email);
+    console.error('[handleBrandLoginRedirect] User has no brand assigned:', userId);
     return { success: false, error: "noAccount" };
   }
 
@@ -78,15 +69,12 @@ export async function handleBrandLoginRedirect(brandSlug: string) {
     const client = await clerkClient();
     const clerkUser = await client.users.getUser(userId);
     if (clerkUser.publicMetadata?.mustChangePassword === true) {
-      console.log('[handleBrandLoginRedirect] User must change password, redirecting to change-password.');
       return { success: true, target: `/brands/${brandSlug}/change-password` };
     }
   }
 
   // Determine redirect based on role
   let target = `/brands/${brandSlug}/dashboard`;
-
-  console.log('Login redirect check for user:', user.email, 'Role:', user.role);
 
   switch (user.role) {
     case "master_admin":
@@ -109,6 +97,5 @@ export async function handleBrandLoginRedirect(brandSlug: string) {
       target = "/";
   }
 
-  console.log('Redirecting user to:', target);
   return { success: true, target };
 }

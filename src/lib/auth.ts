@@ -1,5 +1,6 @@
 import { auth, clerkClient, currentUser } from '@clerk/nextjs/server';
 import { notFound, redirect } from 'next/navigation';
+import { ORDER_ERROR_STATUS, type OrderErrorBody, type OrderErrorCode } from '@/lib/orders/errors';
 
 export type UserRole = 'master_admin' | 'brand_admin' | 'finance' | 'staff';
 
@@ -43,6 +44,8 @@ async function getUserWithRetry(userId: string, retries = 3, delay = 500) {
   throw new Error('Clerk retry exhausted'); // Should not be reached due to throw in loop
 }
 
+type Session = { userId: string; role: UserRole; brandId: string | null };
+
 /**
  * Resolves the current user's role + brandId, preferring fast session-claim
  * lookup with a Clerk API fallback.
@@ -59,12 +62,15 @@ async function getUserWithRetry(userId: string, retries = 3, delay = 500) {
  *
  * Without that, every request hits Clerk's API for the user record and we
  * emit a one-time warning on server start.
+ *
+ * Returns null when signed out, and 'unavailable' when the role is only in
+ * Clerk's API and that call failed.
  */
-export async function requireAuth(allowedRoles?: UserRole[]) {
+async function readSession(): Promise<Session | null | 'unavailable'> {
   const { userId, sessionClaims } = await auth();
 
   if (!userId) {
-    redirect('/sign-in');
+    return null;
   }
 
   let role = sessionClaims?.metadata?.role as UserRole;
@@ -96,19 +102,49 @@ export async function requireAuth(allowedRoles?: UserRole[]) {
         message: clerkError?.message,
         clerkError: clerkError?.clerkError
       });
-      
+
       // If we're authorized by Clerk (userId exists) but the management API is failing,
       // and we don't have roles in the session, we can't safely proceed.
-      // Redirect to a safe page instead of throwing/crashing.
-      redirect('/');
+      return 'unavailable';
     }
   }
 
-  if (allowedRoles && !allowedRoles.includes(role)) {
+  return { userId, role, brandId };
+}
+
+/** Page guard: redirects to sign-in when signed out, and home for any other refusal. */
+export async function requireAuth(allowedRoles?: readonly UserRole[]) {
+  const session = await readSession();
+
+  if (session === null) {
+    redirect('/sign-in');
+  }
+
+  // Clerk's API failed: redirect to a safe page instead of throwing/crashing.
+  if (session === 'unavailable' || (allowedRoles && !allowedRoles.includes(session.role))) {
     redirect('/');
   }
 
-  return { userId, role, brandId };
+  return session;
+}
+
+/** Who may submit orders: the order APIs, and the order screen that sends to them. */
+export const ORDER_SUBMITTER_ROLES: readonly UserRole[] = ['staff'];
+
+const apiRefusal = (code: OrderErrorCode, error: string) =>
+  Response.json({ error, code } satisfies OrderErrorBody, { status: ORDER_ERROR_STATUS[code] });
+
+/**
+ * requireAuth for route handlers: the session, or a JSON answer to return as
+ * is. A redirect thrown inside a handler's try/catch became a 500, which
+ * phones retry forever; here a wrong role is a 403 they stop at.
+ */
+export async function requireApiAuth(allowedRoles: readonly UserRole[]): Promise<Session | Response> {
+  const session = await readSession();
+  if (session === null) return apiRefusal('unauthenticated', 'Not signed in');
+  if (session === 'unavailable') return apiRefusal('server_error', 'Could not check the session');
+  if (!allowedRoles.includes(session.role)) return apiRefusal('forbidden', 'Not allowed for this account');
+  return session;
 }
 
 /**

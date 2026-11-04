@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { requireApiAuth } from "@/lib/auth";
 import { getOrderDetail } from "@/lib/queries/orders";
 import { getStorage, ORDER_IMAGE_READ_TTL_SECONDS } from "@/lib/storage";
+import { isOrderId } from "@/lib/validations/orders";
+import { orderError, queryCause } from "../../respond";
 
 /**
  * Order details plus short-lived read URLs for its two photos. Photos are
@@ -12,17 +14,19 @@ export async function GET(
   { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
-    const { brandId } = await requireAuth(["finance", "brand_admin"]);
+    const session = await requireApiAuth(["finance", "brand_admin"]);
+    if (session instanceof Response) return session;
+    const { brandId } = session;
 
     if (!brandId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      return orderError("forbidden", "User has no brand");
     }
 
     const { orderId } = await params;
 
-    const order = await getOrderDetail(orderId, brandId);
+    const order = isOrderId(orderId) ? await getOrderDetail(orderId, brandId) : null;
     if (!order) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      return orderError("not_found", "Order not found");
     }
 
     const storage = getStorage();
@@ -56,7 +60,7 @@ export async function GET(
       images: { sealed, opened },
     });
   } catch (err) {
-    console.error("[GET /api/orders/[orderId]/signed-urls] Error:", err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("[GET /api/orders/[orderId]/signed-urls] Error:", queryCause(err));
+    return orderError("server_error", "Internal Server Error");
   }
 }

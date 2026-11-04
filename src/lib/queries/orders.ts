@@ -13,16 +13,18 @@ import {
   or,
   ilike,
   gte,
-  lte,
+  lt,
   isNull,
+  isNotNull,
   count,
   countDistinct,
   desc,
   asc,
   sum,
-  sql,
   type SQL,
 } from "drizzle-orm";
+import { normalizeOrderNumber } from "@/lib/orders/input";
+import { escapeLikePattern } from "./applications";
 
 /**
  * Generates the next order number for a brand for today.
@@ -62,7 +64,8 @@ export interface GetOrdersParams {
   branchId?: string;
   deliveryAppId?: string;
   dateFrom?: Date;
-  dateTo?: Date;
+  /** Exclusive: the start of the day after the last one picked. */
+  dateBefore?: Date;
   sort?: OrderSort;
   page?: number;
   pageSize?: number;
@@ -83,18 +86,18 @@ export type OrderRow = {
   hasBothImages: boolean;
 };
 
+/**
+ * A brand's orders as finance counts them, in lists, totals, dashboards and
+ * branch counts. `upload-urls` inserts the row before the photos are
+ * uploaded; it counts as an order once confirm saw both (confirmed_at). The
+ * partial indexes on orders cover exactly these rows.
+ */
+export function confirmedOrdersOf(brandId: string): SQL {
+  return and(eq(orders.brandId, brandId), isNull(orders.deletedAt), isNotNull(orders.confirmedAt))!;
+}
+
 function buildOrdersWhere(params: GetOrdersParams): SQL | undefined {
-  const filters: SQL[] = [
-    eq(orders.brandId, params.brandId),
-    isNull(orders.deletedAt),
-    // Exclude orders whose image upload never completed. The `upload-urls`
-    // endpoint inserts the order row before storage upload; an order without
-    // both images is an abandoned in-flight submission, not a real order.
-    sql`(
-      SELECT COUNT(*) FROM ${orderImages}
-      WHERE ${orderImages.orderId} = ${orders.id}
-    ) >= 2`,
-  ];
+  const filters: SQL[] = [confirmedOrdersOf(params.brandId)];
 
   if (params.branchId) {
     filters.push(eq(orders.branchId, params.branchId));
@@ -108,15 +111,16 @@ function buildOrdersWhere(params: GetOrdersParams): SQL | undefined {
     filters.push(gte(orders.submittedAt, params.dateFrom));
   }
 
-  if (params.dateTo) {
-    filters.push(lte(orders.submittedAt, params.dateTo));
+  if (params.dateBefore) {
+    filters.push(lt(orders.submittedAt, params.dateBefore));
   }
 
-  if (params.search) {
-    const term = `%${params.search}%`;
-    filters.push(
-      or(ilike(orders.orderNumber, term), ilike(users.fullName, term))!
-    );
+  const search = params.search?.trim();
+  if (search) {
+    // Order numbers are stored normalized, so "#١٢٣٤" finds 1234; names are searched as typed.
+    const number = normalizeOrderNumber(search);
+    const byName = ilike(users.fullName, `%${escapeLikePattern(search)}%`);
+    filters.push(number ? or(ilike(orders.orderNumber, `%${escapeLikePattern(number)}%`), byName)! : byName);
   }
 
   return and(...filters);
@@ -132,15 +136,6 @@ export async function getOrders(params: GetOrdersParams) {
 
   const whereClause = buildOrdersWhere(params);
 
-  const imageCountSub = db
-    .select({
-      orderId: orderImages.orderId,
-      cnt: count(orderImages.id).as("img_count"),
-    })
-    .from(orderImages)
-    .groupBy(orderImages.orderId)
-    .as("order_image_counts");
-
   const query = db
     .select({
       id: orders.id,
@@ -154,7 +149,6 @@ export async function getOrders(params: GetOrdersParams) {
       currency: orders.currency,
       notes: orders.notes,
       submittedAt: orders.submittedAt,
-      imageCount: sql<number>`COALESCE(${imageCountSub.cnt}, 0)`,
     })
     .from(orders)
     .innerJoin(branches, eq(branches.id, orders.branchId))
@@ -164,7 +158,6 @@ export async function getOrders(params: GetOrdersParams) {
       eq(deliveryAppCatalog.id, brandDeliveryApps.catalogAppId)
     )
     .innerJoin(users, eq(users.id, orders.submittedBy))
-    .leftJoin(imageCountSub, eq(imageCountSub.orderId, orders.id))
     .where(whereClause);
 
   switch (sort) {
@@ -185,28 +178,14 @@ export async function getOrders(params: GetOrdersParams) {
 
   const rows = await query.limit(pageSize).offset(offset).execute();
 
-  const [totalResult] = await db
-    .select({ count: count() })
-    .from(orders)
-    .innerJoin(users, eq(users.id, orders.submittedBy))
-    .where(whereClause)
-    .execute();
+  // Staff names are only needed to search by them; without the join the count reads the index alone.
+  const totalQuery = db.select({ count: count() }).from(orders).$dynamic();
+  if (params.search?.trim()) totalQuery.innerJoin(users, eq(users.id, orders.submittedBy));
+  const [totalResult] = await totalQuery.where(whereClause).execute();
 
   return {
-    rows: rows.map((row) => ({
-      id: row.id,
-      orderNumber: row.orderNumber,
-      branchName: row.branchName,
-      deliveryAppName: row.deliveryAppName,
-      deliveryAppLogoUrl: row.deliveryAppLogoUrl,
-      submittedByName: row.submittedByName,
-      submittedByEmail: row.submittedByEmail,
-      subtotal: row.subtotal,
-      currency: row.currency,
-      notes: row.notes,
-      submittedAt: row.submittedAt,
-      hasBothImages: Number(row.imageCount) >= 2,
-    })) as OrderRow[],
+    // buildOrdersWhere returns confirmed orders only, all with both photos.
+    rows: rows.map((row) => ({ ...row, hasBothImages: true })) as OrderRow[],
     total: Number(totalResult.count),
   };
 }
@@ -328,13 +307,8 @@ export async function getOrderDetail(
       eq(deliveryAppCatalog.id, brandDeliveryApps.catalogAppId)
     )
     .innerJoin(users, eq(users.id, orders.submittedBy))
-    .where(
-      and(
-        eq(orders.id, orderId),
-        eq(orders.brandId, brandId),
-        isNull(orders.deletedAt)
-      )
-    )
+    // Like the list: an order whose photos haven't arrived isn't one yet.
+    .where(and(eq(orders.id, orderId), confirmedOrdersOf(brandId)))
     .limit(1)
     .execute();
 

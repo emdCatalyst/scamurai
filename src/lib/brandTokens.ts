@@ -1,12 +1,18 @@
 import type { BrandColors } from '@/types/brand';
 
-export const DEFAULT_BRAND_COLORS: BrandColors = {
+export const DEFAULT_BRAND_COLORS: Required<BrandColors> = {
   primary: '#4fc5df',   // Scamurai sky
   background: '#172b49',   // Scamurai navy
   surface: '#ffffff',
   textAccent: '#4fc5df',
   danger: '#DC2626',
 };
+
+// Text colours on brand colours
+const NAVY = '#0A1628';
+const WHITE = '#FFFFFF';
+
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
 // --- Utilities ---
 
@@ -95,9 +101,20 @@ function getLuminance(hex: string): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-// Returns contrast-safe foreground: Scamurai navy for light bg, white for dark bg
-function getForeground(bgHex: string): string {
-  return getLuminance(bgHex) > 0.35 ? '#0A1628' : '#FFFFFF';
+// Contrast ratio per WCAG 2.1, from 1 (none) to 21 (black on white)
+export function contrastRatio(a: string, b: string): number {
+  const [lighter, darker] = [getLuminance(a), getLuminance(b)].sort((x, y) => y - x);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+// Returns whichever of Scamurai navy and white contrasts more with the background
+export function textColorOn(bgHex: string): string {
+  return contrastRatio(bgHex, NAVY) >= contrastRatio(bgHex, WHITE) ? NAVY : WHITE;
+}
+
+// Whether text on this colour stays below WCAG AA (4.5:1) even in the better of navy and white
+export function hasLowContrastText(hex: string): boolean {
+  return contrastRatio(hex, textColorOn(hex)) < 4.5;
 }
 
 // Returns a tinted/shaded version of a hex for active states
@@ -113,15 +130,32 @@ function getBorderColor(bgHex: string): string {
     : 'rgba(255,255,255,0.12)';
 }
 
-export function deriveBrandTokens(colors: BrandColors): Record<string, string> {
-  const bgFg      = getForeground(colors.background);
-  const surfaceFg = getForeground(colors.surface);
-  const primaryFg = getForeground(colors.primary);
-  const dangerFg  = getForeground(colors.danger ?? '#DC2626');
+// The brand's colour if it is #rrggbb, else the default: the tokens are written
+// into a <style> element, so nothing else may pass through
+function hexOr(value: unknown, fallback: string): string {
+  return typeof value === 'string' && HEX_COLOR.test(value) ? value : fallback;
+}
 
+export function deriveBrandTokens(brandColors: Partial<BrandColors> | null | undefined): Record<string, string> {
+  // Checked here as well as when saved: a stored row may predate that check
+  const colors: Required<BrandColors> = {
+    primary:    hexOr(brandColors?.primary, DEFAULT_BRAND_COLORS.primary),
+    background: hexOr(brandColors?.background, DEFAULT_BRAND_COLORS.background),
+    surface:    hexOr(brandColors?.surface, DEFAULT_BRAND_COLORS.surface),
+    textAccent: hexOr(brandColors?.textAccent, DEFAULT_BRAND_COLORS.textAccent),
+    danger:     hexOr(brandColors?.danger, DEFAULT_BRAND_COLORS.danger),
+  };
+  const bgFg      = textColorOn(colors.background);
+  const surfaceFg = textColorOn(colors.surface);
+  const primaryFg = textColorOn(colors.primary);
+  const dangerFg  = textColorOn(colors.danger);
+
+  // The -soft and -line tints are ready-made rgba() values: Tailwind's `/10` on
+  // a var() colour needs color-mix(), which iOS 15 Safari doesn't have
   return {
     '--brand-primary':              colors.primary,
     '--brand-primary-fg':           primaryFg,
+    '--brand-primary-soft':         withOpacity(colors.primary, 0.2),
     '--brand-background':           colors.background,
     '--brand-background-fg':        bgFg,
     '--brand-background-fg-muted':  withOpacity(bgFg, 0.6),
@@ -129,9 +163,19 @@ export function deriveBrandTokens(colors: BrandColors): Record<string, string> {
     '--brand-surface':              colors.surface,
     '--brand-surface-fg':           surfaceFg,
     '--brand-surface-fg-muted':     withOpacity(surfaceFg, 0.6),
+    '--brand-surface-fg-soft':      withOpacity(surfaceFg, 0.1),
     '--brand-text-accent':          colors.textAccent,
-    '--brand-danger':               colors.danger ?? '#DC2626',
+    '--brand-danger':               colors.danger,
     '--brand-danger-fg':            dangerFg,
+    '--brand-danger-soft':          withOpacity(colors.danger, 0.1),
+    '--brand-danger-line':          withOpacity(colors.danger, 0.25),
     '--brand-border':               getBorderColor(colors.background),
   };
+}
+
+// The tokens as one `:root` rule for a <style> element. "<" is escaped too, so
+// no value could ever close the element.
+export function brandTokensCss(tokens: Record<string, string>): string {
+  const declarations = Object.entries(tokens).map(([name, value]) => `${name}: ${value};`);
+  return `:root { ${declarations.join(' ')} }`.replace(/</g, '\\3c ');
 }

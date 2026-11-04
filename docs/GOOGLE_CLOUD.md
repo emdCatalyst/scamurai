@@ -42,12 +42,20 @@ Container images: Artifact Registry (me-central2). Builds: Cloud Build or GitHub
   can't carry a nonce, so they allow inline scripts but still only load from listed origins (Clerk, Cloudflare
   Turnstile, Cloud Storage). Violations are logged as `[csp]` lines through `/api/csp-report`. `CSP_MODE`
   switches it: `enforce` (default), `report-only` or `off`.
+- The staff order APIs read at most 4 KB, check every field with the rules the phones use
+  (`src/lib/orders/input.ts`), and answer refusals with an error code (`src/lib/orders/errors.ts`) that tells the
+  phone whether to try again. They and `/api/staff-telemetry` are limited per signed-in user, counted in each
+  instance's memory (120 requests per 10 minutes), so the upload path makes no Redis call.
+- Days are counted in Riyadh time in the code (finance date filters, dashboards, branch counts), so the server's
+  zone, UTC on Cloud Run, doesn't matter.
 
 ## Still to do in the code
 
 - [ ] **Photo retention.** Plans promise 90 days (Starter) or 365 days (Growth) of history (`historyDays` in
   `src/config/services.ts`), but nothing deletes old photos yet. Don't add a bucket lifecycle rule shorter than the
-  longest plan. Deleting by plan needs a scheduled job.
+  longest plan. Deleting by plan needs a scheduled job. It should also remove what abandoned uploads leave behind:
+  orders never confirmed (including the soft-deleted ones a colleague took over) and any photo of theirs that
+  reached the bucket.
 
 ## Accounts, in order
 
@@ -273,7 +281,8 @@ gcloud run deploy scamurai-web \
   `DATABASE_URL=postgresql://scamurai:scamurai_local@scamurai-postgres:5432/scamurai`. Keep that env file outside
   the repo.
 - `--min-instances=1` avoids cold starts; one instance is always billed.
-- `--max-instances=4` × 3 connections = 12 database connections, well inside the small tier's limit.
+- `--max-instances=4` × 6 connections (two pools of 3, see [DATABASE.md](DATABASE.md)) = 24 database connections,
+  well inside the small tier's limit.
 - `--ingress=internal-and-cloud-load-balancing` closes the public `run.app` URL, so all traffic comes through the
   load balancer, with its `X-Forwarded-For` format.
 - `--allow-unauthenticated` is needed because the site is public: the load balancer calls the service anonymously.
@@ -344,15 +353,16 @@ log-based metrics can pull fields out with `REGEXP_EXTRACT`.
 | The app and the database answer | Uptime check on `https://YOUR_DOMAIN/api/health` (200, or 503 when the database doesn't reply within 2 s) | 2 failures in a row |
 | Orders stuck on phones | `[telemetry]` lines with `"type":"outbox"`, sent when an order waited 10+ minutes on a phone or was rejected | any |
 | Upload delay | `waitedSec` in `[orders] confirmed` lines: seconds from saving on the phone to confirmed | p95 above 10 minutes |
+| Abandoned uploads | `[orders] taken over` lines: a colleague resubmitted a number whose upload no phone had tried for 2 hours | more than a few a day |
 | Page speed on staff phones | `[telemetry]` lines with `"type":"vitals"` (LCP, INP, CLS, FCP, TTFB) | INP p75 above 500 ms |
 | Content the browser blocked | `[csp]` lines | any new kind |
 | Server errors | Cloud Run 5xx, and `Error` log lines | above 1% of requests |
 
 ## Operations
 
-- **Load test (local):** `npm run test:load`, tuned with `ORDERS` and `CONCURRENCY`. On one instance with its 3
-  database connections (local Docker database, 2026-11-04) it handled about 160 orders per second at any
-  concurrency, with no errors. A whole order took 33 ms with 5 at once, 0.3 s with 50 and 1.3 s with 200 (waiting
+- **Load test (local):** `npm run test:load`, tuned with `ORDERS` and `CONCURRENCY`. On one instance with the 3
+  connections of its staff upload pool (local Docker database, 2026-11-04) it handled about 160 orders per second at
+  any concurrency, with no errors. A whole order took 33 ms with 5 at once, 0.3 s with 50 and 1.3 s with 200 (waiting
   for the pool). A busy branch sends a few orders a minute, so the server has a wide margin. Clerk, Cloud Storage
   signing and HTTP aren't included: before launch, run a smaller HTTP test against staging.
 

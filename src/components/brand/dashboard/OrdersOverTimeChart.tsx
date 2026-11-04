@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
   Legend 
 } from 'recharts';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { arSA, enUS } from 'date-fns/locale';
 
 interface OrdersOverTimeChartProps {
@@ -29,8 +29,10 @@ export function OrdersOverTimeChart({ data }: OrdersOverTimeChartProps) {
   const dateLocale = locale === 'ar' ? arSA : enUS;
   const isAr = locale === 'ar';
 
+  // The dates are Riyadh days (yyyy-MM-dd): parseISO reads one as that day in
+  // any zone, where new Date() reads UTC midnight, the day before west of UTC.
   const formatXAxis = (tickItem: string) => {
-    return format(new Date(tickItem), 'MMM d', { locale: dateLocale });
+    return format(parseISO(tickItem), 'MMM d', { locale: dateLocale });
   };
 
   return (

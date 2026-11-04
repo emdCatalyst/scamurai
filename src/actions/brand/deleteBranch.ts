@@ -6,6 +6,7 @@ import { eq, and, isNull } from "drizzle-orm";
 import { requireAuth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { clerkClient as getClerkClient } from "@clerk/nextjs/server";
+import { isLiveBranchOf } from "@/lib/queries/branches";
 
 export type StaffResolution = {
   staffId: string;
@@ -57,6 +58,14 @@ export async function deleteBranch({
             error: `Staff member ${s.fullName} is not resolved`,
           };
         }
+      }
+    }
+
+    // Staff can only move to another live branch of this brand.
+    for (const res of staffResolutions) {
+      if (res.resolution !== "reassign") continue;
+      if (!res.newBranchId || res.newBranchId === branchId || !(await isLiveBranchOf(authBrandId, res.newBranchId))) {
+        return { success: false, error: "Invalid branch selection" };
       }
     }
 

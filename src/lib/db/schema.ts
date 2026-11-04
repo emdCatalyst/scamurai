@@ -7,6 +7,7 @@ import {
   integer,
   numeric,
   unique,
+  uniqueIndex,
   index,
   check,
   jsonb,
@@ -285,6 +286,8 @@ export const brandDeliveryApps = pgTable(
 // ─────────────────────────────────────────────────────────────────────────────
 // orders
 // Core domain entity. Submitted by staff, viewable by finance and brand admin.
+// The row is created when the phone asks for upload URLs; it counts as an
+// order only once confirm has seen both photos (confirmed_at).
 // ─────────────────────────────────────────────────────────────────────────────
 export const orders = pgTable(
   "orders",
@@ -313,6 +316,8 @@ export const orders = pgTable(
     submittedAt: timestamp("submitted_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    /** When both photos arrived. Null while the phone is still uploading: finance never sees those rows. */
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -322,25 +327,41 @@ export const orders = pgTable(
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => [
-    unique("orders_brand_id_order_number_branch_id_unique").on(
-      table.brandId,
-      table.orderNumber,
-      table.branchId
-    ),
+    // One live order per number in each branch and delivery app: two apps
+    // can hand out the same number. Soft-deleting an abandoned upload frees it.
+    uniqueIndex("orders_live_number_unique")
+      .on(table.brandId, table.branchId, table.deliveryAppId, table.orderNumber)
+      .where(sql`${table.deletedAt} IS NULL`),
+    // Finance lists, counts and dashboards read confirmed orders only.
     index("idx_orders_brand")
       .on(table.brandId, table.status)
-      .where(sql`${table.deletedAt} IS NULL`),
+      .where(sql`${table.deletedAt} IS NULL AND ${table.confirmedAt} IS NOT NULL`),
     index("idx_orders_branch")
-      .on(table.brandId, table.branchId)
-      .where(sql`${table.deletedAt} IS NULL`),
-    index("idx_orders_submitted_at").on(
-      table.brandId,
-      sql`${table.submittedAt} DESC`
-    ),
+      .on(table.brandId, table.branchId, sql`${table.submittedAt} DESC`)
+      .where(sql`${table.deletedAt} IS NULL AND ${table.confirmedAt} IS NOT NULL`),
+    index("idx_orders_submitted_at")
+      .on(table.brandId, sql`${table.submittedAt} DESC`)
+      .where(sql`${table.deletedAt} IS NULL AND ${table.confirmedAt} IS NOT NULL`),
+    // The admin dashboard counts confirmed orders of every brand by date.
+    index("idx_orders_confirmed_submitted_at")
+      .on(sql`${table.submittedAt} DESC`)
+      .where(sql`${table.deletedAt} IS NULL AND ${table.confirmedAt} IS NOT NULL`),
     check(
       "orders_status_values",
       sql`${table.status} IN ('needs_review', 'approved', 'rejected')`
     ),
+    // The limits of src/lib/orders/input.ts (AMOUNT_MAX, ORDER_NUMBER_MAX_LENGTH,
+    // NOTES_MAX_LENGTH), so no other path can store NaN, negative or huge values.
+    check(
+      "orders_subtotal_range",
+      sql`${table.subtotal} BETWEEN 0 AND 1000000`
+    ),
+    check(
+      "orders_order_number_length",
+      sql`char_length(${table.orderNumber}) BETWEEN 1 AND 40`
+    ),
+    check("orders_notes_length", sql`char_length(${table.notes}) <= 500`),
+    check("orders_currency_format", sql`${table.currency} ~ '^[A-Z]{3}$'`),
   ]
 );
 
@@ -367,8 +388,8 @@ export const orderImages = pgTable(
       .defaultNow(),
   },
   (table) => [
+    // Also serves lookups by order_id alone.
     unique("order_images_order_id_type_unique").on(table.orderId, table.type),
-    index("idx_order_images_order").on(table.orderId),
     check(
       "order_images_type_values",
       sql`${table.type} IN ('opened', 'sealed')`

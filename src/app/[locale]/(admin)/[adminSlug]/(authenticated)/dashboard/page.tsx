@@ -1,11 +1,12 @@
 import { Building2, Clock, ShoppingBag, TrendingUp, type LucideIcon } from 'lucide-react';
 import { Suspense } from 'react';
-import { count, desc, eq, gte, sql } from 'drizzle-orm';
+import { and, count, desc, eq, gte, isNotNull, isNull, sql } from 'drizzle-orm';
 import { getFormatter, getTranslations } from 'next-intl/server';
 import { isApplicationStatus } from '@/lib/applications/status';
 import { requireMasterAdminPage } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { applications, branches, brands, orders } from '@/lib/db/schema';
+import { DAY_MS, riyadhDate, startOfRiyadhDay, startOfRiyadhMonth } from '@/lib/queries/riyadhDays';
 import { getService, isLiveService, isServiceKey } from '@/lib/services/catalog';
 import DashboardClient from './DashboardClient';
 import {
@@ -35,14 +36,15 @@ function bucketFor(service: string, status: string): ApplicationBucket | null {
 async function DashboardDataWrapper() {
   const [t, format] = await Promise.all([getTranslations('admin.dashboard'), getFormatter()]);
 
+  // Riyadh days and months, as the brands count them, whatever the server's zone.
   const now = new Date();
-  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const startOfToday = new Date(now);
-  startOfToday.setHours(0, 0, 0, 0);
-
+  const firstDayOfMonth = startOfRiyadhMonth(now);
   // Inclusive window ending today (29 days back + today = 30 days).
-  const trendsStart = new Date(startOfToday);
-  trendsStart.setDate(trendsStart.getDate() - (TREND_DAYS - 1));
+  const trendsStart = new Date(startOfRiyadhDay(now).getTime() - (TREND_DAYS - 1) * DAY_MS);
+  // Orders whose photos arrived, as finance counts them.
+  const confirmedSince = (start: Date) =>
+    and(isNull(orders.deletedAt), isNotNull(orders.confirmedAt), gte(orders.submittedAt, start));
+  const riyadhDay = sql<string>`to_char(${orders.submittedAt} AT TIME ZONE 'Asia/Riyadh', 'YYYY-MM-DD')`;
 
   const [appStatsRaw, brandCountRow, monthOrders, recentApplicationsRaw, topBranchesRaw, orderTrendsRaw] =
     await Promise.all([
@@ -61,7 +63,7 @@ async function DashboardDataWrapper() {
       db
         .select({ count: count() })
         .from(orders)
-        .where(gte(orders.submittedAt, firstDayOfMonth))
+        .where(confirmedSince(firstDayOfMonth))
         .then((res) => res[0]),
 
       db
@@ -86,30 +88,28 @@ async function DashboardDataWrapper() {
         })
         .from(branches)
         .innerJoin(brands, eq(branches.brandId, brands.id))
-        .leftJoin(orders, eq(orders.branchId, branches.id))
-        .where(gte(orders.submittedAt, firstDayOfMonth))
+        .innerJoin(orders, eq(orders.branchId, branches.id))
+        .where(confirmedSince(firstDayOfMonth))
         .groupBy(branches.id, brands.name)
         .orderBy(desc(count(orders.id)))
         .limit(5),
 
       db
         .select({
-          day: sql<string>`to_char(date_trunc('day', ${orders.submittedAt}), 'YYYY-MM-DD')`.as('day'),
+          day: riyadhDay.as('day'),
           approved: sql<number>`COUNT(*) FILTER (WHERE ${orders.status} = 'approved')::int`.as('approved'),
           rejected: sql<number>`COUNT(*) FILTER (WHERE ${orders.status} = 'rejected')::int`.as('rejected'),
           needsReview: sql<number>`COUNT(*) FILTER (WHERE ${orders.status} = 'needs_review')::int`.as('needs_review'),
         })
         .from(orders)
-        .where(gte(orders.submittedAt, trendsStart))
-        .groupBy(sql`date_trunc('day', ${orders.submittedAt})`),
+        .where(confirmedSince(trendsStart))
+        .groupBy(riyadhDay),
     ]);
 
   // Fill missing days so the chart always shows a continuous window.
   const trendsByDay = new Map(orderTrendsRaw.map((row) => [row.day, row]));
   const orderTrends: DashboardOrderDay[] = Array.from({ length: TREND_DAYS }, (_, i) => {
-    const day = new Date(trendsStart);
-    day.setDate(trendsStart.getDate() + i);
-    const key = day.toISOString().slice(0, 10);
+    const key = riyadhDate(new Date(trendsStart.getTime() + i * DAY_MS));
     const row = trendsByDay.get(key);
     return {
       date: key,

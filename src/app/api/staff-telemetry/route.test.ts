@@ -32,4 +32,18 @@ describe('POST /api/staff-telemetry', () => {
     session.current = { ...session.current, userId: null };
     expect((await post('{}')).status).toBe(401);
   });
+
+  it('stops logging for a user who sends too many reports', async () => {
+    const log = vi.spyOn(console, 'info').mockImplementation(() => {});
+    session.current = { ...session.current, userId: 'user_flood' };
+    const report = JSON.stringify({ type: 'vitals', name: 'LCP', value: 1200 });
+    const statuses = [];
+    for (let i = 0; i < 121; i++) statuses.push((await post(report)).status);
+    expect(statuses.slice(0, 120).every((status) => status === 204)).toBe(true);
+    expect(statuses[120]).toBe(429);
+    expect(log).toHaveBeenCalledTimes(120);
+
+    session.current = { ...session.current, userId: 'user_other' };
+    expect((await post(report)).status).toBe(204);
+  });
 });

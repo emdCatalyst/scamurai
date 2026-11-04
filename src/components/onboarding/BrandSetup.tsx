@@ -8,6 +8,7 @@ import { Palette, Loader2, CheckCircle, Image as ImageIcon } from 'lucide-react'
 import LogoUpload from './LogoUpload';
 import ColorSlotPicker, { type ColorSlot } from './ColorSlotPicker';
 import { completeBrandSetup, type BrandColors } from '@/actions/completeBrandSetup';
+import { hasLowContrastText } from '@/lib/brandTokens';
 import { brandSetupSchema } from '@/lib/validations/brandSetup';
 
 interface BrandSetupProps {
@@ -22,40 +23,6 @@ const DEFAULT_COLORS: BrandColors = {
   surface: '#1e3d6b',
   textAccent: '#4fc5df',
 };
-
-/**
- * Check relative luminance contrast ratio.
- * Returns true if the contrast against white is below WCAG AA (4.5:1).
- */
-function isLowContrastWithWhite(hex: string): boolean {
-  const r = parseInt(hex.slice(1, 3), 16) / 255;
-  const g = parseInt(hex.slice(3, 5), 16) / 255;
-  const b = parseInt(hex.slice(5, 7), 16) / 255;
-
-  const toLinear = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
-  const L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
-
-  // Contrast with white (luminance = 1.0)
-  const ratio = (1.05) / (L + 0.05);
-  return ratio < 4.5;
-}
-
-/**
- * Check if a background color is too dark for white text.
- * Returns true if the luminance is so low that even white text
- * would have insufficient contrast.
- */
-function isTooDark(hex: string): boolean {
-  const r = parseInt(hex.slice(1, 3), 16) / 255;
-  const g = parseInt(hex.slice(3, 5), 16) / 255;
-  const b = parseInt(hex.slice(5, 7), 16) / 255;
-
-  const toLinear = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
-  const L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
-
-  // If luminance is very high, white text would be hard to read
-  return L > 0.7;
-}
 
 export default function BrandSetup({ brandId, brandSlug }: BrandSetupProps) {
   const t = useTranslations('onboarding');
@@ -79,11 +46,11 @@ export default function BrandSetup({ brandId, brandSlug }: BrandSetupProps) {
 
   const warnings = useMemo(() => {
     const w: Record<string, string> = {};
-    if (isLowContrastWithWhite(colors.primary)) {
+    if (hasLowContrastText(colors.primary)) {
       w.primary = t('contrastWarning');
     }
-    if (isTooDark(colors.background)) {
-      w.background = t('darkWarning');
+    if (hasLowContrastText(colors.background)) {
+      w.background = t('contrastWarning');
     }
     return w;
   }, [colors, t]);

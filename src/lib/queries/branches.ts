@@ -1,7 +1,9 @@
 import { db } from "@/lib/db";
 import { branches, users, orders, brands } from "@/lib/db/schema";
-import { eq, and, ilike, sql, desc, asc, count, isNull, ne } from "drizzle-orm";
+import { eq, and, ilike, sql, desc, asc, count, gte, isNull, ne } from "drizzle-orm";
 import { PLANS, PlanKey } from "@/config/plans";
+import { confirmedOrdersOf } from "./orders";
+import { startOfRiyadhMonth } from "./riyadhDays";
 
 export type BranchRow = {
   id: string;
@@ -54,23 +56,14 @@ export async function getBranches({
     .groupBy(users.branchId)
     .as("staff_counts");
 
-  // Subquery for order count this month
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-
+  // Subquery for this brand's confirmed orders this month (Riyadh time)
   const orderCountSub = db
     .select({
       branchId: orders.branchId,
       orderCount: count(orders.id).as("order_count"),
     })
     .from(orders)
-    .where(
-      and(
-        isNull(orders.deletedAt),
-        sql`${orders.submittedAt} >= ${startOfMonth.toISOString()}`
-      )
-    )
+    .where(and(confirmedOrdersOf(brandId), gte(orders.submittedAt, startOfRiyadhMonth())))
     .groupBy(orders.branchId)
     .as("order_counts");
 
@@ -205,4 +198,17 @@ export async function getOtherActiveBranches(brandId: string, currentBranchId: s
       ne(branches.id, currentBranchId)
     ),
   });
+}
+
+/**
+ * Whether a branch is a live branch of this brand. Staff are only ever put in
+ * their own brand's branches: orders take the brand from the session but the
+ * branch from the staff member, so a foreign branch would mix two brands' data.
+ */
+export async function isLiveBranchOf(brandId: string, branchId: string): Promise<boolean> {
+  const branch = await db.query.branches.findFirst({
+    where: and(eq(branches.id, branchId), eq(branches.brandId, brandId), isNull(branches.deletedAt)),
+    columns: { id: true },
+  });
+  return branch !== undefined;
 }

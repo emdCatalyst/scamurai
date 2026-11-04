@@ -11,5 +11,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     locale,
     messages: await loadMessages(locale),
     now: new Date(),
+    // Brands work in Saudi Arabia: times read the same on every server and phone.
+    timeZone: 'Asia/Riyadh',
   };
 });

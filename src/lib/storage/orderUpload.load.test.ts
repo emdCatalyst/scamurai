@@ -3,13 +3,13 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { eq, like } from 'drizzle-orm';
+import { eq, ilike, like } from 'drizzle-orm';
 
 /**
  * Load test of the staff upload path on ONE server instance (its database
  * pool of 3): many staff submit orders at once through the real route
  * handlers, the local database and the local storage driver. Only sign-in is
- * mocked, per simulated request.
+ * mocked (Clerk's session), per simulated request.
  *
  *   npm run test:load
  *   ORDERS=600 CONCURRENCY=100 npm run test:load
@@ -22,7 +22,12 @@ type Session = { userId: string; role: 'staff'; brandId: string };
 type Holder = { __loadSession?: AsyncLocalStorage<Session> };
 const sessions = new AsyncLocalStorage<Session>();
 (globalThis as Holder).__loadSession = sessions;
-vi.mock('@/lib/auth', () => ({ requireAuth: async () => (globalThis as Holder).__loadSession!.getStore() }));
+vi.mock('@clerk/nextjs/server', () => ({
+  auth: async () => {
+    const session = (globalThis as Holder).__loadSession!.getStore();
+    return { userId: session?.userId ?? null, sessionClaims: { metadata: { role: session?.role, brandId: session?.brandId } } };
+  },
+}));
 
 const storageRoot = await mkdtemp(path.join(os.tmpdir(), 'scamurai-load-'));
 process.env.STORAGE_DRIVER = 'local';
@@ -36,7 +41,8 @@ const localStorageRoute = await import('@/app/api/storage/local/route');
 
 const ORDERS = Number(process.env.ORDERS ?? 300);
 const CONCURRENCY = Number(process.env.CONCURRENCY ?? 50);
-const STAFF = 30;
+/** Enough staff that nobody reaches the per-user limit (120 orders per 10 minutes). */
+const STAFF = Math.max(30, Math.ceil(ORDERS / 100));
 const TAG = 'loadtest';
 /** About the size of a photo after the phone shrinks it. */
 const PHOTO = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(150 * 1024, 7)]);
@@ -108,7 +114,7 @@ const percentile = (values: number[], p: number) => {
 };
 
 async function cleanup() {
-  await db.delete(schema.orders).where(like(schema.orders.orderNumber, `${TAG}-%`));
+  await db.delete(schema.orders).where(ilike(schema.orders.orderNumber, `${TAG}-%`));
   await db.delete(schema.users).where(like(schema.users.email, `%.${TAG}@load.test`));
 }
 
@@ -155,6 +161,6 @@ describe('staff order uploads under load (one instance)', () => {
     if (errors.length) console.log('first errors:', errors.slice(0, 3));
 
     expect(errors).toEqual([]);
-    expect(await db.$count(schema.orders, like(schema.orders.orderNumber, `${TAG}-%`))).toBe(ORDERS);
+    expect(await db.$count(schema.orders, ilike(schema.orders.orderNumber, `${TAG}-%`))).toBe(ORDERS);
   });
 });

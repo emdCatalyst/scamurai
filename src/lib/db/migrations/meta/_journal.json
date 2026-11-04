@@ -8,6 +8,20 @@
       "when": 1793744170593,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793774034772,
+      "tag": "0001_confirmed_orders_live_numbers",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793792962437,
+      "tag": "0002_admin_confirmed_orders_by_date",
+      "breakpoints": true
     }
   ]
 }
