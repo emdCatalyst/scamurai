@@ -264,6 +264,7 @@ export function BrandLoginForm({ brandSlug }: BrandLoginFormProps) {
             disabled={isLoading}
             show={showPassword}
             onToggle={() => setShowPassword((v) => !v)}
+            toggleLabel={showPassword ? t('hidePassword') : t('showPassword')}
             isAr={isAr}
             invalid={Boolean(errors.password)}
           />
@@ -277,12 +278,15 @@ export function BrandLoginForm({ brandSlug }: BrandLoginFormProps) {
             <button
               type="button"
               onClick={() => switchMode('request')}
-              className="text-xs font-semibold text-[var(--brand-primary)] hover:underline disabled:opacity-50"
+              className="min-h-11 text-xs font-semibold text-[var(--brand-primary)] hover:underline disabled:opacity-50"
               disabled={isLoading}
             >
               {t('forgotPassword')}
             </button>
           </div>
+          {/* Browsers ignore autocomplete="off" on sign-in forms, and "new-password" would have iOS fill in a
+              made-up password: only the worker can keep a shared phone from saving theirs. */}
+          <p className="px-1 text-xs text-white/60">{t('sharedDeviceHint')}</p>
         </motion.div>
 
         <motion.button
@@ -397,6 +401,7 @@ export function BrandLoginForm({ brandSlug }: BrandLoginFormProps) {
           disabled={isSubmitting}
           show={showNewPassword}
           onToggle={() => setShowNewPassword((v) => !v)}
+          toggleLabel={showNewPassword ? t('hidePassword') : t('showPassword')}
           isAr={isAr}
           invalid={Boolean(errors.password)}
           autoComplete="new-password"
@@ -415,6 +420,7 @@ export function BrandLoginForm({ brandSlug }: BrandLoginFormProps) {
           disabled={isSubmitting}
           show={showConfirmPassword}
           onToggle={() => setShowConfirmPassword((v) => !v)}
+          toggleLabel={showConfirmPassword ? t('hidePassword') : t('showPassword')}
           isAr={isAr}
           invalid={Boolean(errors.confirmPassword)}
           autoComplete="new-password"
@@ -448,7 +454,7 @@ export function BrandLoginForm({ brandSlug }: BrandLoginFormProps) {
       </div>
 
       {infoMessage && (
-        <div className="text-[var(--brand-primary)] text-sm bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/20 py-2 px-3 rounded-lg flex items-start gap-2">
+        <div role="status" className="text-[var(--brand-primary)] text-sm bg-[var(--brand-primary-soft)] py-2 px-3 rounded-lg flex items-start gap-2">
           <CheckCircle2 className="shrink-0 mt-0.5" size={16} />
           <span>{infoMessage}</span>
         </div>
@@ -468,6 +474,7 @@ function PasswordInput({
   disabled,
   show,
   onToggle,
+  toggleLabel,
   isAr,
   invalid,
   autoComplete = 'current-password',
@@ -477,6 +484,8 @@ function PasswordInput({
   disabled: boolean;
   show: boolean;
   onToggle: () => void;
+  /** Names the show/hide button for screen readers. */
+  toggleLabel: string;
   isAr: boolean;
   invalid: boolean;
   autoComplete?: 'current-password' | 'new-password';
@@ -501,9 +510,11 @@ function PasswordInput({
         type="button"
         onClick={onToggle}
         disabled={disabled}
+        aria-label={toggleLabel}
+        aria-pressed={show}
         className={cn(
-          'absolute top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors disabled:opacity-50',
-          isAr ? 'left-4' : 'right-4'
+          'absolute top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-white/40 hover:text-white/80 transition-colors disabled:opacity-50',
+          isAr ? 'left-1' : 'right-1'
         )}
       >
         {show ? <EyeOff size={18} strokeWidth={1.5} /> : <Eye size={18} strokeWidth={1.5} />}
@@ -549,10 +560,12 @@ function BackToLoginButton({
 
 function ErrorBanner({ message }: { message: string }) {
   return (
+    // Ready-made tints: on browsers without color-mix(), "/10" would be solid danger behind danger-coloured text.
     <motion.div
+      role="alert"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="text-[var(--brand-danger)] text-sm text-center mt-4 bg-[var(--brand-danger)]/10 py-2 px-3 rounded-lg border border-[var(--brand-danger)]/20 flex items-start gap-2"
+      className="text-[var(--brand-danger)] text-sm text-center mt-4 bg-[var(--brand-danger-soft)] py-2 px-3 rounded-lg border border-[var(--brand-danger-line)] flex items-start gap-2"
     >
       <AlertCircle className="shrink-0 mt-0.5" size={16} />
       <span className="text-left">{message}</span>
