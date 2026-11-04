@@ -9,6 +9,7 @@ import Image from "next/image";
 import { LogOut } from "lucide-react";
 import StaffSignOutButton from "@/components/staff/StaffSignOutButton";
 import OrderSubmitForm from "@/components/staff/OrderSubmitForm";
+import InstallAppButton from "@/components/staff/InstallAppButton";
 import LocaleSwitcher from "@/components/ui/LocaleSwitcher";
 import { deriveBrandTokens, DEFAULT_BRAND_COLORS } from "@/lib/brandTokens";
 
@@ -107,6 +108,7 @@ export default async function StaffSubmitPage({
         </div>
 
         <div className="flex items-center gap-2">
+          <InstallAppButton className="rounded-full p-2 text-[var(--brand-background-fg-muted)] hover:bg-[var(--brand-background-active)] hover:text-[var(--brand-background-fg)] transition-colors" />
           <LocaleSwitcher className="border-[var(--brand-border)] bg-[var(--brand-background)]/40 text-[var(--brand-background-fg-muted)] hover:text-[var(--brand-background-fg)]" />
           <StaffSignOutButton
             redirectUrl={`/${locale}/brands/${brandSlug}/login`}

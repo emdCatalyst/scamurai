@@ -482,6 +482,7 @@
     "retryFailed": "Try again",
     "preparingPhoto": "Preparing photo…",
     "photoError": "Couldn't read that photo. Please take it again.",
-    "saveError": "Couldn't save the order on this phone. Please try again."
+    "saveError": "Couldn't save the order on this phone. Please try again.",
+    "installApp": "Install app"
   }
 }
