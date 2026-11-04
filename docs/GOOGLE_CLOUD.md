@@ -37,11 +37,14 @@ Container images: Artifact Registry (me-central2). Builds: Cloud Build or GitHub
   it appends `<client-ip>,<load-balancer-ip>` to whatever the client sent. `TRUSTED_PROXY_HOPS` adjusts this.
 - The seed and the integration tests refuse non-local hosts and Cloud SQL itself, so the Auth Proxy on localhost
   can't fool them.
+- Content-Security-Policy on every page (`src/lib/security/csp.ts`, set by `src/proxy.ts`). Signed-in areas get a
+  fresh nonce with `'strict-dynamic'`, so injected scripts and inline handlers can't run. Static public pages
+  can't carry a nonce, so they allow inline scripts but still only load from listed origins (Clerk, Cloudflare
+  Turnstile, Cloud Storage). Violations are logged as `[csp]` lines through `/api/csp-report`. `CSP_MODE`
+  switches it: `enforce` (default), `report-only` or `off`.
 
 ## Still to do in the code
 
-- [ ] **Content-Security-Policy** (none yet). When adding one, allow `https://storage.googleapis.com` in
-  `connect-src` (uploads) and `img-src` (signed photo URLs), along with Clerk's domains.
 - [ ] **Photo retention.** Plans promise 90 days (Starter) or 365 days (Growth) of history (`historyDays` in
   `src/config/services.ts`), but nothing deletes old photos yet. Don't add a bucket lifecycle rule shorter than the
   longest plan. Deleting by plan needs a scheduled job.
@@ -229,6 +232,7 @@ Create them in the console (Security → Secret Manager), so the values never pa
 | `UPSTASH_REDIS_REST_URL` | | env |
 | `UPSTASH_REDIS_REST_TOKEN` | | secret |
 | `TRUSTED_PROXY_HOPS` | Optional, default `1` (Google's external load balancer). Check the header once in staging | env |
+| `CSP_MODE` | Optional: `report-only` on the first staging deploy, then remove it (default `enforce`). `off` is the emergency switch | env |
 | `STORAGE_DRIVER` | `gcs` | env |
 | `STORAGE_BUCKET_ORDER_IMAGES`, `STORAGE_BUCKET_BRAND_ASSETS` | The bucket names | env |
 
@@ -324,6 +328,8 @@ obligations before launch.
 - [ ] A logo upload works and `/media/…` serves it.
 - [ ] A 4th application from the same IP within 24 hours is refused. If not, log `X-Forwarded-For` once and set
   `TRUSTED_PROXY_HOPS`.
+- [ ] With `CSP_MODE=report-only` on staging, click through sign-in, a staff upload and the finance photo view, then
+  check the logs for `[csp]` lines. With none left, remove `CSP_MODE` so the policy is enforced.
 - [ ] Cloud SQL has backups, point-in-time recovery and deletion protection on.
 - [ ] Budget alerts are set.
 
