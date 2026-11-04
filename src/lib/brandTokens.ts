@@ -8,6 +8,10 @@ export const DEFAULT_BRAND_COLORS: Required<BrandColors> = {
   danger: '#DC2626',
 };
 
+// Text colours on brand colours
+const NAVY = '#0A1628';
+const WHITE = '#FFFFFF';
+
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
 // --- Utilities ---
@@ -97,9 +101,15 @@ function getLuminance(hex: string): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-// Returns contrast-safe foreground: Scamurai navy for light bg, white for dark bg
+// Contrast ratio per WCAG 2.1, from 1 (none) to 21 (black on white)
+export function contrastRatio(a: string, b: string): number {
+  const [lighter, darker] = [getLuminance(a), getLuminance(b)].sort((x, y) => y - x);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+// Returns whichever of Scamurai navy and white contrasts more with the background
 function getForeground(bgHex: string): string {
-  return getLuminance(bgHex) > 0.35 ? '#0A1628' : '#FFFFFF';
+  return contrastRatio(bgHex, NAVY) >= contrastRatio(bgHex, WHITE) ? NAVY : WHITE;
 }
 
 // Returns a tinted/shaded version of a hex for active states

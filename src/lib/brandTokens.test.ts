@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { brandTokensCss, DEFAULT_BRAND_COLORS, deriveBrandTokens } from './brandTokens';
+import { brandTokensCss, contrastRatio, DEFAULT_BRAND_COLORS, deriveBrandTokens } from './brandTokens';
 
 const INJECTION = 'red}</style><meta http-equiv="refresh" content="0;url=https://evil.example/login">';
+const NAVY = '#0A1628';
+const WHITE = '#FFFFFF';
 
 describe('deriveBrandTokens', () => {
   it('takes only #rrggbb colours from the brand and falls back to the defaults', () => {
@@ -25,6 +27,33 @@ describe('deriveBrandTokens', () => {
   it('uses the defaults for a brand without colours', () => {
     expect(deriveBrandTokens(null)).toEqual(deriveBrandTokens(DEFAULT_BRAND_COLORS));
     expect(deriveBrandTokens(undefined)['--brand-primary']).toBe(DEFAULT_BRAND_COLORS.primary);
+  });
+
+  it('writes navy or white on each colour, whichever contrasts more', () => {
+    // Mid-tone colours that used to get white text at 2.8 to 3.7:1.
+    for (const primary of ['#4CAF50', '#43A047', '#2196F3', '#FF5722', '#F44336']) {
+      expect(deriveBrandTokens({ primary })['--brand-primary-fg']).toBe(NAVY);
+    }
+    for (const color of ['#000000', '#172b49', '#DC2626', '#3F51B5', '#777777', '#4fc5df', '#FFEB3B', '#ffffff']) {
+      const tokens = deriveBrandTokens({ primary: color, background: color, surface: color, danger: color });
+      for (const fg of ['--brand-primary-fg', '--brand-background-fg', '--brand-surface-fg', '--brand-danger-fg']) {
+        const other = tokens[fg] === NAVY ? WHITE : NAVY;
+        expect(contrastRatio(color, tokens[fg])).toBeGreaterThanOrEqual(contrastRatio(color, other));
+      }
+    }
+    expect(deriveBrandTokens(DEFAULT_BRAND_COLORS)).toMatchObject({
+      '--brand-primary-fg': NAVY,
+      '--brand-background-fg': WHITE,
+      '--brand-surface-fg': NAVY,
+      '--brand-danger-fg': WHITE,
+    });
+  });
+
+  it('measures contrast as WCAG 2.1 does', () => {
+    expect(contrastRatio('#000000', '#FFFFFF')).toBeCloseTo(21);
+    expect(contrastRatio('#FFFFFF', '#000000')).toBeCloseTo(21);
+    expect(contrastRatio('#4CAF50', WHITE)).toBeCloseTo(2.78, 2);
+    expect(contrastRatio('#4CAF50', NAVY)).toBeCloseTo(6.52, 2);
   });
 });
 
