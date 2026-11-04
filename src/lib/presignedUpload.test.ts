@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { PendingOrder } from './imageQueue';
+import type { PendingOrder } from './staff/orderStore';
 import { uploadOrder } from './presignedUpload';
 
 const order = {

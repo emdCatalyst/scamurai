@@ -5,7 +5,7 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { compressImage } from "@/lib/compressImage";
-import { newOrderId, orderDrafts, type OrderDraft, type PendingOrder } from "@/lib/imageQueue";
+import { newOrderId, orderDrafts, type OrderDraft, type PendingOrder } from "@/lib/staff/orderStore";
 import CameraCaptureZone from "./CameraCaptureZone";
 import DeliveryAppPicker from "./DeliveryAppPicker";
 import OutboxStatus from "./OutboxStatus";

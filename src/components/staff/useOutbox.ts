@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { pendingOrders, type PendingOrder } from "@/lib/imageQueue";
 import { createOutbox } from "@/lib/outbox";
 import { uploadOrder } from "@/lib/presignedUpload";
+import { keepSavedData } from "@/lib/staff/localDb";
+import { pendingOrders, type PendingOrder } from "@/lib/staff/orderStore";
 import { sendTelemetry } from "@/lib/telemetry";
 
 const outbox = createOutbox({ store: pendingOrders, upload: uploadOrder });
@@ -78,6 +79,7 @@ export function useOutbox(userId: string) {
   const submit = useCallback(
     async (order: PendingOrder) => {
       await pendingOrders.save(order);
+      keepSavedData();
       await refresh();
       void flush(true);
     },

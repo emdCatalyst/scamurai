@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { PendingOrder } from './imageQueue';
+import type { PendingOrder } from './staff/orderStore';
 import { createOutbox, retryDelay, type UploadOutcome } from './outbox';
 
 const order = (id: string, overrides: Partial<PendingOrder> = {}): PendingOrder => ({

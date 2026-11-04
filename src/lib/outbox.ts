@@ -1,4 +1,4 @@
-import type { PendingOrder } from './imageQueue';
+import type { PendingOrder } from './staff/orderStore';
 
 /**
  * Sends the phone's saved orders, oldest first, for the signed-in staff

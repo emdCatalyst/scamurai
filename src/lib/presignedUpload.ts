@@ -1,5 +1,5 @@
 import type { UploadTarget } from "./storage/types";
-import type { PendingOrder } from "./imageQueue";
+import type { PendingOrder } from "./staff/orderStore";
 import type { UploadOutcome } from "./outbox";
 
 /** A hung request would hold up the whole outbox, so every step gives up in time. */
