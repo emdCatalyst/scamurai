@@ -483,6 +483,9 @@
     "preparingPhoto": "Preparing photo…",
     "photoError": "Couldn't read that photo. Please take it again.",
     "saveError": "Couldn't save the order on this phone. Please try again.",
-    "installApp": "Install app"
+    "installApp": "Install app",
+    "signOutUnsent": "{count, plural, one {# order hasn't been uploaded yet. It stays on this phone and uploads when you sign in here again. Sign out anyway?} other {# orders haven't been uploaded yet. They stay on this phone and upload when you sign in here again. Sign out anyway?}}",
+    "signOutUnsaved": "{count, plural, one {# order isn't saved on this phone and will be lost if you sign out now. Sign out anyway?} other {# orders aren't saved on this phone and will be lost if you sign out now. Sign out anyway?}}",
+    "signOutError": "Couldn't sign out. Check the connection and try again."
   }
 }

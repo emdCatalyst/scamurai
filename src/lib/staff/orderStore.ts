@@ -47,4 +47,16 @@ export function newOrderId(): string {
 
 export const pendingOrders = localStore<PendingOrder>('pending_uploads');
 
-export const orderDrafts = localStore<OrderDraft>('drafts');
+const drafts = localStore<OrderDraft>('drafts');
+
+export const orderDrafts = {
+  get: drafts.get,
+  save: drafts.save,
+  remove: drafts.remove,
+  /** Deletes a worker's drafts, e.g. when they sign out of a shared phone. */
+  async removeAllOf(userId: string): Promise<void> {
+    for (const draft of await drafts.getAll()) {
+      if (draft.id.startsWith(`${userId}:`)) await drafts.remove(draft.id);
+    }
+  },
+};

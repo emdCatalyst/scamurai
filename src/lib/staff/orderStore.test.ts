@@ -13,6 +13,7 @@ beforeEach(async () => {
 
 afterEach(() => vi.unstubAllGlobals());
 
+const draft = (id: string) => ({ id, orderNumber: '1', amount: '', notes: '', deliveryAppId: '' });
 
 describe('orderStore', () => {
   it('keeps an order’s photos on the phone', async () => {
@@ -34,6 +35,16 @@ describe('orderStore', () => {
     const [saved] = await store.pendingOrders.getAll();
     expect(saved).toMatchObject({ id: order.id, userId: 'user_a' });
     expect(await saved.sealedBlob.text()).toBe('sealed');
+  });
+
+  it('deletes only the signing-out worker’s drafts', async () => {
+    await store.orderDrafts.save(draft('user_a:demo'));
+    await store.orderDrafts.save(draft('user_a:other-brand'));
+    await store.orderDrafts.save(draft('user_ab:demo'));
+    await store.orderDrafts.removeAllOf('user_a');
+    expect(await store.orderDrafts.get('user_a:demo')).toBeUndefined();
+    expect(await store.orderDrafts.get('user_a:other-brand')).toBeUndefined();
+    expect(await store.orderDrafts.get('user_ab:demo')).toEqual(draft('user_ab:demo'));
   });
 
   it('makes v4 order ids also where crypto.randomUUID is missing (iOS before 15.4)', () => {

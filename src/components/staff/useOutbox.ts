@@ -5,8 +5,9 @@ import { useCallback, useEffect, useState } from "react";
 import { createOutbox, withMemoryFallback } from "@/lib/outbox";
 import { uploadOrder } from "@/lib/presignedUpload";
 import { keepSavedData, LocalDbError, type LocalDbProblem } from "@/lib/staff/localDb";
-import { newOrderId, pendingOrders, type PendingOrder } from "@/lib/staff/orderStore";
+import { newOrderId, orderDrafts, pendingOrders, type PendingOrder } from "@/lib/staff/orderStore";
 import { reloadFromServer } from "@/lib/staff/pageCache";
+import type { LeftOnPhone } from "@/lib/staff/signOut";
 import { waitAtMost } from "@/lib/staff/timeout";
 import { sendTelemetry } from "@/lib/telemetry";
 
@@ -32,6 +33,8 @@ const ONLINE_DELAY_MS = { min: 2_000, max: 8_000 };
 /** An order waiting this long on the phone is reported, at most every 5 minutes; a refused one once. */
 const STUCK_AFTER_MS = 10 * 60_000;
 const REPORT_EVERY_MS = 5 * 60_000;
+/** Before signing out, waiting orders get this long to upload. */
+const SIGN_OUT_UPLOAD_MS = 15_000;
 /** A screen made for another account keeps trying to reload (at most once a minute, never while signing out). */
 const RELOAD_RETRY_MS = 60_000;
 
@@ -215,4 +218,28 @@ export function useOutbox(userId: string) {
   );
 
   return { ...state, wrongAccount, submit, uploadNow: () => flush(true), retryFailed, discard, takeBack };
+}
+
+/**
+ * Before a worker signs out: gives their waiting orders a last chance to
+ * upload, then says what is left on the phone.
+ */
+export async function uploadBeforeSignOut(userId: string): Promise<LeftOnPhone> {
+  if (navigator.onLine !== false) await waitAtMost(outbox.flush(userId, { force: true }), SIGN_OUT_UPLOAD_MS);
+  try {
+    const { waiting, failed } = await outbox.summary(userId);
+    return { unsent: waiting + failed.length, unsaved: store.unsaved };
+  } catch {
+    return { unsent: store.unsaved, unsaved: store.unsaved };
+  }
+}
+
+/**
+ * A worker leaves this phone: their half-filled orders go, and the office
+ * hears about orders left behind (they upload when the worker signs in here again).
+ */
+export async function leavePhone(userId: string): Promise<void> {
+  const summary = await outbox.summary(userId).catch(() => null);
+  if (summary && summary.waiting + summary.failed.length > 0) report(summary, Date.now());
+  await orderDrafts.removeAllOf(userId).catch(() => {});
 }

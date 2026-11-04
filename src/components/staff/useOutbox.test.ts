@@ -223,3 +223,39 @@ describe('useOutbox', () => {
     expect(await orderStore.pendingOrders.getAll()).toEqual([]);
   });
 });
+
+describe('signing out', () => {
+  it('gives waiting orders a last chance to upload, then says what is left', async () => {
+    await orderStore.pendingOrders.save(order('o1'));
+    expect(await hook.uploadBeforeSignOut('user_a')).toEqual({ unsent: 0, unsaved: 0 });
+
+    uploadOrder.mockResolvedValue({ status: 'retry', error: 'Timed out' });
+    await orderStore.pendingOrders.save(order('o2'));
+    expect(await hook.uploadBeforeSignOut('user_a')).toEqual({ unsent: 1, unsaved: 0 });
+  });
+
+  it('waits at most 15 seconds, and not at all offline', async () => {
+    uploadOrder.mockReturnValue(new Promise(() => {}));
+    await orderStore.pendingOrders.save(order('o1'));
+    online = false;
+    expect(await hook.uploadBeforeSignOut('user_a')).toEqual({ unsent: 1, unsaved: 0 });
+    expect(uploadOrder).not.toHaveBeenCalled();
+
+    online = true;
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const left = hook.uploadBeforeSignOut('user_a');
+    await vi.waitFor(() => expect(uploadOrder).toHaveBeenCalled());
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(await left).toEqual({ unsent: 1, unsaved: 0 });
+  });
+
+  it('deletes the worker’s drafts and reports the orders left behind', async () => {
+    await orderStore.pendingOrders.save(order('o1', { failed: true }));
+    await orderStore.orderDrafts.save({ id: 'user_a:demo', orderNumber: '7', amount: '', notes: '', deliveryAppId: '' });
+    await orderStore.orderDrafts.save({ id: 'user_b:demo', orderNumber: '8', amount: '', notes: '', deliveryAppId: '' });
+    await hook.leavePhone('user_a');
+    expect(await orderStore.orderDrafts.get('user_a:demo')).toBeUndefined();
+    expect(await orderStore.orderDrafts.get('user_b:demo')).toBeDefined();
+    expect(sendTelemetry).toHaveBeenCalledWith(expect.objectContaining({ type: 'outbox', failed: 1 }));
+  });
+});

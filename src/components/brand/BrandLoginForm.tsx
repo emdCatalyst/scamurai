@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useClerk } from '@clerk/nextjs';
 import { useTranslations, useLocale } from 'next-intl';
 import {
@@ -23,6 +23,7 @@ import {
   type ForgotPasswordVerifyValues,
 } from '@/lib/validations/auth';
 import { cn } from '@/lib/utils';
+import { clearSavedScreens } from '@/lib/staff/pageCache';
 import { motion } from 'framer-motion';
 
 interface BrandLoginFormProps {
@@ -47,6 +48,12 @@ export function BrandLoginForm({ brandSlug }: BrandLoginFormProps) {
   const [resetEmail, setResetEmail] = useState('');
   const [serverError, setServerError] = useState('');
   const [infoMessage, setInfoMessage] = useState('');
+
+  // The phone's saved order screen was made for whoever signed in before, however their
+  // session ended: it must not open for the worker signing in now.
+  useEffect(() => {
+    void clearSavedScreens();
+  }, []);
 
   const switchMode = (next: Mode) => {
     setServerError('');
