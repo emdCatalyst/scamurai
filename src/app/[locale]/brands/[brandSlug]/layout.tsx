@@ -4,7 +4,6 @@ import { getBrandBySlug } from "@/lib/queries/brands";
 import { notFound } from "next/navigation";
 import { brandTokensCss, deriveBrandTokens } from "@/lib/brandTokens";
 import AppProviders from "@/components/providers/AppProviders";
-import ServiceWorker from "@/components/staff/ServiceWorker";
 import { NO_INDEX } from "@/lib/seo/site";
 
 /** Each brand is its own installable staff app (see manifest.webmanifest/route.ts). */
@@ -57,7 +56,6 @@ export default async function BrandLayout({
   return (
     <div className="min-h-screen bg-[var(--brand-background)] font-poppins antialiased">
       <style dangerouslySetInnerHTML={{ __html: cssVars }} />
-      <ServiceWorker />
       <AppProviders messages={isStaff ? STAFF_MESSAGES : undefined}>{children}</AppProviders>
     </div>
   );
