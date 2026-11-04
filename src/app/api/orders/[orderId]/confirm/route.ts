@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { ORDER_SUBMITTER_ROLES, requireApiAuth } from "@/lib/auth";
 import { staffDb } from "@/lib/db";
 import { orders, orderImages, users } from "@/lib/db/schema";
 import { getStorage } from "@/lib/storage";
@@ -37,7 +37,9 @@ export async function PATCH(
   const report = await uploadReport(req);
 
   try {
-    const { userId: clerkUserId, brandId } = await requireAuth(["staff"]);
+    const session = await requireApiAuth(ORDER_SUBMITTER_ROLES);
+    if (session instanceof Response) return session;
+    const { userId: clerkUserId, brandId } = session;
     if (!brandId) {
       return NextResponse.json({ error: "User has no brand" }, { status: 403 });
     }

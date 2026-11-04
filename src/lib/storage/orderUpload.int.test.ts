@@ -7,11 +7,16 @@ import { eq, like } from 'drizzle-orm';
 /**
  * Staff order upload end to end, with the real route handlers, the real
  * local database and the local storage driver: signed upload URLs → PUT →
- * confirm → signed read URLs → GET. Only the signed-in user is mocked.
+ * confirm → signed read URLs → GET. Only Clerk's session is mocked.
  */
 
 const session = vi.hoisted(() => ({ current: { userId: '', role: 'staff', brandId: null as string | null } }));
-vi.mock('@/lib/auth', () => ({ requireAuth: async () => session.current }));
+vi.mock('@clerk/nextjs/server', () => ({
+  auth: async () => ({
+    userId: session.current.userId || null,
+    sessionClaims: { metadata: { role: session.current.role, brandId: session.current.brandId } },
+  }),
+}));
 
 const storageRoot = await mkdtemp(path.join(os.tmpdir(), 'scamurai-upload-'));
 process.env.STORAGE_DRIVER = 'local';

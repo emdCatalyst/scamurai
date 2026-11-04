@@ -20,16 +20,19 @@ import { eq, inArray, like } from 'drizzle-orm';
  *     is still vulnerable; when the gap is fixed, remove the `.fails` and the
  *     secure assertion becomes a normal guard.
  *
- * IMPORTANT: the mock replaces requireAuth with a function that returns the
- * current session verbatim and IGNORES the allowedRoles argument. Role
- * enforcement therefore lives in the real requireAuth + middleware, NOT here;
- * these tests exercise the per-route tenant/ownership/validation logic.
+ * Only Clerk's session is mocked: the routes' real requireApiAuth, role
+ * check included, runs on it. The middleware (src/proxy.ts) is not involved.
  */
 
 const session = vi.hoisted(() => ({
   current: { userId: '', role: 'staff' as string, brandId: null as string | null },
 }));
-vi.mock('@/lib/auth', () => ({ requireAuth: async () => session.current }));
+vi.mock('@clerk/nextjs/server', () => ({
+  auth: async () => ({
+    userId: session.current.userId || null,
+    sessionClaims: { metadata: { role: session.current.role, brandId: session.current.brandId } },
+  }),
+}));
 
 const storageRoot = await mkdtemp(path.join(os.tmpdir(), 'scamurai-attacks-'));
 process.env.STORAGE_DRIVER = 'local';
@@ -246,6 +249,41 @@ describe('cross-tenant isolation (upload-urls / confirm / signed-urls)', () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.images.sealed.full).toContain('/api/storage/local');
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// Roles: answered as JSON the phone can act on, never a redirect (a redirect
+// inside the handlers' try/catch used to become a 500, retried forever).
+// ───────────────────────────────────────────────────────────────────────────
+describe('roles on the order APIs', () => {
+  const uploadRequest = () =>
+    new Request('http://localhost:3000/api/orders/upload-urls', {
+      method: 'POST',
+      body: JSON.stringify({ orderNumber: `${TAG}-role`, deliveryAppId: deliveryAppA, subtotal: '10.00' }),
+    });
+
+  it('refuses a brand admin on the staff APIs with 403 forbidden', async () => {
+    session.current = { userId: clerk.finA, role: 'brand_admin', brandId: brandA };
+    const res = await uploadUrls.POST(uploadRequest());
+    expect(res.status).toBe(403);
+    expect(await res.json()).toMatchObject({ code: 'forbidden' });
+    const confirmed = await confirm.PATCH(new Request('http://localhost:3000', { method: 'PATCH' }), orderParams(crypto.randomUUID()));
+    expect(confirmed.status).toBe(403);
+  });
+
+  it('refuses staff on the finance photo URLs', async () => {
+    const orderId = await makeConfirmedOrder(`${TAG}-role-signed`, clerk.a1);
+    asStaff(clerk.a1, brandA);
+    const res = await signedUrls.GET(new Request('http://localhost:3000'), orderParams(orderId));
+    expect(res.status).toBe(403);
+  });
+
+  it('answers 401 unauthenticated when signed out', async () => {
+    session.current = { userId: '', role: 'staff', brandId: null };
+    const res = await uploadUrls.POST(uploadRequest());
+    expect(res.status).toBe(401);
+    expect(await res.json()).toMatchObject({ code: 'unauthenticated' });
   });
 });
 

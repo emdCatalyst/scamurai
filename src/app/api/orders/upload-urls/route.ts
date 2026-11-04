@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { ORDER_SUBMITTER_ROLES, requireApiAuth } from "@/lib/auth";
 import { staffDb } from "@/lib/db";
 import { orders, users, brandDeliveryApps } from "@/lib/db/schema";
 import { getStorage, ORDER_IMAGE_MAX_BYTES, ORDER_IMAGE_UPLOAD_TTL_SECONDS } from "@/lib/storage";
@@ -16,7 +16,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
  */
 export async function POST(req: Request) {
   try {
-    const { userId: clerkUserId, brandId } = await requireAuth(["staff"]);
+    const session = await requireApiAuth(ORDER_SUBMITTER_ROLES);
+    if (session instanceof Response) return session;
+    const { userId: clerkUserId, brandId } = session;
 
     if (!brandId) {
       return NextResponse.json({ error: "User has no brand" }, { status: 403 });

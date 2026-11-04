@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { requireApiAuth } from "@/lib/auth";
 import { getOrderDetail } from "@/lib/queries/orders";
 import { getStorage, ORDER_IMAGE_READ_TTL_SECONDS } from "@/lib/storage";
 
@@ -12,7 +12,9 @@ export async function GET(
   { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
-    const { brandId } = await requireAuth(["finance", "brand_admin"]);
+    const session = await requireApiAuth(["finance", "brand_admin"]);
+    if (session instanceof Response) return session;
+    const { brandId } = session;
 
     if (!brandId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
