@@ -73,8 +73,14 @@ Conventions:
 The app requires TLS unless `DATABASE_SSL=disable`. Use `disable` only where the connection is already private or
 encrypted: local Docker, the Cloud SQL Auth Proxy, or Cloud Run's built-in Cloud SQL socket.
 
-Each server instance opens at most 3 connections (`statement_timeout` 10 s, connect timeout 30 s). On Cloud Run
-the total is max instances × 3, which must stay below the Cloud SQL instance's `max_connections`.
+Each server instance has two pools of at most 3 connections (`statement_timeout` 10 s, connect timeout 30 s), so at
+most 6 connections:
+
+- `staffDb`: only the staff upload APIs (`upload-urls` and `confirm`). Phones upload in the background, so these
+  must answer even while finance or admin pages run long queries.
+- `db`: everything else (pages, server actions, webhooks, the health check).
+
+On Cloud Run the total is max instances × 6, which must stay below the Cloud SQL instance's `max_connections`.
 
 ## Local setup (any machine)
 

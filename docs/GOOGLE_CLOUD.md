@@ -273,7 +273,8 @@ gcloud run deploy scamurai-web \
   `DATABASE_URL=postgresql://scamurai:scamurai_local@scamurai-postgres:5432/scamurai`. Keep that env file outside
   the repo.
 - `--min-instances=1` avoids cold starts; one instance is always billed.
-- `--max-instances=4` × 3 connections = 12 database connections, well inside the small tier's limit.
+- `--max-instances=4` × 6 connections (two pools of 3, see [DATABASE.md](DATABASE.md)) = 24 database connections,
+  well inside the small tier's limit.
 - `--ingress=internal-and-cloud-load-balancing` closes the public `run.app` URL, so all traffic comes through the
   load balancer, with its `X-Forwarded-For` format.
 - `--allow-unauthenticated` is needed because the site is public: the load balancer calls the service anonymously.
@@ -350,9 +351,9 @@ log-based metrics can pull fields out with `REGEXP_EXTRACT`.
 
 ## Operations
 
-- **Load test (local):** `npm run test:load`, tuned with `ORDERS` and `CONCURRENCY`. On one instance with its 3
-  database connections (local Docker database, 2026-11-04) it handled about 160 orders per second at any
-  concurrency, with no errors. A whole order took 33 ms with 5 at once, 0.3 s with 50 and 1.3 s with 200 (waiting
+- **Load test (local):** `npm run test:load`, tuned with `ORDERS` and `CONCURRENCY`. On one instance with the 3
+  connections of its staff upload pool (local Docker database, 2026-11-04) it handled about 160 orders per second at
+  any concurrency, with no errors. A whole order took 33 ms with 5 at once, 0.3 s with 50 and 1.3 s with 200 (waiting
   for the pool). A busy branch sends a few orders a minute, so the server has a wide margin. Clerk, Cloud Storage
   signing and HTTP aren't included: before launch, run a smaller HTTP test against staging.
 

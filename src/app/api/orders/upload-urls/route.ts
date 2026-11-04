@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { staffDb } from "@/lib/db";
 import { orders, users, brandDeliveryApps } from "@/lib/db/schema";
 import { getStorage, ORDER_IMAGE_MAX_BYTES, ORDER_IMAGE_UPLOAD_TTL_SECONDS } from "@/lib/storage";
 import { ORDER_IMAGE_TYPES, orderImageKey } from "@/lib/storage/keys";
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     }
 
     // 1. Resolve staff user → branch
-    const user = await db.query.users.findFirst({
+    const user = await staffDb.query.users.findFirst({
       where: and(eq(users.clerkUserId, clerkUserId), isNull(users.deletedAt)),
     });
     if (!user || !user.branchId) {
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
 
     // 2. Verify the delivery app actually belongs to this brand
     //    (prevents FK insert error with an opaque message later).
-    const app = await db.query.brandDeliveryApps.findFirst({
+    const app = await staffDb.query.brandDeliveryApps.findFirst({
       where: and(
         eq(brandDeliveryApps.id, deliveryAppId),
         eq(brandDeliveryApps.brandId, brandId)
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     // 3. A retry of a submission that already reached the server: report it
     //    done, or fall through and resume it below.
     if (clientOrderId) {
-      const prior = await db.query.orders.findFirst({
+      const prior = await staffDb.query.orders.findFirst({
         where: eq(orders.id, clientOrderId),
         columns: { id: true, brandId: true, submittedBy: true, orderNumber: true },
         with: { images: { columns: { id: true } } },
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
     //    retrying an order whose photos never arrived (offline queue, dropped
     //    connection) resumes it with fresh upload URLs instead of being
     //    blocked by their own earlier attempt.
-    const existing = await db.query.orders.findFirst({
+    const existing = await staffDb.query.orders.findFirst({
       where: and(
         eq(orders.brandId, brandId),
         eq(orders.branchId, user.branchId),
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
     // 6. Insert the order row only after signing succeeded.
     if (!resuming) {
       try {
-        await db.insert(orders).values({
+        await staffDb.insert(orders).values({
           id: orderId,
           brandId,
           orderNumber,
