@@ -12,12 +12,29 @@ import { eq, and, isNull } from "drizzle-orm";
  * paths in the request body are ignored, so a client can never attach
  * another order's (or another brand's) photos.
  */
+
+/**
+ * What the phone says about the upload: when the worker saved the order and
+ * how many attempts it took. Logged only, never stored: phone clocks can be
+ * wrong. The `[orders] confirmed` line shows how long orders wait on phones.
+ */
+async function uploadReport(req: Request) {
+  const body = await req.json().catch(() => null);
+  const savedAt = Number(body?.savedAt);
+  const attempts = Number(body?.attempts);
+  return {
+    waitedSec: Number.isFinite(savedAt) && savedAt > 0 ? Math.max(0, Math.round((Date.now() - savedAt) / 1000)) : undefined,
+    attempts: Number.isInteger(attempts) && attempts >= 0 ? Math.min(attempts, 10_000) : undefined,
+  };
+}
+
 export async function PATCH(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
   const { orderId } = await params;
   const LOG = `[PATCH /api/orders/${orderId}/confirm]`;
+  const report = await uploadReport(req);
 
   try {
     const { userId: clerkUserId, brandId } = await requireAuth(["staff"]);
@@ -76,6 +93,7 @@ export async function PATCH(
         .where(eq(orders.id, orderId));
     });
 
+    console.info("[orders] confirmed", JSON.stringify({ orderId, brandId, ...report }));
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error(`${LOG} Error:`, err);

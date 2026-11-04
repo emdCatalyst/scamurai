@@ -162,7 +162,13 @@ describe('staff order upload (local storage driver)', () => {
     await put(again.body.uploads.sealed, JPEG(6));
     await put(again.body.uploads.opened, JPEG(7));
     asStaff();
-    await confirm.PATCH(new Request('http://localhost:3000'), orderParams(clientOrderId));
+    // The phone reports how long the order waited; the server logs it.
+    const logged = vi.spyOn(console, 'info').mockImplementation(() => {});
+    const report = JSON.stringify({ savedAt: Date.now() - 90_000, attempts: 2 });
+    await confirm.PATCH(new Request('http://localhost:3000', { method: 'PATCH', body: report }), orderParams(clientOrderId));
+    expect(logged).toHaveBeenCalledWith('[orders] confirmed', expect.stringMatching(/"attempts":2/));
+    expect(JSON.parse(logged.mock.calls[0][1] as string).waitedSec).toBeGreaterThanOrEqual(90);
+    logged.mockRestore();
 
     // The confirm answer was lost on the way back, so the phone retries once more.
     expect((await requestUploads(`${TAG}-4`, clientOrderId)).body).toMatchObject({ orderId: clientOrderId, alreadyConfirmed: true });

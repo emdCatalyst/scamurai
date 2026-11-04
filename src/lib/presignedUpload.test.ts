@@ -11,6 +11,8 @@ const order = {
   currency: 'SAR',
   sealedBlob: new Blob(['s']),
   openedBlob: new Blob(['o']),
+  createdAt: 1_790_000_000_000,
+  attempts: 2,
 } as PendingOrder;
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status });
@@ -33,6 +35,7 @@ describe('uploadOrder', () => {
     expect(await uploadOrder(order)).toEqual({ ok: true });
     expect(JSON.parse(fetch.mock.calls[0][1].body)).toMatchObject({ clientOrderId: order.id, orderNumber: 'A-1' });
     expect(fetch.mock.calls[3][0]).toBe(`/api/orders/${order.id}/confirm`);
+    expect(JSON.parse(fetch.mock.calls[3][1].body)).toEqual({ savedAt: order.createdAt, attempts: order.attempts });
   });
 
   it('treats an order the server already confirmed as delivered', async () => {

@@ -27,6 +27,8 @@ const isPublicRoute = createRouteMatcher([
   '/api/storage/local(.*)',
   // Browsers post Content-Security-Policy violations here.
   '/api/csp-report',
+  // Uptime monitoring.
+  '/api/health',
 ]);
 
 /**

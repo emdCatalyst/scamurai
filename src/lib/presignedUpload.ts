@@ -77,7 +77,16 @@ export async function uploadOrder(order: PendingOrder): Promise<UploadOutcome> {
       })
     );
 
-    const confirm = await send(`/api/orders/${data.orderId}/confirm`, { method: "PATCH" }, API_TIMEOUT_MS);
+    const confirm = await send(
+      `/api/orders/${data.orderId}/confirm`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        // For the server's logs: how long the order waited on the phone.
+        body: JSON.stringify({ savedAt: order.createdAt, attempts: order.attempts }),
+      },
+      API_TIMEOUT_MS
+    );
     // 422: a photo didn't arrive, and the next attempt uploads it again.
     if (!confirm.ok) await fail("confirm", confirm, retryable(confirm.status) || confirm.status === 422);
     return { ok: true };
