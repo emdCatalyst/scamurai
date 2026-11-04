@@ -4,8 +4,8 @@ const EXTENDED_ARABIC_INDIC_ZERO = 0x06f0;
 
 /**
  * Converts Arabic-Indic (٠-٩) and Extended Arabic-Indic (۰-۹) digits to 0-9.
- * Arabic keyboards often type them in number and phone fields; the shared
- * schema only accepts Latin digits, so the form normalises them on input.
+ * Arabic keyboards often type them in number and phone fields, while schemas,
+ * searches and the database compare Latin digits.
  */
 export function toLatinDigits(value: string): string {
   return value.replace(ARABIC_INDIC_DIGITS, (digit) => {

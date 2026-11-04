@@ -3,7 +3,7 @@ import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 import type { PlanDefinition, ServiceDefinition } from '@/config/services';
 import { isLiveService } from '@/lib/services/catalog';
 import type { ApplicationFormValues } from '@/lib/validations/application';
-import { toLatinDigits } from './digits';
+import { toLatinDigits } from '@/lib/digits';
 import SelectionSummary from './SelectionSummary';
 import StepFieldset, { type StepFrame } from './StepFieldset';
 import TextField from './TextField';
