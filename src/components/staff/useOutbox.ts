@@ -98,6 +98,8 @@ export function useOutbox(userId: string) {
     otherAccounts: 0,
     /** Orders the phone couldn't save, kept by this page only: lost if it closes before they are sent. */
     unsaved: 0,
+    /** The phone's orders have been counted at least once: until then, nothing can be said about them. */
+    checked: false,
   });
   const [refusedAsOther, setRefusedAsOther] = useState(false);
   const wrongAccount = refusedAsOther || (signedInId !== undefined && signedInId !== userId);
@@ -105,7 +107,7 @@ export function useOutbox(userId: string) {
   const refresh = useCallback(async () => {
     const summary = await outbox.summary(userId);
     const { waiting, failed, otherAccounts } = summary;
-    setState((s) => ({ ...s, waiting, failed, otherAccounts, unsaved: store.unsaved }));
+    setState((s) => ({ ...s, waiting, failed, otherAccounts, unsaved: store.unsaved, checked: true }));
     if (summary.otherAccountSignedIn) setRefusedAsOther(true);
     reportStuck(summary);
   }, [userId]);

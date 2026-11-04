@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Camera, RefreshCw, Eye, Loader2 } from "lucide-react";
+import { useId, useRef, useState } from "react";
+import { AlertTriangle, Camera, Eye, Loader2, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import ImageLightbox from "@/components/brand/orders/ImageLightbox";
@@ -11,24 +11,49 @@ import { useTranslations } from "next-intl";
 interface CameraCaptureZoneProps {
   label: string;
   onCapture: (file: File) => void;
+  /** Just before the camera opens: a low-memory phone may close this page while it is open. */
+  onOpenCamera?: () => void;
   previewUrl?: string;
   /** The photo is being shrunk for upload. */
   busy?: boolean;
+  disabled?: boolean;
+  /** Why there is no photo, e.g. it couldn't be read. */
+  error?: string;
+  /** A doubt about the photo, e.g. it looks older than this order. */
+  warning?: string;
+  /** The worker tried to save without this photo. */
+  highlighted?: boolean;
+  /** Id of the tile's main control, so the form can bring the worker to it. */
+  id?: string;
   className?: string;
 }
 
+/**
+ * One photo of the order. Empty, the whole tile opens the camera; with a
+ * photo, a tap on it shows it full screen, and Retake (here or there) takes
+ * it again. Messages stay inside the tile, which never changes size, so the
+ * next tile can't move under the worker's finger.
+ */
 export default function CameraCaptureZone({
   label,
   onCapture,
+  onOpenCamera,
   previewUrl,
   busy = false,
+  disabled = false,
+  error,
+  warning,
+  highlighted = false,
+  id,
   className,
 }: CameraCaptureZoneProps) {
   const t = useTranslations("brand.submit");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [reviewing, setReviewing] = useState(false);
+  const warningId = useId();
 
-  const handleClick = () => {
+  const openCamera = () => {
+    onOpenCamera?.();
     fileInputRef.current?.click();
   };
 
@@ -44,12 +69,10 @@ export default function CameraCaptureZone({
   return (
     <>
       <div
-        onClick={previewUrl || busy ? undefined : handleClick}
         className={cn(
-          "relative flex h-32 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all",
-          previewUrl
-            ? "border-mint bg-mint/5"
-            : "cursor-pointer border-[var(--brand-border)] bg-[var(--brand-surface)] hover:bg-[var(--brand-background-active)]/5",
+          "relative h-32 w-full overflow-hidden rounded-xl border-2",
+          previewUrl ? "border-mint" : "border-dashed border-[var(--brand-surface-fg-muted)] bg-[var(--brand-surface)]",
+          highlighted && "ring-2 ring-[var(--brand-danger)] ring-offset-2",
           className
         )}
       >
@@ -58,57 +81,70 @@ export default function CameraCaptureZone({
           accept="image/*"
           capture="environment"
           className="hidden"
+          tabIndex={-1}
+          aria-hidden
           ref={fileInputRef}
           onChange={handleFileChange}
         />
 
         {busy ? (
-          <div className="flex flex-col items-center gap-2 text-[var(--brand-surface-fg-muted)]">
-            <Loader2 className="h-8 w-8 animate-spin" />
+          <div id={id} tabIndex={-1} className="flex h-full flex-col items-center justify-center gap-2 text-[var(--brand-surface-fg-muted)] outline-none">
+            <Loader2 className="h-8 w-8 animate-spin" aria-hidden />
             <span className="text-sm font-medium">{t('preparingPhoto')}</span>
           </div>
         ) : previewUrl ? (
-          <div className="relative h-full w-full overflow-hidden rounded-lg">
-            <Image
-              src={previewUrl}
-              alt={label}
-              fill
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-black/20" />
-            <div className="absolute bottom-2 end-2 flex items-center gap-2">
-              <button
-                type="button"
-                className="flex items-center gap-1 rounded-full bg-[var(--brand-surface)]/90 px-3 py-1 text-xs font-medium text-[var(--brand-surface-fg)] shadow-sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setReviewing(true);
-                }}
-              >
-                <Eye className="h-3 w-3" />
+          <>
+            <button
+              type="button"
+              id={id}
+              onClick={() => setReviewing(true)}
+              aria-label={`${t('review')}: ${label}`}
+              aria-describedby={warning ? warningId : undefined}
+              className="absolute inset-0 h-full w-full"
+            >
+              <Image src={previewUrl} alt="" fill className="object-cover" />
+              {/* Shows that a tap opens the photo. */}
+              <span className="absolute bottom-2 start-2 flex min-h-8 items-center gap-1 rounded-full bg-[var(--brand-surface)] px-3 text-xs font-semibold text-[var(--brand-surface-fg)] shadow-sm">
+                <Eye className="h-4 w-4" aria-hidden />
                 {t('review')}
-              </button>
-              <button
-                type="button"
-                className="flex items-center gap-1 rounded-full bg-[var(--brand-surface)]/90 px-3 py-1 text-xs font-medium text-[var(--brand-surface-fg)] shadow-sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClick();
-                }}
+              </span>
+            </button>
+            {/* Solid black, not an opacity modifier: older phones' browsers would drop it and leave white text on the photo. */}
+            {warning ? (
+              <p
+                id={warningId}
+                className="pointer-events-none absolute inset-x-2 top-2 flex items-start gap-1.5 rounded-md bg-black px-2 py-1 text-xs font-medium text-white"
               >
-                <RefreshCw className="h-3 w-3" />
-                {t('retake')}
-              </button>
-            </div>
-            <div className="absolute start-3 top-3 rounded-md bg-black/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-              {label}
-            </div>
-          </div>
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+                <span className="line-clamp-2">{warning}</span>
+              </p>
+            ) : (
+              <span className="pointer-events-none absolute start-2 top-2 rounded-md bg-black px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                {label}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={openCamera}
+              disabled={disabled}
+              className="absolute bottom-2 end-2 flex min-h-11 items-center gap-1.5 rounded-full bg-[var(--brand-surface)] px-4 text-sm font-semibold text-[var(--brand-surface-fg)] shadow-sm"
+            >
+              <RefreshCw className="h-4 w-4" aria-hidden />
+              {t('retake')}
+            </button>
+          </>
         ) : (
-          <div className="flex flex-col items-center gap-2 text-[var(--brand-surface-fg-muted)]">
-            <Camera className="h-8 w-8" />
+          <button
+            type="button"
+            id={id}
+            onClick={openCamera}
+            disabled={disabled}
+            className="flex h-full w-full flex-col items-center justify-center gap-1 px-3 text-[var(--brand-surface-fg-muted)]"
+          >
+            <Camera className="h-8 w-8" aria-hidden />
             <span className="text-sm font-medium">{label}</span>
-          </div>
+            {error && <span className="line-clamp-2 text-xs font-semibold text-[var(--brand-danger)]">{error}</span>}
+          </button>
         )}
       </div>
 
@@ -116,6 +152,8 @@ export default function CameraCaptureZone({
         src={reviewing && previewUrl ? previewUrl : null}
         alt={label}
         onClose={() => setReviewing(false)}
+        onRetake={openCamera}
+        closeOnBack
       />
     </>
   );
