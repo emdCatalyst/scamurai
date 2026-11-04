@@ -74,9 +74,12 @@ export function createOutbox(deps: {
 
     async summary(userId: string) {
       const mine = (await store.getAll()).filter((order) => order.userId === userId);
+      const waiting = mine.filter((order) => !order.failed);
       return {
-        waiting: mine.filter((order) => !order.failed).length,
+        waiting: waiting.length,
         failed: mine.filter((order) => order.failed),
+        /** When the oldest order still waiting was saved, if any. */
+        oldestWaitingAt: waiting.length > 0 ? Math.min(...waiting.map((order) => order.createdAt)) : undefined,
       };
     },
   };

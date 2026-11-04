@@ -10,6 +10,7 @@ import { LogOut } from "lucide-react";
 import StaffSignOutButton from "@/components/staff/StaffSignOutButton";
 import OrderSubmitForm from "@/components/staff/OrderSubmitForm";
 import InstallAppButton from "@/components/staff/InstallAppButton";
+import StaffVitals from "@/components/staff/StaffVitals";
 import LocaleSwitcher from "@/components/ui/LocaleSwitcher";
 import { deriveBrandTokens, DEFAULT_BRAND_COLORS } from "@/lib/brandTokens";
 
@@ -120,6 +121,7 @@ export default async function StaffSubmitPage({
       </header>
 
       <main className="mx-auto max-w-md">
+        <StaffVitals />
         <OrderSubmitForm
           userId={clerkUserId}
           brandId={brand.id}

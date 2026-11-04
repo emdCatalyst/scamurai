@@ -4,11 +4,16 @@ import { useCallback, useEffect, useState } from "react";
 import { pendingOrders, type PendingOrder } from "@/lib/imageQueue";
 import { createOutbox } from "@/lib/outbox";
 import { uploadOrder } from "@/lib/presignedUpload";
+import { sendTelemetry } from "@/lib/telemetry";
 
 const outbox = createOutbox({ store: pendingOrders, upload: uploadOrder });
 
 /** How often the outbox checks whether a retry is due. */
 const POLL_MS = 15_000;
+/** An order waiting this long on the phone, or any rejected one, is reported (at most every 5 minutes). */
+const STUCK_AFTER_MS = 10 * 60_000;
+const REPORT_EVERY_MS = 5 * 60_000;
+let lastStuckReport = 0;
 
 export interface OutboxState {
   waiting: number;
@@ -25,8 +30,16 @@ export function useOutbox(userId: string) {
   const [state, setState] = useState<OutboxState>({ waiting: 0, failed: [], uploading: false });
 
   const refresh = useCallback(async () => {
-    const { waiting, failed } = await outbox.summary(userId);
+    const { waiting, failed, oldestWaitingAt } = await outbox.summary(userId);
     setState((s) => ({ ...s, waiting, failed }));
+
+    // Let the office see orders stuck on a phone (`[telemetry]` log lines).
+    const now = Date.now();
+    const waitedMs = oldestWaitingAt ? now - oldestWaitingAt : 0;
+    if ((waitedMs >= STUCK_AFTER_MS || failed.length > 0) && now - lastStuckReport >= REPORT_EVERY_MS) {
+      lastStuckReport = now;
+      sendTelemetry({ type: "outbox", waiting, failed: failed.length, oldestWaitingSec: Math.round(waitedMs / 1000) });
+    }
   }, [userId]);
 
   const flush = useCallback(

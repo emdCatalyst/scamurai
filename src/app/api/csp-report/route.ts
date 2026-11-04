@@ -1,3 +1,4 @@
+import { readBody } from '@/lib/readBody';
 import { parseCspReports } from '@/lib/security/cspReport';
 
 /**
@@ -8,25 +9,6 @@ import { parseCspReports } from '@/lib/security/cspReport';
 
 const MAX_BODY_BYTES = 16 * 1024;
 const NO_CONTENT = () => new Response(null, { status: 204 });
-
-/** The body as text, or null once it grows past `limit` bytes. */
-async function readBody(request: Request, limit: number): Promise<string | null> {
-  const reader = request.body?.getReader();
-  if (!reader) return null;
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    size += value.byteLength;
-    if (size > limit) {
-      await reader.cancel();
-      return null;
-    }
-    chunks.push(value);
-  }
-  return Buffer.concat(chunks).toString('utf8');
-}
 
 export async function POST(request: Request) {
   const body = await readBody(request, MAX_BODY_BYTES);

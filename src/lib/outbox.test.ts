@@ -38,6 +38,13 @@ describe('outbox', () => {
     expect(store.rows.size).toBe(0);
   });
 
+  it('reports what is still waiting, and since when', async () => {
+    const store = memoryStore([order('o5'), order('o3'), order('o9', { failed: true })]);
+    const outbox = createOutbox({ store, upload: async () => ({ ok: true }) });
+    expect(await outbox.summary('user_a')).toMatchObject({ waiting: 2, oldestWaitingAt: 3, failed: [{ id: 'o9' }] });
+    expect((await outbox.summary('user_b')).oldestWaitingAt).toBeUndefined();
+  });
+
   it('only sends the signed-in worker’s orders on a shared phone', async () => {
     const store = memoryStore([order('o1'), order('o2', { userId: 'user_b' })]);
     const sent: string[] = [];
