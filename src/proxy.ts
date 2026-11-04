@@ -91,7 +91,7 @@ async function route(auth: ClerkMiddlewareAuth, req: NextRequest): Promise<NextR
   const isApiRoute = req.nextUrl.pathname.startsWith('/api');
   
   const firstSegment = req.nextUrl.pathname.split('/')[1];
-  const locale = ['en', 'ar'].includes(firstSegment || '') ? firstSegment : 'en';
+  const locale = LOCALES.includes(firstSegment) ? firstSegment : routing.defaultLocale;
 
   // 1. Check if it's a public route
   const isPublic = isPublicRoute(req);
