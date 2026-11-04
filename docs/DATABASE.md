@@ -107,7 +107,7 @@ npm run dev
 ```
 
 Each PC has its own database. Only the migrations travel through git, so after `git pull` run `npm run db:migrate`
-to catch up. Data stays in the `scamurai-pgdata` Docker volume across restarts. The host port is 54320, not 5432,
+to catch up, then `npm run db:seed` (it only adds or fixes test data, so running it again is safe). Data stays in the `scamurai-pgdata` Docker volume across restarts. The host port is 54320, not 5432,
 so it never clashes with another project's Postgres.
 
 | Script | What it does |
