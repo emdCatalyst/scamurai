@@ -2,25 +2,22 @@ import { db } from "@/lib/db";
 import { orders, branches, users, brands, brandDeliveryApps, deliveryAppCatalog } from "@/lib/db/schema";
 import { eq, and, sql, gte, isNull, count, sum, desc } from "drizzle-orm";
 import { PLANS, PlanKey } from "@/config/plans";
+import { confirmedOrdersOf } from "./orders";
+import { DAY_MS, startOfRiyadhDay, startOfRiyadhMonth } from "./riyadhDays";
+
+// Counts are of confirmed orders, by Riyadh days and months, whatever the server's time zone.
 
 export async function getOrderStats(brandId: string) {
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
-
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-
   const todayRes = await db
     .select({ count: count() })
     .from(orders)
-    .where(and(eq(orders.brandId, brandId), gte(orders.submittedAt, startOfToday), isNull(orders.deletedAt)))
+    .where(and(confirmedOrdersOf(brandId), gte(orders.submittedAt, startOfRiyadhDay())))
     .execute();
 
   const needsReviewRes = await db
     .select({ count: count() })
     .from(orders)
-    .where(and(eq(orders.brandId, brandId), eq(orders.status, "needs_review"), isNull(orders.deletedAt)))
+    .where(and(confirmedOrdersOf(brandId), eq(orders.status, "needs_review")))
     .execute();
 
   const monthlyRevenueRes = await db
@@ -28,10 +25,9 @@ export async function getOrderStats(brandId: string) {
     .from(orders)
     .where(
       and(
-        eq(orders.brandId, brandId),
+        confirmedOrdersOf(brandId),
         eq(orders.status, "approved"),
-        gte(orders.submittedAt, startOfMonth),
-        isNull(orders.deletedAt)
+        gte(orders.submittedAt, startOfRiyadhMonth())
       )
     )
     .execute();
@@ -67,28 +63,28 @@ export async function getBranchStats(brandId: string) {
 }
 
 export async function getOrdersOverTime(brandId: string, days: number = 30) {
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - days);
-  startDate.setHours(0, 0, 0, 0);
+  const startDate = new Date(startOfRiyadhDay().getTime() - days * DAY_MS);
 
-  // Group by date (UTC date to keep it simple and consistent)
+  // The Riyadh day as text: postgres.js would read a timestamp without a
+  // zone in the server's zone, and shift it again.
+  const day = sql<string>`to_char(${orders.submittedAt} AT TIME ZONE 'Asia/Riyadh', 'YYYY-MM-DD')`;
   const result = await db
     .select({
-      date: sql<string>`date_trunc('day', ${orders.submittedAt})`.as("date"),
+      date: day.as("date"),
       status: orders.status,
       count: count(),
     })
     .from(orders)
-    .where(and(eq(orders.brandId, brandId), gte(orders.submittedAt, startDate), isNull(orders.deletedAt)))
-    .groupBy(sql`date_trunc('day', ${orders.submittedAt})`, orders.status)
-    .orderBy(sql`date_trunc('day', ${orders.submittedAt})`)
+    .where(and(confirmedOrdersOf(brandId), gte(orders.submittedAt, startDate)))
+    .groupBy(day, orders.status)
+    .orderBy(day)
     .execute();
 
   // Process data into a format Recharts likes: { date: 'YYYY-MM-DD', submitted: 10, approved: 8, rejected: 2 }
   const dataMap: Record<string, { date: string; submitted: number; approved: number; rejected: number }> = {};
 
   result.forEach((row) => {
-    const dateStr = new Date(row.date).toISOString().split("T")[0];
+    const dateStr = row.date;
     if (!dataMap[dateStr]) {
       dataMap[dateStr] = { date: dateStr, submitted: 0, approved: 0, rejected: 0 };
     }
@@ -102,10 +98,6 @@ export async function getOrdersOverTime(brandId: string, days: number = 30) {
 }
 
 export async function getOrdersByBranch(brandId: string) {
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-
   return await db
     .select({
       branchName: branches.name,
@@ -113,17 +105,13 @@ export async function getOrdersByBranch(brandId: string) {
     })
     .from(orders)
     .innerJoin(branches, eq(orders.branchId, branches.id))
-    .where(and(eq(orders.brandId, brandId), gte(orders.submittedAt, startOfMonth), isNull(orders.deletedAt)))
+    .where(and(confirmedOrdersOf(brandId), gte(orders.submittedAt, startOfRiyadhMonth())))
     .groupBy(branches.name)
     .orderBy(desc(count(orders.id)))
     .execute();
 }
 
 export async function getOrdersByDeliveryApp(brandId: string) {
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-
   const result = await db
     .select({
       appName: deliveryAppCatalog.name,
@@ -132,7 +120,7 @@ export async function getOrdersByDeliveryApp(brandId: string) {
     .from(orders)
     .innerJoin(brandDeliveryApps, eq(orders.deliveryAppId, brandDeliveryApps.id))
     .innerJoin(deliveryAppCatalog, eq(brandDeliveryApps.catalogAppId, deliveryAppCatalog.id))
-    .where(and(eq(orders.brandId, brandId), gte(orders.submittedAt, startOfMonth), isNull(orders.deletedAt)))
+    .where(and(confirmedOrdersOf(brandId), gte(orders.submittedAt, startOfRiyadhMonth())))
     .groupBy(deliveryAppCatalog.name)
     .orderBy(desc(count(orders.id)))
     .execute();

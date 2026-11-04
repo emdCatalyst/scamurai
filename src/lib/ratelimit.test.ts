@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getClientIp } from './ratelimit';
+import { createMemoryRateLimit, getClientIp } from './ratelimit';
 
 const headers = (values: Record<string, string>) => new Headers(values);
 
@@ -30,5 +30,33 @@ describe('getClientIp', () => {
     expect(getClientIp(headers({ 'x-real-ip': ' 203.0.113.9 ' }))).toBe('203.0.113.9');
     expect(getClientIp(headers({ 'x-forwarded-for': ' , ' }))).toBeUndefined();
     expect(getClientIp(headers({}))).toBeUndefined();
+  });
+});
+
+describe('createMemoryRateLimit', () => {
+  const MINUTE = 60_000;
+
+  it('allows the limit in each window, then refuses until the window ends', () => {
+    const isLimited = createMemoryRateLimit({ limit: 3, windowMs: MINUTE });
+    const start = 1_000_000;
+    expect([0, 1, 2, 3].map((i) => isLimited('user_1', start + i))).toEqual([false, false, false, true]);
+    expect(isLimited('user_1', start + MINUTE - 1)).toBe(true);
+    expect(isLimited('user_1', start + MINUTE)).toBe(false);
+  });
+
+  it('counts each key on its own', () => {
+    const isLimited = createMemoryRateLimit({ limit: 1, windowMs: MINUTE });
+    expect(isLimited('user_1', 0)).toBe(false);
+    expect(isLimited('user_1', 1)).toBe(true);
+    expect(isLimited('user_2', 2)).toBe(false);
+  });
+
+  it('starts a key afresh after its window, also when other keys are swept', () => {
+    const isLimited = createMemoryRateLimit({ limit: 1, windowMs: MINUTE });
+    isLimited('user_1', 0);
+    isLimited('user_1', 1);
+    // A later request from someone else sweeps the ended window of user_1.
+    expect(isLimited('user_2', 2 * MINUTE)).toBe(false);
+    expect(isLimited('user_1', 2 * MINUTE + 1)).toBe(false);
   });
 });

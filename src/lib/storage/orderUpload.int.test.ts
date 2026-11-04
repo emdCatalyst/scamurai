@@ -2,16 +2,24 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { eq, like } from 'drizzle-orm';
+import { eq, ilike, like } from 'drizzle-orm';
+import { normalizeOrderNumber } from '@/lib/orders/input';
 
 /**
  * Staff order upload end to end, with the real route handlers, the real
  * local database and the local storage driver: signed upload URLs → PUT →
- * confirm → signed read URLs → GET. Only the signed-in user is mocked.
+ * confirm → signed read URLs → GET. Only Clerk's session is mocked. Each run
+ * tags its data on its own, so runs from other checkouts sharing the local
+ * database don't collide.
  */
 
 const session = vi.hoisted(() => ({ current: { userId: '', role: 'staff', brandId: null as string | null } }));
-vi.mock('@/lib/auth', () => ({ requireAuth: async () => session.current }));
+vi.mock('@clerk/nextjs/server', () => ({
+  auth: async () => ({
+    userId: session.current.userId || null,
+    sessionClaims: { metadata: { role: session.current.role, brandId: session.current.brandId } },
+  }),
+}));
 
 const storageRoot = await mkdtemp(path.join(os.tmpdir(), 'scamurai-upload-'));
 process.env.STORAGE_DRIVER = 'local';
@@ -24,7 +32,7 @@ const confirm = await import('@/app/api/orders/[orderId]/confirm/route');
 const signedUrls = await import('@/app/api/orders/[orderId]/signed-urls/route');
 const localStorage = await import('@/app/api/storage/local/route');
 
-const TAG = 'uploadtest';
+const TAG = `upl${Date.now().toString(36)}`;
 const STAFF_CLERK_ID = `user_${TAG}_staff`;
 const OTHER_STAFF_CLERK_ID = `user_${TAG}_staff2`;
 const FINANCE_CLERK_ID = `user_${TAG}_finance`;
@@ -55,12 +63,12 @@ async function put(target: { url: string; headers: Record<string, string> }, bod
 }
 
 async function cleanup() {
-  await db.delete(schema.orders).where(like(schema.orders.orderNumber, `${TAG}-%`));
+  // Order numbers are stored upper-cased.
+  await db.delete(schema.orders).where(ilike(schema.orders.orderNumber, `${TAG}-%`));
   await db.delete(schema.users).where(like(schema.users.email, `%.${TAG}@integration.test`));
 }
 
 beforeAll(async () => {
-  await cleanup();
   // Uses the seeded demo brand (npm run db:seed).
   const [brand] = await db.select().from(schema.brands).where(eq(schema.brands.slug, 'demo-burger'));
   if (!brand) throw new Error('Run npm run db:seed first (demo brand missing).');
@@ -137,18 +145,19 @@ describe('staff order upload (local storage driver)', () => {
     expect((await put({ url: forged, headers: sealed.headers }, JPEG(3))).status).toBe(403);
   });
 
-  it('lets the same staff member resume an order whose photos never arrived', async () => {
+  it("recognises a retry by the phone's id only: without it, a taken number is a duplicate", async () => {
     const first = await requestUploads(`${TAG}-3`);
-    const retry = await requestUploads(`${TAG}-3`);
-    expect(retry.status).toBe(200);
-    expect(retry.body.orderId).toBe(first.body.orderId);
+    expect(first.status).toBe(200);
+    const again = await requestUploads(`${TAG}-3`);
+    expect(again.status).toBe(409);
+    expect(again.body.code).toBe('duplicate_order');
 
     // Once confirmed, the order number is taken for good.
-    await put(retry.body.uploads.sealed, JPEG(4));
-    await put(retry.body.uploads.opened, JPEG(5));
+    await put(first.body.uploads.sealed, JPEG(4));
+    await put(first.body.uploads.opened, JPEG(5));
     asStaff();
-    await confirm.PATCH(new Request('http://localhost:3000'), orderParams(retry.body.orderId));
-    expect((await requestUploads(`${TAG}-3`)).status).toBe(400);
+    expect((await confirm.PATCH(new Request('http://localhost:3000'), orderParams(first.body.orderId))).status).toBe(200);
+    expect((await requestUploads(`${TAG}-3`, crypto.randomUUID())).body.code).toBe('duplicate_order');
   });
 
   it("keeps a retried submission to one order, under the phone's own id", async () => {
@@ -172,9 +181,9 @@ describe('staff order upload (local storage driver)', () => {
 
     // The confirm answer was lost on the way back, so the phone retries once more.
     expect((await requestUploads(`${TAG}-4`, clientOrderId)).body).toMatchObject({ orderId: clientOrderId, alreadyConfirmed: true });
-    expect(await db.select().from(schema.orders).where(eq(schema.orders.orderNumber, `${TAG}-4`))).toHaveLength(1);
+    expect(await db.select().from(schema.orders).where(eq(schema.orders.orderNumber, normalizeOrderNumber(`${TAG}-4`)))).toHaveLength(1);
 
     // Nobody else can claim that id.
-    expect((await requestUploads(`${TAG}-5`, clientOrderId, OTHER_STAFF_CLERK_ID)).status).toBe(409);
+    expect((await requestUploads(`${TAG}-5`, clientOrderId, OTHER_STAFF_CLERK_ID)).body).toMatchObject({ code: 'order_conflict' });
   });
 });
