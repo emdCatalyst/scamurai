@@ -7,7 +7,7 @@ import Image from "next/image";
 import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
 import { verifyAdminRole } from "./actions";
 import { useTranslations } from "next-intl";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormValues } from "@/lib/validations/auth";

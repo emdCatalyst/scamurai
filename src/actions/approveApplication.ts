@@ -1,7 +1,7 @@
 'use server';
 
 import { randomUUID } from 'node:crypto';
-import { z } from 'zod';
+import { z } from '@/lib/zod';
 import { DrizzleQueryError, TransactionRollbackError, eq, like, or } from 'drizzle-orm';
 import { clerkClient } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';

@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff, Loader2, Lock, Save } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { z } from '@/lib/zod';
 import { useUser, useReverification } from '@clerk/nextjs';
 import { isReverificationCancelledError } from '@clerk/nextjs/errors';
 import { useToast } from '@/components/ui/Toast';

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '@/lib/zod';
 
 const hexColorRegex = /^#[0-9a-fA-F]{6}$/;
 

@@ -5,7 +5,7 @@ import { after } from 'next/server';
 import { and, eq, exists, inArray, sql } from 'drizzle-orm';
 import { hasLocale } from 'next-intl';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { z } from 'zod';
+import { z } from '@/lib/zod';
 import type { ServiceKey } from '@/config/services';
 import { routing, type Locale } from '@/i18n/routing';
 import { OPEN_APPLICATION_STATUSES } from '@/lib/applications/status';

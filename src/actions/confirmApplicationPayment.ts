@@ -1,6 +1,6 @@
 'use server';
 
-import { z } from 'zod';
+import { z } from '@/lib/zod';
 import { db } from '@/lib/db';
 import { applications } from '@/lib/db/schema';
 import { requireAuth } from '@/lib/auth';

@@ -5,7 +5,7 @@ import { brands, branches, users } from "@/lib/db/schema";
 import { eq, and, isNull, count } from "drizzle-orm";
 import { requireAuth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { PLANS, type PlanKey } from "@/config/plans";
 
 const PLAN_KEYS = Object.keys(PLANS) as [PlanKey, ...PlanKey[]];

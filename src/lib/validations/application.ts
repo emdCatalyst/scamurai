@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '@/lib/zod';
 import { PLAN_TIERS, SERVICE_KEYS } from '@/config/services';
 import { getPlan, getService, isLiveService } from '@/lib/services/catalog';
 

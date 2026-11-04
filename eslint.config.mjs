@@ -14,6 +14,19 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     ".claude/**",
   ]),
+  {
+    rules: {
+      // Zod is configured for the Content-Security-Policy in src/lib/zod.ts.
+      "no-restricted-imports": [
+        "error",
+        { paths: [{ name: "zod", message: "Import { z } from '@/lib/zod' instead (configured for the CSP)." }] },
+      ],
+    },
+  },
+  {
+    files: ["src/lib/zod.ts"],
+    rules: { "no-restricted-imports": "off" },
+  },
 ]);
 
 export default eslintConfig;

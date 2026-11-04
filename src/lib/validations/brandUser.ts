@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 
 export const brandUserSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters").max(80, "Name must be at most 80 characters"),
