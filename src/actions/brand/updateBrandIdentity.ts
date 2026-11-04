@@ -25,8 +25,10 @@ export async function updateBrandIdentity(data: {
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
   }
+  // Only the validated copy is saved: it leaves out keys the schema doesn't know.
+  const { name, logoUrl, brandColors } = parsed.data;
   // A logo must be one uploaded for this brand, never another brand's file.
-  if (parsed.data.logoUrl && !isBrandLogoPath(parsed.data.logoUrl, brandId)) {
+  if (logoUrl && !isBrandLogoPath(logoUrl, brandId)) {
     return { success: false, error: "Invalid logo" };
   }
 
@@ -40,9 +42,9 @@ export async function updateBrandIdentity(data: {
     await db
       .update(brands)
       .set({
-        name: data.name,
-        logoUrl: data.logoUrl,
-        brandColors: data.brandColors,
+        name,
+        logoUrl,
+        brandColors,
         updatedAt: new Date(),
       })
       .where(eq(brands.id, brandId));

@@ -65,6 +65,26 @@ function fromReportUri(report: Json): Json {
   };
 }
 
+/**
+ * Lets at most `limit` lines through per `windowMs`, per server instance. The
+ * report endpoint is public, so without a bound anyone could flood the logs,
+ * and the alert on `[csp]` lines, with made-up reports.
+ */
+export function createLogBudget(limit: number, windowMs: number, now: () => number = Date.now): () => boolean {
+  let windowStart = -Infinity;
+  let used = 0;
+  return () => {
+    const time = now();
+    if (time - windowStart >= windowMs) {
+      windowStart = time;
+      used = 0;
+    }
+    if (used >= limit) return false;
+    used += 1;
+    return true;
+  };
+}
+
 export function parseCspReports(payload: unknown, adminSlug?: string): CspViolation[] {
   const reports = Array.isArray(payload)
     ? payload.filter((r) => isRecord(r) && r.type === 'csp-violation' && isRecord(r.body)).map((r) => fromReportingApi(r.body as Json))

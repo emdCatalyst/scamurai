@@ -31,7 +31,13 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: 'File too large' }, { status: 413 });
   }
 
-  await driver.write(payload, body);
+  try {
+    await driver.write(payload, body);
+  } catch (error) {
+    // A key the disk can't hold (say, a folder's name): refused like Cloud Storage refuses a bad object name.
+    console.error('[storage/local] Upload not stored:', error);
+    return NextResponse.json({ error: 'Upload could not be stored' }, { status: 400 });
+  }
   return new NextResponse(null, { status: 200 });
 }
 

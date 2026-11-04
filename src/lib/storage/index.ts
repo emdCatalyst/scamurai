@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { createGcsDriver } from './gcsDriver';
 import { createLocalDriver } from './localDriver';
 import type { ObjectStorage, StorageBucket } from './types';
@@ -11,7 +12,8 @@ export type { ObjectStorage, StorageBucket, UploadTarget } from './types';
  *   STORAGE_BUCKET_ORDER_IMAGES   physical bucket names (gcs)
  *   STORAGE_BUCKET_BRAND_ASSETS
  *   STORAGE_LOCAL_DIR             local driver root (default .storage)
- *   STORAGE_SIGNING_SECRET        local driver URL signing secret
+ *   STORAGE_SIGNING_SECRET        local driver URL signing secret, 32+ characters
+ *                                 (default: random per process)
  */
 
 type Driver = 'gcs' | 'local';
@@ -40,6 +42,26 @@ export function getStorage(): ObjectStorage {
   return cached;
 }
 
+// On globalThis, so hot reloads and every bundle that includes this module share one secret.
+const globalForStorage = globalThis as unknown as {
+  localSigningSecret: string | undefined;
+};
+
+/**
+ * The local driver's URL signing secret. There is no default anyone could
+ * sign with: unless configured it is random per process, which costs nothing
+ * because signed URLs live minutes and a failed upload asks for new ones.
+ */
+function localSigningSecret(): string {
+  const configured = process.env.STORAGE_SIGNING_SECRET;
+  if (configured) {
+    if (configured.length < 32) throw new Error('STORAGE_SIGNING_SECRET must be at least 32 characters, or unset.');
+    return configured;
+  }
+  globalForStorage.localSigningSecret ??= randomBytes(32).toString('base64url');
+  return globalForStorage.localSigningSecret;
+}
+
 /** The local driver itself (for its upload/download route). Refuses to run in production. */
 export function getLocalDriver(): ReturnType<typeof createLocalDriver> {
   if (process.env.NODE_ENV === 'production' || storageDriver() !== 'local') {
@@ -48,7 +70,7 @@ export function getLocalDriver(): ReturnType<typeof createLocalDriver> {
   if (cached && 'verifyToken' in cached) return cached;
   const driver = createLocalDriver({
     rootDir: process.env.STORAGE_LOCAL_DIR || '.storage',
-    secret: process.env.STORAGE_SIGNING_SECRET || 'scamurai-local-development-only',
+    secret: localSigningSecret(),
   });
   cached = driver;
   return driver;

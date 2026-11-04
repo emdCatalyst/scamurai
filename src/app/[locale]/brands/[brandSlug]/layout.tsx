@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { getBrandBySlug } from "@/lib/queries/brands";
 import { notFound } from "next/navigation";
-import { deriveBrandTokens, DEFAULT_BRAND_COLORS } from "@/lib/brandTokens";
-import { BrandColors } from "@/types/brand";
+import { brandTokensCss, deriveBrandTokens } from "@/lib/brandTokens";
 import AppProviders from "@/components/providers/AppProviders";
-import ServiceWorker from "@/components/staff/ServiceWorker";
 import { NO_INDEX } from "@/lib/seo/site";
 
 /** Each brand is its own installable staff app (see manifest.webmanifest/route.ts). */
@@ -53,21 +51,11 @@ export default async function BrandLayout({
   const { sessionClaims } = await auth();
   const isStaff = sessionClaims?.metadata?.role === "staff";
 
-  const brandColors = (brand.brandColors as BrandColors) || DEFAULT_BRAND_COLORS;
-  const tokens = deriveBrandTokens(brandColors);
-
-  const cssVars = `
-    :root {
-      ${Object.entries(tokens)
-        .map(([key, value]) => `${key}: ${value};`)
-        .join("\n      ")}
-    }
-  `;
+  const cssVars = brandTokensCss(deriveBrandTokens(brand.brandColors));
 
   return (
     <div className="min-h-screen bg-[var(--brand-background)] font-poppins antialiased">
       <style dangerouslySetInnerHTML={{ __html: cssVars }} />
-      <ServiceWorker />
       <AppProviders messages={isStaff ? STAFF_MESSAGES : undefined}>{children}</AppProviders>
     </div>
   );
