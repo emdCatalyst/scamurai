@@ -3,22 +3,11 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Calendar, X } from "lucide-react";
-import {
-  startOfDay,
-  endOfDay,
-  startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
-} from "date-fns";
+import { riyadhPresets } from "@/lib/queries/riyadhDays";
 
 interface DateRangePickerProps {
   dateFrom: string;
   dateTo: string;
-}
-
-function toIsoDate(d: Date) {
-  return d.toISOString().split("T")[0];
 }
 
 export default function DateRangePicker({
@@ -39,24 +28,10 @@ export default function DateRangePicker({
     router.push(`?${params.toString()}`);
   };
 
+  // Riyadh's calendar, as the server reads the dates, whatever zone this browser is in.
   const applyPreset = (preset: "today" | "week" | "month") => {
-    const now = new Date();
-    let from: Date, to: Date;
-    switch (preset) {
-      case "today":
-        from = startOfDay(now);
-        to = endOfDay(now);
-        break;
-      case "week":
-        from = startOfWeek(now, { weekStartsOn: 0 });
-        to = endOfWeek(now, { weekStartsOn: 0 });
-        break;
-      case "month":
-        from = startOfMonth(now);
-        to = endOfMonth(now);
-        break;
-    }
-    setRange(toIsoDate(from), toIsoDate(to));
+    const { from, to } = riyadhPresets()[preset];
+    setRange(from, to);
   };
 
   const hasRange = Boolean(dateFrom || dateTo);
