@@ -10,10 +10,14 @@ import { ToastProvider } from '@/components/ui/Toast';
  *
  * NextIntlClientProvider without props inherits every namespace from
  * i18n/request.ts, which is what the product UI has always received.
+ *
+ * `dynamic` makes Clerk render its script with the request's CSP nonce
+ * (x-nonce, from src/proxy.ts); without it the strict policy blocks Clerk.
+ * These pages are rendered per request anyway.
  */
 export default function AppProviders({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider dynamic>
       <NextIntlClientProvider>
         <ToastProvider>{children}</ToastProvider>
       </NextIntlClientProvider>

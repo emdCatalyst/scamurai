@@ -18,8 +18,8 @@ const PERMISSIONS_POLICY = ['camera=()', 'microphone=()', 'geolocation=()', 'pay
 
 /**
  * Baseline headers for every response. HSTS is production-only so local
- * http:// development is never pinned to HTTPS. No Content-Security-Policy yet:
- * Clerk, Cloud Storage and inline styles need an audited allow-list first.
+ * http:// development is never pinned to HTTPS. The Content-Security-Policy is
+ * set per request by src/proxy.ts (see src/lib/security/csp.ts).
  */
 const SECURITY_HEADERS: HttpHeader[] = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },

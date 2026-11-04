@@ -2,6 +2,14 @@ import { clerkMiddleware, createRouteMatcher, type ClerkMiddlewareAuth } from '@
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
 import { NextResponse, type NextRequest } from 'next/server';
+import {
+  buildContentSecurityPolicy,
+  clerkFrontendApiOrigin,
+  createNonce,
+  cspHeaderName,
+  cspMode,
+} from './lib/security/csp';
+import { getSiteUrl } from './lib/seo/site';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -17,6 +25,8 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhooks(.*)',
   // Development storage: every request carries its own signed, expiring token.
   '/api/storage/local(.*)',
+  // Browsers post Content-Security-Policy violations here.
+  '/api/csp-report',
 ]);
 
 /**
@@ -31,13 +41,48 @@ const ADMIN_HEADERS: Record<string, string> = {
 
 const LOCALES: readonly string[] = routing.locales;
 
+/** The first path segment after the optional locale prefix. */
+function sectionOf(pathname: string): string | undefined {
+  const [first, second] = pathname.split('/').filter(Boolean);
+  return first !== undefined && LOCALES.includes(first) ? second : first;
+}
+
 /** `/<locale>/<ADMIN_SLUG>/…`, or the unprefixed `/<ADMIN_SLUG>/…` that next-intl redirects. */
 function isAdminPath(pathname: string): boolean {
   const adminSlug = process.env.ADMIN_SLUG;
-  if (!adminSlug) return false;
-  const [first = '', second] = pathname.split('/').filter(Boolean);
-  return first === adminSlug || (LOCALES.includes(first) && second === adminSlug);
+  return Boolean(adminSlug) && sectionOf(pathname) === adminSlug;
 }
+
+/** Signed-in areas. They are rendered per request, so their scripts can carry a CSP nonce. */
+function isPortalPath(pathname: string): boolean {
+  const section = sectionOf(pathname);
+  return section === 'brands' || section === 'onboarding' || isAdminPath(pathname);
+}
+
+const CLERK_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+const CLERK_ORIGIN = clerkFrontendApiOrigin(CLERK_PUBLISHABLE_KEY);
+const IS_DEV = process.env.NODE_ENV === 'development';
+
+/** This page's Content-Security-Policy, or null for API routes and CSP_MODE=off. */
+function pagePolicy(pathname: string): { header: string; value: string; nonce?: string } | null {
+  const mode = cspMode();
+  if (mode === 'off' || pathname.startsWith('/api')) return null;
+
+  const nonce = isPortalPath(pathname) ? createNonce() : undefined;
+  const value = buildContentSecurityPolicy({
+    nonce,
+    frameAncestors: isAdminPath(pathname) ? "'none'" : "'self'",
+    reportOnly: mode === 'report-only',
+    isDev: IS_DEV,
+    upgradeInsecureRequests: !IS_DEV && getSiteUrl().protocol === 'https:',
+    clerkOrigin: CLERK_ORIGIN,
+    clerkTelemetry: CLERK_PUBLISHABLE_KEY?.startsWith('pk_test_') ?? false,
+  });
+  return { header: cspHeaderName(mode), value, nonce };
+}
+
+/** Request headers that carry the nonce to Next.js and Clerk; never taken from the client. */
+const NONCE_REQUEST_HEADERS = ['content-security-policy', 'content-security-policy-report-only', 'x-nonce'];
 
 async function route(auth: ClerkMiddlewareAuth, req: NextRequest): Promise<NextResponse> {
   const isApiRoute = req.nextUrl.pathname.startsWith('/api');
@@ -121,7 +166,19 @@ async function route(auth: ClerkMiddlewareAuth, req: NextRequest): Promise<NextR
 }
 
 export const proxy = clerkMiddleware(async (auth, req) => {
+  const csp = pagePolicy(req.nextUrl.pathname);
+
+  // Next.js reads the nonce from the request's CSP header and puts it on its
+  // own scripts, and Clerk from x-nonce. next-intl passes request headers on.
+  for (const name of NONCE_REQUEST_HEADERS) req.headers.delete(name);
+  if (csp?.nonce) {
+    req.headers.set(csp.header, csp.value);
+    req.headers.set('x-nonce', csp.nonce);
+  }
+
   const response = await route(auth, req);
+
+  if (csp) response.headers.set(csp.header, csp.value);
   if (isAdminPath(req.nextUrl.pathname)) {
     for (const [name, value] of Object.entries(ADMIN_HEADERS)) response.headers.set(name, value);
   }
