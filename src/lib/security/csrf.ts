@@ -19,8 +19,9 @@ const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 /**
  * Posted to without a session: by other servers (webhooks), and by browsers
- * reporting on a page (CSP), which send `Origin: null` from pages with
- * `Referrer-Policy: no-referrer` such as the admin console.
+ * reporting on a page (CSP). Those reports are no-cors requests, so from a
+ * page with `Referrer-Policy: no-referrer` (the admin console) their Origin
+ * is "null".
  */
 function isExempt(pathname: string): boolean {
   return pathname.startsWith('/api/webhooks/') || pathname === CSP_REPORT_PATH;
