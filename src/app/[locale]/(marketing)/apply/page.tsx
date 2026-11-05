@@ -1,8 +1,8 @@
 import { Suspense } from 'react';
-import type { Metadata, ResolvingMetadata } from 'next';
+import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Locale } from '@/i18n/routing';
-import { baseOpenGraph, buildAlternates, localizedPath } from '@/lib/seo/site';
+import { pageMetadata } from '@/lib/seo/site';
 import ClientIntlProvider from '@/components/providers/ClientIntlProvider';
 import { Container } from '@/components/marketing/primitives';
 import ApplicationForm from '@/components/onboarding/ApplicationForm';
@@ -12,29 +12,17 @@ import { APPLY_FORM_NAMESPACES, selectServiceSummaries } from '@/components/appl
 
 const HEADING_ID = 'apply-heading';
 
-export async function generateMetadata(
-  { params }: { params: Promise<{ locale: string }> },
-  parent: ResolvingMetadata
-): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
-  const [t, inherited] = await Promise.all([
-    getTranslations({ locale: locale as Locale, namespace: 'seo' }),
-    parent,
-  ]);
+  const t = await getTranslations({ locale: locale as Locale, namespace: 'seo' });
 
-  return {
+  // Preselection query strings (?service=…&plan=…) all canonicalise to /apply.
+  return pageMetadata({
+    locale: locale as Locale,
+    path: '/apply',
     title: t('apply.title'),
     description: t('apply.description'),
-    // Preselection query strings (?service=…&plan=…) all canonicalise to /apply.
-    alternates: buildAlternates(locale as Locale, '/apply'),
-    openGraph: {
-      ...baseOpenGraph(locale as Locale, t('siteName')),
-      url: localizedPath(locale as Locale, '/apply'),
-      title: t('apply.title'),
-      description: t('apply.description'),
-      images: inherited.openGraph?.images,
-    },
-  };
+  });
 }
 
 /**

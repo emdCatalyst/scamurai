@@ -1,11 +1,11 @@
-import type { Metadata, ResolvingMetadata } from 'next';
+import type { Metadata } from 'next';
 import { hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { getServiceBySlug, isLiveService, listServices } from '@/lib/services/catalog';
 import { breadcrumbJsonLd, faqJsonLd, serviceJsonLd } from '@/lib/seo/jsonLd';
-import { absoluteUrl, baseOpenGraph, buildAlternates, localizedPath } from '@/lib/seo/site';
+import { absoluteUrl, localizedPath, pageMetadata } from '@/lib/seo/site';
 import JsonLd from '@/components/seo/JsonLd';
 import Breadcrumbs, { breadcrumbUrl, type BreadcrumbItem } from '@/components/marketing/services/Breadcrumbs';
 import { PAGE_NAMESPACE, serviceNamespace } from '@/components/marketing/services/content';
@@ -42,34 +42,16 @@ async function resolveParams(params: Params) {
   return { locale, service };
 }
 
-export async function generateMetadata(
-  { params }: { params: Params },
-  parent: ResolvingMetadata
-): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { locale, service } = await resolveParams(params);
-  const [t, tSeo, inherited] = await Promise.all([
-    getTranslations({ locale, namespace: serviceNamespace(service.key) }),
-    getTranslations({ locale, namespace: 'seo' }),
-    parent,
-  ]);
-  const path = getServicePath(service);
-  const title = t('seo.title');
-  const description = t('seo.description');
+  const t = await getTranslations({ locale, namespace: serviceNamespace(service.key) });
 
-  return {
-    title,
-    description,
-    alternates: buildAlternates(locale, path),
-    // A page-level openGraph replaces the inherited one, so the shared fields
-    // are repeated and the layout's share image (opengraph-image) is carried over.
-    openGraph: {
-      ...baseOpenGraph(locale, tSeo('siteName')),
-      url: localizedPath(locale, path),
-      title,
-      description,
-      images: inherited.openGraph?.images,
-    },
-  };
+  return pageMetadata({
+    locale,
+    path: getServicePath(service),
+    title: t('seo.title'),
+    description: t('seo.description'),
+  });
 }
 
 export default async function ServicePage({ params }: { params: Params }) {

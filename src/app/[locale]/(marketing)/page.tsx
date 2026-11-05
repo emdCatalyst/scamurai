@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Locale } from '@/i18n/routing';
-import { absoluteUrl, baseOpenGraph, buildAlternates, localizedPath } from '@/lib/seo/site';
+import { absoluteUrl, localizedPath, pageMetadata } from '@/lib/seo/site';
 import { organizationJsonLd, websiteJsonLd } from '@/lib/seo/jsonLd';
 import JsonLd from '@/components/seo/JsonLd';
 import HeroSection from '@/components/landing/HeroSection';
@@ -17,18 +17,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale: locale as Locale, namespace: 'seo' });
 
-  return {
-    title: { absolute: t('home.title') },
+  // The home title already names the brand and carries the value proposition.
+  return pageMetadata({
+    locale: locale as Locale,
+    path: '/',
+    title: t('home.title'),
     description: t('home.description'),
-    alternates: buildAlternates(locale as Locale, '/'),
-    // `images` comes from opengraph-image.png in this same segment.
-    openGraph: {
-      ...baseOpenGraph(locale as Locale, t('siteName')),
-      url: localizedPath(locale as Locale, '/'),
-      title: t('home.title'),
-      description: t('home.description'),
-    },
-  };
+    brandedTitle: true,
+  });
 }
 
 export default async function HomePage({ params }: Props) {
@@ -40,8 +36,8 @@ export default async function HomePage({ params }: Props) {
     <>
       <JsonLd
         data={[
-          organizationJsonLd(t('siteName'), t('home.description')),
-          websiteJsonLd(t('siteName'), locale, absoluteUrl(localizedPath(locale as Locale, '/'))),
+          organizationJsonLd(t('home.description')),
+          websiteJsonLd(locale as Locale, absoluteUrl(localizedPath(locale as Locale, '/'))),
         ]}
       />
       <main id="main">

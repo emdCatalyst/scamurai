@@ -5,7 +5,7 @@ import { listServices } from '@/lib/services/catalog';
 import robots from './robots';
 import sitemap from './sitemap';
 
-const SITE = 'https://scamurai.example';
+const SITE = 'https://misdaq.example';
 const ADMIN_SLUG = 'secret-admin-path';
 
 beforeEach(() => {
@@ -40,6 +40,15 @@ describe('sitemap', () => {
     }
   });
 
+  it('puts English at the root and Arabic under /ar, never /en', () => {
+    const urls = sitemap().map((entry) => entry.url);
+    expect(urls).toContain(`${SITE}/`);
+    expect(urls).toContain(`${SITE}/ar`);
+    expect(urls).toContain(`${SITE}/apply`);
+    expect(urls).toContain(`${SITE}/ar/apply`);
+    expect(JSON.stringify(sitemap())).not.toMatch(/\/en(\/|")/);
+  });
+
   it('never lists signed-in, transactional or API routes', () => {
     const serialized = JSON.stringify(sitemap());
     for (const fragment of ['/brands', '/onboarding', '/api', '/apply/success', ADMIN_SLUG]) {
@@ -60,6 +69,9 @@ describe('robots', () => {
       expect(rule.disallow).toContain(localizedPath(locale, '/brands/'));
       expect(rule.disallow).toContain(localizedPath(locale, '/onboarding/'));
     }
+    expect(rule.disallow).toEqual(expect.arrayContaining(['/brands/', '/ar/brands/', '/onboarding/', '/ar/onboarding/']));
+    // Public pages stay crawlable.
+    for (const page of ['/', '/apply', '/services/', '/ar']) expect(rule.disallow).not.toContain(page);
     expect(sitemapUrl).toBe(`${SITE}/sitemap.xml`);
   });
 

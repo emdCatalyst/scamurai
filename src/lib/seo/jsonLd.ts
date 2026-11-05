@@ -1,6 +1,7 @@
 import { PRICING_CURRENCY, type ServiceDefinition } from '@/config/services';
 import { getPlans, getStartingPrice, isLiveService } from '@/lib/services/catalog';
-import { absoluteUrl } from './site';
+import { routing, type Locale } from '@/i18n/routing';
+import { absoluteUrl, localizedPath, SITE_NAME } from './site';
 
 /**
  * schema.org builders (JSON-LD). Each returns a plain object; render it with
@@ -9,30 +10,39 @@ import { absoluteUrl } from './site';
 
 type JsonLdObject = Record<string, unknown>;
 
+/** One organization for the whole site, on the English (root) URL. */
 const ORGANIZATION_ID = () => absoluteUrl('/#organization');
-const WEBSITE_ID = () => absoluteUrl('/#website');
 
-export function organizationJsonLd(name: string, description: string): JsonLdObject {
+/**
+ * The company: always named Misdaq, with مصداق as its other name, whichever
+ * language the page is in. `description` is in the page's language.
+ */
+export function organizationJsonLd(description: string): JsonLdObject {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     '@id': ORGANIZATION_ID(),
-    name,
+    name: SITE_NAME.en,
+    alternateName: SITE_NAME.ar,
     url: absoluteUrl('/'),
-    logo: absoluteUrl('/icons/icon-512.png'),
+    // Square, raster and well above Google's 112 px minimum: the ق mark.
+    logo: { '@type': 'ImageObject', url: absoluteUrl('/icons/icon-512.png'), width: 512, height: 512 },
     description,
     areaServed: { '@type': 'Country', name: 'Saudi Arabia' },
   };
 }
 
-export function websiteJsonLd(name: string, inLanguage: string, url: string): JsonLdObject {
+/** The site in one language: its home URL, name in that language, and inLanguage. */
+export function websiteJsonLd(locale: Locale, url: string): JsonLdObject {
+  const other = routing.locales.filter((l) => l !== locale);
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    '@id': WEBSITE_ID(),
-    name,
+    '@id': `${absoluteUrl(localizedPath(locale, '/'))}#website`,
+    name: SITE_NAME[locale],
+    alternateName: other.map((l) => SITE_NAME[l]),
     url,
-    inLanguage,
+    inLanguage: locale,
     publisher: { '@id': ORGANIZATION_ID() },
   };
 }

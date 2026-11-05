@@ -15,7 +15,7 @@ import { NO_INDEX } from '@/lib/seo/site';
  * "Page changed from static to dynamic".
  */
 export const metadata: Metadata = {
-  // Absolute: the marketing layout's "%s | Misdaq" template must not be appended.
+  // Absolute: the marketing layout's "%s — Misdaq" template must not be appended.
   title: { absolute: '404 — Misdaq | مصداق' },
   robots: NO_INDEX,
 };

@@ -5,7 +5,8 @@ import { listServices } from '@/lib/services/catalog';
 import { getServicePath } from '@/components/marketing/services/links';
 
 /**
- * Every indexable marketing page, as a locale-free path. Service pages come
+ * Every indexable marketing page, as a locale-free path; English URLs have
+ * no prefix (https://misdaq.sa.com/apply), Arabic ones /ar. Service pages come
  * from the catalog, so a new service is listed automatically. The admin
  * console, brand portals, onboarding, API routes and transactional pages
  * (e.g. /apply/success) are noindex and must never appear here.

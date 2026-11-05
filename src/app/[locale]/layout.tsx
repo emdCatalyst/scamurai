@@ -5,7 +5,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing, type Locale } from '@/i18n/routing';
 import { fontVariables } from '@/lib/fonts';
-import { getSiteUrl, OG_LOCALE, otherLocales } from '@/lib/seo/site';
+import { baseOpenGraph, getSiteUrl, shareImage, SITE_NAME } from '@/lib/seo/site';
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -20,21 +20,16 @@ export async function generateMetadata({
   if (!hasLocale(routing.locales, locale)) return {};
 
   const t = await getTranslations({ locale, namespace: 'seo' });
-  const siteName = t('siteName');
 
+  // Defaults for every page in this language; public pages replace title,
+  // description, canonical and cards with their own (pageMetadata).
   return {
     metadataBase: getSiteUrl(),
-    applicationName: siteName,
-    // Title template is set by the marketing layout so product pages keep their own titles.
+    applicationName: SITE_NAME[locale],
     title: t('home.title'),
     description: t('home.description'),
-    openGraph: {
-      type: 'website',
-      siteName,
-      locale: OG_LOCALE[locale],
-      alternateLocale: otherLocales(locale).map((l) => OG_LOCALE[l]),
-    },
-    twitter: { card: 'summary_large_image' },
+    openGraph: baseOpenGraph(locale),
+    twitter: { card: 'summary_large_image', images: [shareImage(locale)] },
     formatDetection: { telephone: false, email: false, address: false },
   };
 }
