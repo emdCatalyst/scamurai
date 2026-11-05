@@ -16,12 +16,12 @@ export default function GlobalError({
   return (
     <html>
       <body>
-        <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4 text-center">
-          <h2 className="text-2xl font-bold text-slate-800 mb-4">Something went wrong!</h2>
-          <p className="text-slate-600 mb-6 max-w-md">{error.message || 'A runtime error occurred.'}</p>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-paper p-4 text-center">
+          <h2 className="text-2xl font-bold text-navy mb-4">Something went wrong!</h2>
+          <p className="text-stone mb-6 max-w-md">{error.message || 'A runtime error occurred.'}</p>
           <button
             onClick={() => reset()}
-            className="px-6 py-2 bg-sky text-white rounded-xl font-bold hover:bg-sky/90 transition-all"
+            className="px-6 py-2 bg-sky text-navy rounded-full font-bold hover:bg-sky-400 transition-colors"
           >
             Try again
           </button>

@@ -46,38 +46,6 @@ const config: Config = {
         // Amiri in English, The Year of Handicrafts (Plex 700 until licensed) in Arabic.
         heading: ['var(--font-heading)'],
       },
-      // Flat by design: the old gradients resolve to single colours.
-      backgroundImage: {
-        'gradient-hero':      'linear-gradient(#0B0B0B, #0B0B0B)',
-        'gradient-cta':       'linear-gradient(#FF5B3A, #FF5B3A)',
-        'gradient-cta-r':     'linear-gradient(#FF5B3A, #FF5B3A)',
-        'gradient-sky-radial':'none',
-        'gradient-shimmer':   'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%)',
-      },
-      animation: {
-        'float-slow':      'float-slow 6s ease-in-out infinite',
-        'spin-slow':       'spin-slow 20s linear infinite',
-        'bounce-y':        'bounce-y 2s ease-in-out infinite',
-        'shimmer':         'shimmer 2.5s linear infinite',
-        'gradient-shift':  'gradient-shift 8s ease infinite',
-        'hero-glow-pulse': 'hero-glow-pulse 4s ease-in-out infinite',
-        'marquee':         'marquee 24s linear infinite',
-        'scan-line':       'scan-line 3s linear infinite',
-      },
-      blur: {
-        '4xl': '80px',
-        '5xl': '120px',
-      },
-      // No glows in this identity.
-      boxShadow: {
-        'glow-sky':  'none',
-        'glow-mint': 'none',
-        'glow-lg':   'none',
-      },
-      borderRadius: {
-        card:  '28px',
-        field: '12px',
-      },
     },
   },
 };

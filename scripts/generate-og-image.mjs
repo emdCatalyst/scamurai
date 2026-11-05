@@ -10,11 +10,11 @@
  *
  *   node scripts/generate-og-image.mjs
  *
- * Re-run after changing COPY, the brand mark or the fonts, and commit the
- * outputs. Text is shaped by Pango + HarfBuzz (bundled with sharp) using the
- * brand font from public/fonts, so Arabic letters join and run right-to-left
- * correctly. Satori (next/og) cannot shape Arabic, which is why these images
- * are static files rather than generated per request.
+ * The card is the Misdaq identity at its plainest: the stacked logo (مصداق
+ * above MISDAQ) in white on Misdaq Black, inside the corners of the proof
+ * frame, with one orange mark for the order evidence product. Everything is
+ * drawn from the SVGs in public/brand, so no font is needed. Re-run after
+ * changing a logo file, and commit the outputs.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -23,37 +23,12 @@ import sharp from 'sharp';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT_DIR = path.join(ROOT, 'src', 'app', '[locale]', '(marketing)');
-const MARK_FILE = path.join(ROOT, 'public', 'logos', 'secondy logo 2.svg');
-const FONT_DIR = path.join(ROOT, 'public', 'fonts');
-
-/** Baked into the pixels. Keep in step with `siteName` / `home.title` in messages/<locale>/seo.json. */
-const COPY = {
-  name: { en: 'Scamurai', ar: 'سكامورائي' },
-  tagline: {
-    en: 'Proof-based operations for multi-branch businesses',
-    ar: 'منصة تشغيل موثّقة للمنشآت متعددة الفروع',
-  },
-};
+const LOGO_FILE = path.join(ROOT, 'public', 'brand', 'logo-stacked.svg');
 
 /** Describes everything the image shows; one string serves both locales. */
-const ALT_TEXT = `${COPY.name.en} · ${COPY.name.ar} — ${COPY.tagline.en} · ${COPY.tagline.ar}`;
+const ALT_TEXT = 'Misdaq · مصداق';
 
-/** ITF Qomra Arabic ships Latin and Arabic glyphs, so one family sets both scripts. */
-const FONTS = {
-  bold: { file: 'ITFQOMRAARABIC-BOLD.OTF', family: 'itf Qomra Arabic Bold' },
-  medium: { file: 'ITFQOMRAARABIC-MEDIUM.OTF', family: 'itf Qomra Arabic Med' },
-};
-
-/** Brand palette (tailwind.config.ts). */
-const COLOR = {
-  navyDeep: '#0d1e35',
-  navy: '#172b49',
-  teal: '#0e2a3a',
-  sky: '#4fc5df',
-  mint: '#5cbf8f',
-  text: '#ffffff',
-  textMuted: '#d6e6ef',
-};
+const COLOR = { black: '#0B0B0B', white: '#FFFFFF', orange: '#FF5B3A' };
 
 const CARDS = [
   { name: 'opengraph-image', width: 1200, height: 630 },
@@ -61,137 +36,51 @@ const CARDS = [
 ];
 
 const LAYOUT = {
-  markSize: 150,
-  wordmarkSize: 72,
-  taglineSize: 36,
-  /** Copy longer than this wraps onto another centred line instead of leaving the card. */
-  textWidth: 1040,
-  accentBar: { width: 112, height: 6 },
-  bottomStrip: 8,
-  gaps: { afterMark: 40, afterWordmark: 34, afterBar: 34, betweenTaglines: 20 },
+  logoWidth: 440,
+  /** Proof-frame corners: inset from the card edge, arm length and stroke. */
+  frame: { inset: 56, arm: 64, stroke: 4 },
+  marker: { width: 72, height: 8, gap: 44 },
 };
 
-/** Pango sizes and offsets are in 1/1024 pt; at 72 dpi one point is one pixel. */
-const pangoUnits = (px) => Math.round(px * 1024);
-
-const escapeMarkup = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-const span = (text, color) => `<span foreground="${color}">${escapeMarkup(text)}</span>`;
-
-/**
- * Both names in a single Pango run so Latin and Arabic share one baseline. The
- * separator is the font's own (diamond) full stop, enlarged and raised to the
- * x-height, which echoes the letter dots of the Arabic.
- */
-function wordmarkMarkup() {
-  const size = LAYOUT.wordmarkSize;
-  const separator = `<span foreground="${COLOR.sky}" size="${pangoUnits(size * 1.8)}" rise="${pangoUnits(size * 0.16)}">.</span>`;
-  return `<span foreground="${COLOR.text}">${escapeMarkup(COPY.name.en)}  ${separator}  ${escapeMarkup(COPY.name.ar)}</span>`;
-}
-
-/** Renders Pango markup to a transparent PNG cropped to the ink. */
-async function renderText(markup, font, size) {
-  const { data, info } = await sharp({
-    text: {
-      text: markup,
-      font: `${font.family} ${size}`,
-      fontfile: path.join(FONT_DIR, font.file),
-      width: LAYOUT.textWidth,
-      align: 'centre',
-      rgba: true,
-      dpi: 72,
-    },
-  })
+async function renderLogo() {
+  const svg = (await fs.readFile(LOGO_FILE, 'utf8')).replace(/fill="currentColor"/g, `fill="${COLOR.white}"`);
+  const { data, info } = await sharp(Buffer.from(svg), { density: 300 })
+    .resize({ width: LAYOUT.logoWidth })
     .png()
     .toBuffer({ resolveWithObject: true });
   return { input: data, width: info.width, height: info.height };
 }
 
-async function renderMark() {
-  const { data, info } = await sharp(await fs.readFile(MARK_FILE))
-    .resize({ width: LAYOUT.markSize, height: LAYOUT.markSize, fit: 'inside' })
-    .png()
-    .toBuffer({ resolveWithObject: true });
-  return { input: data, width: info.width, height: info.height };
+/** Black card with the four corners of the proof frame and the orange marker under the logo. */
+function background(width, height, markerTop) {
+  const { inset, arm, stroke } = LAYOUT.frame;
+  const right = width - inset;
+  const bottom = height - inset;
+  const corner = (d) => `<path d="${d}" fill="none" stroke="${COLOR.white}" stroke-width="${stroke}" stroke-opacity="0.85"/>`;
+  const marker = LAYOUT.marker;
+  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <rect width="${width}" height="${height}" fill="${COLOR.black}"/>
+  ${corner(`M ${inset} ${inset + arm} V ${inset} H ${inset + arm}`)}
+  ${corner(`M ${right - arm} ${inset} H ${right} V ${inset + arm}`)}
+  ${corner(`M ${inset} ${bottom - arm} V ${bottom} H ${inset + arm}`)}
+  ${corner(`M ${right - arm} ${bottom} H ${right} V ${bottom - arm}`)}
+  <rect x="${(width - marker.width) / 2}" y="${markerTop}" width="${marker.width}" height="${marker.height}" rx="${marker.height / 2}" fill="${COLOR.orange}"/>
+</svg>`);
 }
 
-const ctaGradient = (id) => `
-    <linearGradient id="${id}" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="${COLOR.sky}"/>
-      <stop offset="1" stop-color="${COLOR.mint}"/>
-    </linearGradient>`;
-
-function accentBar() {
-  const { width, height } = LAYOUT.accentBar;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-  <defs>${ctaGradient('cta')}</defs>
-  <rect width="${width}" height="${height}" rx="${height / 2}" fill="url(#cta)"/>
-</svg>`;
-  return { input: Buffer.from(svg), width, height };
-}
-
-/** Navy hero gradient, faint dot grid, sky and mint glows, brand-gradient strip along the bottom. */
-function background(width, height) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-  <defs>
-    <linearGradient id="surface" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="${COLOR.navyDeep}"/>
-      <stop offset="0.45" stop-color="${COLOR.navy}"/>
-      <stop offset="1" stop-color="${COLOR.teal}"/>
-    </linearGradient>
-    <radialGradient id="sky-glow" cx="${width / 2}" cy="40" r="${width * 0.47}" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="${COLOR.sky}" stop-opacity="0.22"/>
-      <stop offset="1" stop-color="${COLOR.sky}" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="mint-glow" cx="${width - 50}" cy="${height + 30}" r="${width * 0.38}" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="${COLOR.mint}" stop-opacity="0.16"/>
-      <stop offset="1" stop-color="${COLOR.mint}" stop-opacity="0"/>
-    </radialGradient>
-    <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
-      <circle cx="15" cy="15" r="1.3" fill="#ffffff" fill-opacity="0.06"/>
-    </pattern>${ctaGradient('cta')}
-  </defs>
-  <rect width="${width}" height="${height}" fill="url(#surface)"/>
-  <rect width="${width}" height="${height}" fill="url(#dots)"/>
-  <rect width="${width}" height="${height}" fill="url(#sky-glow)"/>
-  <rect width="${width}" height="${height}" fill="url(#mint-glow)"/>
-  <rect y="${height - LAYOUT.bottomStrip}" width="${width}" height="${LAYOUT.bottomStrip}" fill="url(#cta)"/>
-</svg>`;
-  return Buffer.from(svg);
-}
-
-/** Stacks the layers centred on the card, then flattens everything to a PNG. */
-async function renderCard({ name, width, height }, stack) {
-  const contentHeight = stack.reduce((sum, { layer, gapAfter }) => sum + layer.height + gapAfter, 0);
-  const available = height - LAYOUT.bottomStrip;
-  if (contentHeight > available) {
-    throw new Error(`${name}: content is ${contentHeight}px tall but only ${available}px fit; shorten COPY.`);
-  }
-
-  const composites = [];
-  let top = Math.round((available - contentHeight) / 2);
-  for (const { layer, gapAfter } of stack) {
-    composites.push({ input: layer.input, left: Math.round((width - layer.width) / 2), top });
-    top += layer.height + gapAfter;
-  }
-
-  return sharp(background(width, height))
-    .composite(composites)
+async function renderCard({ width, height }, logo) {
+  const { marker } = LAYOUT;
+  const contentHeight = logo.height + marker.gap + marker.height;
+  const top = Math.round((height - contentHeight) / 2);
+  return sharp(background(width, height, top + logo.height + marker.gap))
+    .composite([{ input: logo.input, left: Math.round((width - logo.width) / 2), top }])
     .png({ compressionLevel: 9, adaptiveFiltering: true })
     .toBuffer();
 }
 
-const { gaps } = LAYOUT;
-const stack = [
-  { layer: await renderMark(), gapAfter: gaps.afterMark },
-  { layer: await renderText(wordmarkMarkup(), FONTS.bold, LAYOUT.wordmarkSize), gapAfter: gaps.afterWordmark },
-  { layer: accentBar(), gapAfter: gaps.afterBar },
-  { layer: await renderText(span(COPY.tagline.en, COLOR.textMuted), FONTS.medium, LAYOUT.taglineSize), gapAfter: gaps.betweenTaglines },
-  { layer: await renderText(span(COPY.tagline.ar, COLOR.textMuted), FONTS.medium, LAYOUT.taglineSize), gapAfter: 0 },
-];
-
+const logo = await renderLogo();
 for (const card of CARDS) {
-  const png = await renderCard(card, stack);
+  const png = await renderCard(card, logo);
   await fs.writeFile(path.join(OUTPUT_DIR, `${card.name}.png`), png);
   // No trailing newline: Next.js uses the file contents verbatim as the alt attribute.
   await fs.writeFile(path.join(OUTPUT_DIR, `${card.name}.alt.txt`), ALT_TEXT);

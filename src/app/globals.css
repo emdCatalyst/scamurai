@@ -29,56 +29,16 @@ body { font-family: var(--font-plex), system-ui, sans-serif; }
 /* Page titles: Amiri Bold in English, Handicrafts 700 in Arabic. */
 @layer base {
   h1 { font-family: var(--font-heading); }
+  /* Line icons on a 24px grid with a 1.75px stroke, whatever the call site passes. */
+  svg.lucide { stroke-width: 1.75; }
 }
 
 html { scroll-behavior: smooth; }
 body { background: #0B0B0B; color: #FFFFFF; overflow-x: hidden; }
 
-/* ─── Animations ─── */
-@keyframes hero-glow-pulse {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50%       { opacity: 1;   transform: scale(1.08); }
-}
-@keyframes float-slow {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33%       { transform: translateY(-14px) rotate(-1deg); }
-  66%       { transform: translateY(-7px) rotate(1deg); }
-}
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-@keyframes bounce-y {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(10px); }
-}
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-@keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-@keyframes scan-line {
-  0%   { top: 0%; opacity: 1; }
-  100% { top: 100%; opacity: 0; }
-}
-@keyframes draw-border {
-  from { stroke-dashoffset: 1000; }
-  to   { stroke-dashoffset: 0; }
-}
-@keyframes count-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes gradient-shift {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+/* ─── Motion: a gentle rise (0.7s) and slow fades. Nothing flashes. ─── */
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(24px); }
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 /* Overlays and toasts: plain CSS, so light pages need no animation library. */
@@ -115,16 +75,6 @@ body { background: #0B0B0B; color: #FFFFFF; overflow-x: hidden; }
 }
 .enter-delay-1 { animation-delay: 120ms; }
 .enter-delay-2 { animation-delay: 240ms; }
-
-/* Hero backdrop light effects (transform/opacity only, compositor-friendly). */
-@keyframes hero-sweep {
-  0%        { transform: translateX(-100%) skewX(-25deg); }
-  80%, 100% { transform: translateX(200%) skewX(-25deg); }
-}
-@keyframes hero-scan {
-  0%   { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(100svh); opacity: 0; }
-}
 
 /* ─── Mobile navigation drawer: native modal <dialog> (see MobileMenu.tsx) ───
    The page behind stays put while it is open, the overlay dims it, and the
