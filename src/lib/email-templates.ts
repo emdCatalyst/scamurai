@@ -1,5 +1,5 @@
 /**
- * Unified email template system for Scamurai.
+ * Unified email template system for Misdaq.
  *
  * All transactional emails should be composed via `renderEmail()` so they share
  * the same logo header, typography, and contact-details footer. Use the helper
@@ -11,8 +11,8 @@
  */
 
 const COMPANY = {
-  name: "Scamurai",
-  tagline: "The Smart Order Verification Platform",
+  name: "Misdaq",
+  tagline: "Your orders, on the record.",
   supportEmail: "support@scamurai.com",
   websiteUrl: (
     process.env.APP_URL || "https://scamurai.com"
@@ -20,18 +20,20 @@ const COMPANY = {
 };
 
 const COLORS = {
-  navy: "#172b49",
-  sky: "#4fc5df",
-  text: "#1f2937",
-  muted: "#6b7280",
-  border: "#e5e7eb",
+  /** Misdaq Black: header and headings. */
+  navy: "#0B0B0B",
+  /** Order evidence orange, on the primary button only; its text is black. */
+  action: "#FF5B3A",
+  text: "#0B0B0B",
+  muted: "#5F5F59",
+  border: "#C9C8C2",
   surface: "#ffffff",
-  background: "#f8fafc",
-  callout: "#f1f5f9",
+  background: "#F4F3EF",
+  callout: "#F4F3EF",
 } as const;
 
 const FONT_STACK =
-  "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+  "'IBM Plex Sans Arabic',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 
 type Dir = "ltr" | "rtl";
 
@@ -89,7 +91,7 @@ export function renderEmail({
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${COLORS.background};">
     <tr>
       <td align="center" style="padding:32px 16px;">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:${COLORS.surface};border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,0.06),0 1px 2px rgba(15,23,42,0.04);">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:${COLORS.surface};border-radius:28px;overflow:hidden;">
 
           <!-- Header -->
           <tr>
@@ -98,11 +100,11 @@ export function renderEmail({
                 <tr>
                   <td style="text-align:${align(dir)};">
                     <img
-                      src="${COMPANY.websiteUrl}/logos/primary%20logo%202.svg"
-                      alt="${COMPANY.name}"
+                      src="${COMPANY.websiteUrl}/brand/email-logo.png"
+                      alt="${COMPANY.name} | مصداق"
                       width="160"
-                      height="46"
-                      style="display:inline-block;width:160px;height:46px;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.5px;line-height:46px;"
+                      height="23"
+                      style="display:inline-block;width:160px;height:23px;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.5px;line-height:23px;"
                     />
                   </td>
                 </tr>
@@ -124,9 +126,9 @@ export function renderEmail({
                 <strong style="color:${COLORS.navy};">${COMPANY.name}</strong> &middot; ${COMPANY.tagline}
               </p>
               <p style="margin:0 0 12px;font-size:13px;color:${COLORS.muted};line-height:1.6;">
-                <a href="mailto:${COMPANY.supportEmail}" style="color:${COLORS.sky};text-decoration:none;">${COMPANY.supportEmail}</a>
+                <a href="mailto:${COMPANY.supportEmail}" style="color:${COLORS.text};text-decoration:underline;">${COMPANY.supportEmail}</a>
                 &nbsp;&middot;&nbsp;
-                <a href="${COMPANY.websiteUrl}" style="color:${COLORS.sky};text-decoration:none;">${websiteDisplay}</a>
+                <a href="${COMPANY.websiteUrl}" style="color:${COLORS.text};text-decoration:underline;">${websiteDisplay}</a>
               </p>
               <p style="margin:0;font-size:11px;color:${COLORS.muted};line-height:1.5;">
                 &copy; ${year} ${COMPANY.name}. This is a system-generated email &mdash; please do not reply directly.
@@ -171,15 +173,15 @@ export function emailParagraphWithHighlight({
 export function emailButton(href: string, label: string, dir: Dir = "ltr"): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;${dir === "rtl" ? "margin-right:0;" : "margin-left:0;"}">
     <tr>
-      <td style="border-radius:8px;background-color:${COLORS.sky};">
-        <a href="${escapeHtml(href)}" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;font-family:${FONT_STACK};">${escapeHtml(label)}</a>
+      <td style="border-radius:999px;background-color:${COLORS.action};">
+        <a href="${escapeHtml(href)}" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:700;color:${COLORS.navy};text-decoration:none;border-radius:999px;font-family:${FONT_STACK};">${escapeHtml(label)}</a>
       </td>
     </tr>
   </table>`;
 }
 
 export function emailCallout(label: string, value: string, dir: Dir = "ltr"): string {
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;background-color:${COLORS.callout};border-radius:8px;border:1px solid ${COLORS.border};">
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;background-color:${COLORS.callout};border-radius:12px;border:1px solid ${COLORS.border};">
     <tr>
       <td style="padding:18px 22px;text-align:${align(dir)};">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:${COLORS.muted};margin-bottom:8px;">${escapeHtml(label)}</div>

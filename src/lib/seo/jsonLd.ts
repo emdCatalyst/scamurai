@@ -19,7 +19,7 @@ export function organizationJsonLd(name: string, description: string): JsonLdObj
     '@id': ORGANIZATION_ID(),
     name,
     url: absoluteUrl('/'),
-    logo: absoluteUrl('/logos/primary%20logo.svg'),
+    logo: absoluteUrl('/icons/icon-512.png'),
     description,
     areaServed: { '@type': 'Country', name: 'Saudi Arabia' },
   };

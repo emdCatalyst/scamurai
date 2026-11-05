@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 
-/** navy-deep: the page background, splash screen and browser UI colour. */
-const BRAND_SURFACE = '#0d1e35';
+/** Misdaq Black: the page background, splash screen and browser UI colour. */
+const BRAND_SURFACE = '#0B0B0B';
 
 /** Served at /manifest.webmanifest; Next.js links it from every page. */
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
@@ -18,6 +18,11 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     display: 'standalone',
     background_color: BRAND_SURFACE,
     theme_color: BRAND_SURFACE,
-    icons: [{ src: '/logos/secondy%20logo%202.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
+    icons: [
+      { src: '/brand/mark.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+      { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+    ],
   };
 }

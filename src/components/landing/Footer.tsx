@@ -1,6 +1,6 @@
-import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { getServicePath } from '@/components/marketing/services/links';
+import MisdaqLogo from '@/components/brand-identity/MisdaqLogo';
 import { ButtonLink, Container } from '@/components/marketing/primitives';
 import { Link } from '@/i18n/navigation';
 import { isLiveService, listServices } from '@/lib/services/catalog';
@@ -24,21 +24,16 @@ export default async function Footer() {
   ]);
 
   return (
-    <footer className="relative overflow-hidden border-t border-white/[0.06] bg-[linear-gradient(180deg,#0a1625_0%,#060e1a_100%)]">
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky/20 to-transparent"
-      />
+    <footer className="relative overflow-hidden border-t border-white/10 bg-navy">
 
       <Container className="relative py-16">
         <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1.3fr]">
           <div className="flex flex-col gap-5">
             <Link
               href="/"
-              className="flex w-fit items-center gap-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60"
+              className="w-fit rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60 focus-visible:ring-offset-4 focus-visible:ring-offset-navy"
             >
-              <Image src="/logos/secondy logo 2.svg" alt="" width={38} height={38} className="opacity-90" />
-              <Image src="/logos/primary logo 2.svg" alt={tSeo('siteName')} width={100} height={29} className="opacity-90" />
+              <MisdaqLogo variant="stacked" width={128} inverted alt={tSeo('siteName')} />
             </Link>
             <p className="text-sm font-semibold text-white/85">{t('tagline')}</p>
             <p className="max-w-xs text-sm leading-relaxed text-white/65">{t('description')}</p>
@@ -98,7 +93,7 @@ export default async function Footer() {
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/[0.06] pt-8 sm:flex-row">
           <p className="text-xs text-white/65">{t('copyright', { year: BUILD_YEAR })}</p>
-          <LanguageLinks className="rounded-full border border-white/10 px-3 py-1.5 text-xs font-semibold text-white/75 transition-colors hover:border-sky/40 hover:text-sky focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60" />
+          <LanguageLinks className="rounded-full border border-white/10 px-3 py-1.5 text-xs font-semibold text-white/75 transition-colors hover:border-white/30 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60" />
         </div>
       </Container>
     </footer>

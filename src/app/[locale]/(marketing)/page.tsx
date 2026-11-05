@@ -10,7 +10,6 @@ import SocialProofBar from '@/components/landing/SocialProofBar';
 import AboutSection from '@/components/landing/AboutSection';
 import HowItWorksSection from '@/components/landing/HowItWorksSection';
 import ValuesSection from '@/components/landing/ValuesSection';
-import Vision2030Strip from '@/components/landing/Vision2030Strip';
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -53,7 +52,6 @@ export default async function HomePage({ params }: Props) {
         <HowItWorksSection />
         <ValuesSection />
       </main>
-      <Vision2030Strip />
     </>
   );
 }

@@ -16,7 +16,7 @@ const isScrolledOnServer = () => false;
 
 /**
  * The fixed header bar. Its only client-side job is to switch from transparent
- * to a blurred navy backdrop once the page scrolls; everything inside it is
+ * to a solid black backdrop once the page scrolls; everything inside it is
  * rendered on the server and passed in as children.
  */
 export default function HeaderFrame({ children }: { children: React.ReactNode }) {
@@ -27,7 +27,7 @@ export default function HeaderFrame({ children }: { children: React.ReactNode })
       className={cn(
         'fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,box-shadow] duration-300',
         scrolled
-          ? 'border-white/[0.06] bg-navy/80 shadow-[0_1px_0_0_rgba(79,197,223,0.08)] backdrop-blur-xl'
+          ? 'border-white/10 bg-navy/90 backdrop-blur-md'
           : 'border-transparent bg-transparent'
       )}
     >

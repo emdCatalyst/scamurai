@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import Image from 'next/image';
+import MisdaqLogo from '@/components/brand-identity/MisdaqLogo';
 import {
   LayoutDashboard,
   FileText,
@@ -130,34 +130,22 @@ export default function AdminShell({
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:relative flex-shrink-0 bg-gradient-to-b from-navy to-[#1e293b] shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col z-50 h-full ${
+        className={`fixed lg:relative flex-shrink-0 bg-navy transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col z-50 h-full ${
           isCollapsed ? (isAr ? 'translate-x-full lg:translate-x-0 lg:w-[80px]' : '-translate-x-full lg:translate-x-0 lg:w-[80px]') : 'translate-x-0 w-[280px]'
         }`}
       >
-        {/* Decorative background glow */}
-        <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-sky/10 to-transparent pointer-events-none" />
-
         {/* Logo Area */}
         <div className={`h-20 flex items-center justify-center border-b border-white/5 shrink-0 relative z-10 transition-all duration-300 ${isCollapsed ? 'px-0' : 'px-6'}`}>
           <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
-            <Image
-              src="/logos/secondy logo 2.svg"
-              alt="Scamurai"
-              width={32}
-              height={32}
-              className="object-contain drop-shadow-[0_0_8px_rgba(79,197,223,0.4)]"
-              priority
-            />
+            <MisdaqLogo variant="mark" width={32} inverted alt="Misdaq" priority />
           </div>
           <div
             className={`flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
               isCollapsed ? 'w-0 opacity-0' : 'mx-3 w-[140px] opacity-100'
             }`}
           >
-            <span className="text-white font-bold tracking-widest text-sm leading-tight uppercase">
-              Scamurai
-            </span>
-            <span className="text-sky text-[10px] font-semibold tracking-wider uppercase">
+            <MisdaqLogo variant="english" width={88} inverted alt="" className="mb-1" />
+            <span className="text-white/60 text-[10px] font-semibold tracking-wider uppercase">
               {t('masterAdmin')}
             </span>
           </div>

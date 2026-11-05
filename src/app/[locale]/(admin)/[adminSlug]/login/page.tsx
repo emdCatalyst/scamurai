@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { useRouter, useParams } from "next/navigation";
-import Image from "next/image";
+import MisdaqLogo from "@/components/brand-identity/MisdaqLogo";
 import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
 import { verifyAdminRole } from "./actions";
 import { useTranslations } from "next-intl";
@@ -133,46 +133,27 @@ export default function AdminLogin() {
         </div>
       )}
 
-      {/* Background glow orbs */}
-      <div
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-        aria-hidden
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 0.3, scale: 1 }}
-          transition={{ duration: 2, ease: "easeOut" }}
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full blur-[120px] bg-gradient-sky-radial animate-hero-glow-pulse"
-        />
-      </div>
-
       {/* Login Card */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-md bg-white/5 backdrop-blur-[24px] border border-white/10 rounded-2xl p-8 shadow-card"
+        className="relative z-10 w-full max-w-md bg-charcoal border border-white/10 rounded-[28px] p-8"
       >
         <div className="flex flex-col items-center mb-8">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="relative w-32 h-32 mb-2"
+            className="mb-6"
           >
-            <Image
-              src="/logos/secondy logo 2.svg"
-              alt="Scamurai"
-              fill
-              className="object-contain"
-              priority
-            />
+            <MisdaqLogo variant="stacked" width={140} inverted alt="Misdaq | مصداق" priority />
           </motion.div>
           <motion.h1
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className={`text-sky text-xs font-bold tracking-widest ${isAr ? "uppercase" : "uppercase"}`}
+            className="font-sans text-white/70 text-xs font-bold tracking-widest uppercase"
           >
             {t("title")}
           </motion.h1>

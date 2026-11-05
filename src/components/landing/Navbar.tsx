@@ -1,5 +1,5 @@
-import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
+import MisdaqLogo from '@/components/brand-identity/MisdaqLogo';
 import { ButtonLink, Container } from '@/components/marketing/primitives';
 import { Link } from '@/i18n/navigation';
 import HeaderFrame from './HeaderFrame';
@@ -7,10 +7,8 @@ import LanguageLinks from './LanguageLinks';
 import MobileMenu from './MobileMenu';
 import { homeSectionHref, NAV_SECTIONS } from './sections';
 
-const LOGO_MARK = '/logos/secondy logo 2.svg';
-
 const LANGUAGE_PILL =
-  'inline-flex h-9 items-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-xs font-bold text-white/75 transition-colors hover:border-sky/40 hover:text-sky focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60';
+  'inline-flex h-9 items-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-xs font-bold text-white/75 transition-colors hover:border-white/30 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60';
 
 /**
  * Site header for the public pages: a server-rendered shell with three small
@@ -41,16 +39,9 @@ export default async function Navbar() {
           <Link
             href="/"
             aria-label={t('home')}
-            className="group rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60"
+            className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60 focus-visible:ring-offset-4 focus-visible:ring-offset-navy"
           >
-            <Image
-              src={LOGO_MARK}
-              alt=""
-              width={40}
-              height={40}
-              loading="eager"
-              className="transition-transform duration-300 group-hover:scale-110"
-            />
+            <MisdaqLogo variant="horizontal" width={164} inverted priority />
           </Link>
 
           <nav aria-label={t('primaryNav')} className="hidden md:block">
@@ -64,7 +55,7 @@ export default async function Navbar() {
                     {link.label}
                     <span
                       aria-hidden="true"
-                      className="absolute inset-x-4 bottom-0.5 h-px origin-center scale-x-0 bg-gradient-cta transition-transform duration-200 group-hover:scale-x-100"
+                      className="absolute inset-x-4 bottom-0.5 h-px origin-center scale-x-0 bg-white/60 transition-transform duration-200 group-hover:scale-x-100"
                     />
                   </Link>
                 </li>
@@ -82,7 +73,7 @@ export default async function Navbar() {
             label={t('menu')}
             openLabel={t('openMenu')}
             closeLabel={t('closeMenu')}
-            header={<Image src={LOGO_MARK} alt="" width={32} height={32} />}
+            header={<MisdaqLogo variant="horizontal" width={160} inverted />}
           >
             <nav aria-label={t('primaryNav')}>
               <ul className="flex flex-col gap-1">
