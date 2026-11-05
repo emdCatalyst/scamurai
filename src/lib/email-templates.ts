@@ -1,3 +1,6 @@
+import { SUPPORT_EMAIL } from "@/config/contact";
+import { getAppUrl } from "@/lib/seo/site";
+
 /**
  * Unified email template system for Misdaq.
  *
@@ -13,11 +16,18 @@
 const COMPANY = {
   name: "Misdaq",
   tagline: "Your orders, on the record.",
-  supportEmail: "support@scamurai.com",
-  websiteUrl: (
-    process.env.APP_URL || "https://scamurai.com"
-  ).replace(/\/$/, ""),
+  supportEmail: SUPPORT_EMAIL,
+  websiteUrl: getAppUrl(),
 };
+
+/**
+ * The header logo per email language: only the wordmark of that language,
+ * white on black (scripts/generate-icons.mjs draws them at 2×).
+ */
+const EMAIL_LOGOS = {
+  en: { file: "email-logo-en.png", alt: "Misdaq", width: 104, height: 22 },
+  ar: { file: "email-logo-ar.png", alt: "مصداق", width: 105, height: 29 },
+} as const;
 
 const COLORS = {
   /** Misdaq Black: header and headings. */
@@ -73,6 +83,7 @@ export function renderEmail({
   const safePreheader = preheader ? escapeHtml(preheader) : "";
   const websiteDisplay = COMPANY.websiteUrl.replace(/^https?:\/\//, "");
   const year = new Date().getFullYear();
+  const logo = EMAIL_LOGOS[lang === "ar" ? "ar" : "en"];
 
   return `<!DOCTYPE html>
 <html lang="${lang}" dir="${dir}">
@@ -100,11 +111,11 @@ export function renderEmail({
                 <tr>
                   <td style="text-align:${align(dir)};">
                     <img
-                      src="${COMPANY.websiteUrl}/brand/email-logo.png"
-                      alt="${COMPANY.name} | مصداق"
-                      width="160"
-                      height="23"
-                      style="display:inline-block;width:160px;height:23px;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.5px;line-height:23px;"
+                      src="${COMPANY.websiteUrl}/brand/${logo.file}"
+                      alt="${logo.alt}"
+                      width="${logo.width}"
+                      height="${logo.height}"
+                      style="display:inline-block;width:${logo.width}px;height:${logo.height}px;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.5px;line-height:${logo.height}px;"
                     />
                   </td>
                 </tr>

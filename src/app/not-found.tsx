@@ -37,7 +37,8 @@ export default async function RootNotFound() {
         'flex min-h-screen flex-col items-center justify-center bg-navy-deep px-6 py-24 text-center antialiased'
       )}
     >
-      <MisdaqLogo variant="stacked" width={140} inverted alt="Misdaq | مصداق" priority />
+      {/* Outside any locale the site is English: the English wordmark only. */}
+      <MisdaqLogo locale={routing.defaultLocale} height={32} inverted />
       <h1 className="mt-10 font-sans text-6xl font-bold tabular-nums text-white">404</h1>
 
       <div className="mt-8 grid max-w-3xl gap-8 sm:grid-cols-2">

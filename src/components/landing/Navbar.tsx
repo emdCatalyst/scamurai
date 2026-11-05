@@ -1,7 +1,8 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import MisdaqLogo from '@/components/brand-identity/MisdaqLogo';
 import { ButtonLink, Container } from '@/components/marketing/primitives';
 import { Link } from '@/i18n/navigation';
+import type { Locale } from '@/i18n/routing';
 import HeaderFrame from './HeaderFrame';
 import LanguageLinks from './LanguageLinks';
 import MobileMenu from './MobileMenu';
@@ -16,7 +17,11 @@ const LANGUAGE_PILL =
  * passed to the islands as props, so no message catalogue ships to the client.
  */
 export default async function Navbar() {
-  const [t, tMarketing] = await Promise.all([getTranslations('nav'), getTranslations('marketing')]);
+  const [t, tMarketing, locale] = await Promise.all([
+    getTranslations('nav'),
+    getTranslations('marketing'),
+    getLocale() as Promise<Locale>,
+  ]);
 
   const links = NAV_SECTIONS.map((section) => ({
     id: section.id,
@@ -41,7 +46,7 @@ export default async function Navbar() {
             aria-label={t('home')}
             className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60 focus-visible:ring-offset-4 focus-visible:ring-offset-navy"
           >
-            <MisdaqLogo variant="horizontal" width={164} inverted priority />
+            <MisdaqLogo locale={locale} height={22} inverted alt="" priority />
           </Link>
 
           <nav aria-label={t('primaryNav')} className="hidden md:block">
@@ -73,7 +78,7 @@ export default async function Navbar() {
             label={t('menu')}
             openLabel={t('openMenu')}
             closeLabel={t('closeMenu')}
-            header={<MisdaqLogo variant="horizontal" width={160} inverted />}
+            header={<MisdaqLogo locale={locale} height={22} inverted alt="" />}
           >
             <nav aria-label={t('primaryNav')}>
               <ul className="flex flex-col gap-1">

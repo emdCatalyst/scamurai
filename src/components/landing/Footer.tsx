@@ -1,8 +1,9 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { getServicePath } from '@/components/marketing/services/links';
 import MisdaqLogo from '@/components/brand-identity/MisdaqLogo';
 import { ButtonLink, Container } from '@/components/marketing/primitives';
 import { Link } from '@/i18n/navigation';
+import type { Locale } from '@/i18n/routing';
 import { isLiveService, listServices } from '@/lib/services/catalog';
 import LanguageLinks from './LanguageLinks';
 import { homeSectionHref, SECTION_IDS } from './sections';
@@ -15,12 +16,12 @@ const BUILD_YEAR = String(new Date().getFullYear());
 
 /** Site footer for the public pages. Server component: no client JavaScript besides the language switch. */
 export default async function Footer() {
-  const [t, tNav, tServices, tMarketing, tSeo] = await Promise.all([
+  const [t, tNav, tServices, tMarketing, locale] = await Promise.all([
     getTranslations('footer'),
     getTranslations('nav'),
     getTranslations('services'),
     getTranslations('marketing'),
-    getTranslations('seo'),
+    getLocale() as Promise<Locale>,
   ]);
 
   return (
@@ -33,7 +34,7 @@ export default async function Footer() {
               href="/"
               className="w-fit rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60 focus-visible:ring-offset-4 focus-visible:ring-offset-navy"
             >
-              <MisdaqLogo variant="stacked" width={128} inverted alt={tSeo('siteName')} />
+              <MisdaqLogo locale={locale} height={28} inverted />
             </Link>
             <p className="text-sm font-semibold text-white/85">{t('tagline')}</p>
             <p className="max-w-xs text-sm leading-relaxed text-white/65">{t('description')}</p>

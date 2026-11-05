@@ -1,5 +1,5 @@
 /**
- * Generates the app icons and the email logo from the Misdaq marks in public/brand:
+ * Generates the app icons and the email logos from the Misdaq marks in public/brand:
  *
  *   public/icons/icon-192.png, icon-512.png   the mark (rounded black square), transparent corners
  *   public/icons/maskable-512.png             full-bleed black, the ق inside the maskable safe zone
@@ -7,7 +7,7 @@
  *   src/app/apple-icon.png                    same as apple-touch-icon, for the marketing pages
  *   src/app/icon.svg                          the mark, for browsers that take SVG favicons
  *   src/app/favicon.ico                       16, 32 and 48 px PNGs in an ICO container
- *   public/brand/email-logo.png               white horizontal logo on black, 2× its 160 px email width
+ *   public/brand/email-logo-en.png, -ar.png   white wordmark per language on black, 2× its email size
  *
  *   node scripts/generate-icons.mjs
  *
@@ -81,16 +81,28 @@ await write(
   ico(await Promise.all([16, 32, 48].map(async (size) => ({ size, data: await png(mark, size) }))))
 );
 
-const horizontal = (await fs.readFile(path.join(BRAND, 'logo-horizontal.svg'), 'utf8')).replace(
-  /fill="currentColor"/g,
-  'fill="#FFFFFF"'
-);
-const logo = await sharp(Buffer.from(horizontal), { density: 300 }).resize({ width: 320 }).png().toBuffer();
-const { height } = await sharp(logo).metadata();
-await write(
-  path.join(BRAND, 'email-logo.png'),
-  await sharp({ create: { width: 320, height, channels: 3, background: BLACK } })
-    .composite([{ input: logo }])
-    .png({ compressionLevel: 9, palette: true })
-    .toBuffer()
-);
+/**
+ * One email logo per language, never both: emails in English show MISDAQ,
+ * emails in Arabic مصداق. Drawn at 2× the size src/lib/email-templates.ts
+ * shows them at (EMAIL_LOGOS there), white on Misdaq Black.
+ *
+ * public/brand/email-logo.png (the old combined logo) is no longer generated
+ * but stays in place: emails already sent still point at it.
+ */
+const EMAIL_LOGOS = [
+  { file: 'email-logo-en.png', source: 'logo-english.svg', height: 22 },
+  { file: 'email-logo-ar.png', source: 'logo-arabic.svg', height: 29 },
+];
+for (const { file, source, height } of EMAIL_LOGOS) {
+  const svg = (await fs.readFile(path.join(BRAND, source), 'utf8')).replace(/fill="currentColor"/g, 'fill="#FFFFFF"');
+  const logo = await sharp(Buffer.from(svg), { density: 600 }).resize({ height: height * 2 }).png().toBuffer();
+  const { width } = await sharp(logo).metadata();
+  await write(
+    path.join(BRAND, file),
+    await sharp({ create: { width, height: height * 2, channels: 3, background: BLACK } })
+      .composite([{ input: logo }])
+      .png({ compressionLevel: 9, palette: true })
+      .toBuffer()
+  );
+  console.log(`  ${file}: ${width / 2}×${height} CSS px`);
+}

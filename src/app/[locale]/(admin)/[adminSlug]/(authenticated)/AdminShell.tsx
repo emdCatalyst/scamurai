@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import MisdaqLogo from '@/components/brand-identity/MisdaqLogo';
+import MisdaqLogo, { MisdaqMark } from '@/components/brand-identity/MisdaqLogo';
 import {
   LayoutDashboard,
   FileText,
@@ -139,14 +139,14 @@ export default function AdminShell({
         {/* Logo Area */}
         <div className={`h-20 flex items-center justify-center border-b border-white/5 shrink-0 relative z-10 transition-all duration-300 ${isCollapsed ? 'px-0' : 'px-6'}`}>
           <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
-            <MisdaqLogo variant="mark" width={32} inverted alt="Misdaq" priority />
+            <MisdaqMark size={32} inverted alt={locale === 'ar' ? 'مصداق' : 'Misdaq'} priority />
           </div>
           <div
             className={`flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
               isCollapsed ? 'w-0 opacity-0' : 'mx-3 w-[140px] opacity-100'
             }`}
           >
-            <MisdaqLogo variant="english" width={88} inverted alt="" className="mb-1" />
+            <MisdaqLogo locale={locale as Locale} height={18} inverted alt="" className="mb-1" />
             <span className="text-white/60 text-[10px] font-semibold tracking-wider uppercase">
               {t('masterAdmin')}
             </span>

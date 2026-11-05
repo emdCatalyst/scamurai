@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { ArrowLeft } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import MisdaqLogo from '@/components/brand-identity/MisdaqLogo';
 import ClientIntlProvider from '@/components/providers/ClientIntlProvider';
 import { ButtonLink } from '@/components/marketing/primitives';
+import type { Locale } from '@/i18n/routing';
 import { NO_INDEX } from '@/lib/seo/site';
 
 /**
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
  * navbar/footer JavaScript.
  */
 export default async function LocaleNotFound() {
-  const t = await getTranslations('common.notFound');
+  const [t, locale] = await Promise.all([getTranslations('common.notFound'), getLocale()]);
 
   return (
     // next-intl's Link reads the locale from client context; it needs no messages.
@@ -35,7 +36,7 @@ export default async function LocaleNotFound() {
         id="main"
         className="relative isolate flex min-h-screen flex-1 flex-col items-center justify-center overflow-hidden bg-navy-deep px-6 py-24 text-center"
       >
-        <MisdaqLogo variant="stacked" width={140} inverted alt="Misdaq | مصداق" priority />
+        <MisdaqLogo locale={locale as Locale} height={32} inverted priority />
         <p className="mt-10 text-sm font-bold text-sky ltr:uppercase ltr:tracking-[0.25em]">{t('eyebrow')}</p>
         <h1 className="mt-4 max-w-xl text-balance text-4xl font-black leading-tight text-white sm:text-5xl">
           {t('title')}

@@ -149,7 +149,7 @@ export default function AdminLogin() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="mb-6"
           >
-            <MisdaqLogo variant="stacked" width={140} inverted alt="Misdaq | مصداق" priority />
+            <MisdaqLogo locale={locale as Locale} height={32} inverted priority />
           </motion.div>
           <motion.h1
             initial={{ opacity: 0 }}
