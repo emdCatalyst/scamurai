@@ -14,6 +14,8 @@ import {
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { clerkClient } from "@clerk/nextjs/server";
+import { localizedPath } from "@/i18n/paths";
+import { getAppUrl } from "@/lib/seo/site";
 
 export async function setBrandStatus({
   brandId,
@@ -105,11 +107,9 @@ export async function setBrandStatus({
           ? t("activationBody", { brandName: brand.name })
           : t("suspensionBody", { brandName: brand.name });
 
-        const appUrl = (
-          process.env.APP_URL || "http://localhost:3000"
-        ).replace(/\/$/, "");
+        const appUrl = getAppUrl();
         const ctaHref = isActive
-          ? `${appUrl}/brands/${brand.slug}/login`
+          ? `${appUrl}${localizedPath("en", `/brands/${brand.slug}/login`)}`
           : `mailto:support@scamurai.com`;
         const ctaLabel = isActive ? "Sign in to Misdaq" : "Contact support";
 

@@ -12,6 +12,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormValues } from "@/lib/validations/auth";
 import { motion } from "framer-motion";
+import { localizedPath } from "@/i18n/paths";
+import type { Locale } from "@/i18n/routing";
 
 export default function AdminLogin() {
   const { client, setActive } = useClerk();
@@ -58,7 +60,7 @@ export default function AdminLogin() {
     if (isUserLoaded && clerkUser) {
       const role = clerkUser.publicMetadata?.role;
       if (role === "master_admin") {
-        router.replace(`/${locale}/${adminSlug}/dashboard`);
+        router.replace(localizedPath(locale as Locale, `/${adminSlug}/dashboard`));
       }
     }
   }, [clerkUser, isUserLoaded, locale, adminSlug, router, isRedirecting, isLoading]);
@@ -88,7 +90,7 @@ export default function AdminLogin() {
           // until they refresh. window.location.assign forces a fresh request
           // with the cookie in place, eliminating the race.
           setIsRedirecting(true);
-          window.location.assign(`/${locale}/${adminSlug}/dashboard`);
+          window.location.assign(localizedPath(locale as Locale, `/${adminSlug}/dashboard`));
           return;
         } else {
           // Wrong role — drop the just-created session but stay on this page

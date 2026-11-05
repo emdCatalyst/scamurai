@@ -14,6 +14,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { clerkClient } from "@clerk/nextjs/server";
+import { getAppUrl } from "@/lib/seo/site";
 
 export async function setUserStatus({
   userId,
@@ -87,9 +88,7 @@ export async function setUserStatus({
         ? t("activationBody", { name: user.fullName })
         : t("deactivationBody", { name: user.fullName });
 
-      const appUrl = (
-        process.env.APP_URL || "http://localhost:3000"
-      ).replace(/\/$/, "");
+      const appUrl = getAppUrl();
       const ctaHref = isActive ? appUrl : "mailto:support@scamurai.com";
       const ctaLabel = isActive ? "Sign in to Misdaq" : "Contact support";
 

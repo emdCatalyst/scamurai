@@ -1,6 +1,7 @@
 import { clerkMiddleware, createRouteMatcher, type ClerkMiddlewareAuth } from '@clerk/nextjs/server';
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
+import { defaultLocaleRedirect, localizedPath, splitLocale } from './i18n/paths';
 import { NextResponse, type NextRequest } from 'next/server';
 import {
   buildContentSecurityPolicy,
@@ -14,15 +15,27 @@ import { getSiteUrl } from './lib/seo/site';
 
 const intlMiddleware = createMiddleware(routing);
 
-const isPublicRoute = createRouteMatcher([
-  '/:locale',
-  '/:locale/apply(.*)',
-  '/:locale/services(.*)',
-  '/:locale/inactive(.*)',
-  '/:locale/:adminSlug/login(.*)',
-  '/:locale/brands/:brandSlug/login(.*)',
-  '/:locale/brands/:brandSlug/suspended(.*)',
-  '/:locale/brands/:brandSlug/inactive(.*)',
+/**
+ * Public pages, as locale-free paths. English is served at the root and
+ * Arabic under /ar, so each is matched in both forms (and under /en, which
+ * is redirected before this list is consulted).
+ */
+const PUBLIC_PAGES = [
+  '/',
+  '/apply(.*)',
+  '/services(.*)',
+  '/inactive(.*)',
+  '/:adminSlug/login(.*)',
+  '/brands/:brandSlug/login(.*)',
+  '/brands/:brandSlug/suspended(.*)',
+  '/brands/:brandSlug/inactive(.*)',
+  // A brand's staff-app manifest: its name and colours, nothing private.
+  '/brands/:brandSlug/manifest.webmanifest',
+];
+
+export const isPublicRoute = createRouteMatcher([
+  ...PUBLIC_PAGES,
+  ...routing.locales.flatMap((locale) => PUBLIC_PAGES.map((page) => `/${locale}${page === '/' ? '' : page}`)),
   '/api/webhooks(.*)',
   // Development storage: every request carries its own signed, expiring token.
   '/api/storage/local(.*)',
@@ -44,20 +57,20 @@ const ADMIN_HEADERS: Record<string, string> = {
 
 const LOCALES: readonly string[] = routing.locales;
 
-/** The first path segment after the optional locale prefix. */
-function sectionOf(pathname: string): string | undefined {
+/** The first path segment after the optional locale prefix: '/brands/x' and '/ar/brands/x' → 'brands'. */
+export function sectionOf(pathname: string): string | undefined {
   const [first, second] = pathname.split('/').filter(Boolean);
   return first !== undefined && LOCALES.includes(first) ? second : first;
 }
 
-/** `/<locale>/<ADMIN_SLUG>/…`, or the unprefixed `/<ADMIN_SLUG>/…` that next-intl redirects. */
-function isAdminPath(pathname: string): boolean {
+/** English `/<ADMIN_SLUG>/…`, Arabic `/ar/<ADMIN_SLUG>/…`, or `/en/<ADMIN_SLUG>/…` on its way to the first. */
+export function isAdminPath(pathname: string): boolean {
   const adminSlug = process.env.ADMIN_SLUG;
   return Boolean(adminSlug) && sectionOf(pathname) === adminSlug;
 }
 
 /** Signed-in areas. They are rendered per request, so their scripts can carry a CSP nonce. */
-function isPortalPath(pathname: string): boolean {
+export function isPortalPath(pathname: string): boolean {
   const section = sectionOf(pathname);
   return section === 'brands' || section === 'onboarding' || isAdminPath(pathname);
 }
@@ -90,8 +103,7 @@ const NONCE_REQUEST_HEADERS = ['content-security-policy', 'content-security-poli
 async function route(auth: ClerkMiddlewareAuth, req: NextRequest): Promise<NextResponse> {
   const isApiRoute = req.nextUrl.pathname.startsWith('/api');
   
-  const firstSegment = req.nextUrl.pathname.split('/')[1];
-  const locale = LOCALES.includes(firstSegment) ? firstSegment : routing.defaultLocale;
+  const { locale, path: localeFreePath } = splitLocale(req.nextUrl.pathname);
 
   // 1. Check if it's a public route
   const isPublic = isPublicRoute(req);
@@ -111,16 +123,16 @@ async function route(auth: ClerkMiddlewareAuth, req: NextRequest): Promise<NextR
       const brandMatch = pathname.match(/\/brands\/([^/]+)/);
       if (brandMatch) {
         const brandSlug = brandMatch[1];
-        return NextResponse.redirect(new URL(`/${locale}/brands/${brandSlug}/login`, req.url));
+        return NextResponse.redirect(new URL(localizedPath(locale, `/brands/${brandSlug}/login`), req.url));
       }
 
-      // B. Check if it's an admin route
-      const segments = pathname.split('/').filter(Boolean);
-      if (segments.length >= 2 && !pathname.includes('/brands/')) {
+      // B. Any other page (the admin console, onboarding, …) checks access itself
+      const segments = localeFreePath.split('/').filter(Boolean);
+      if (segments.length >= 1 && !pathname.includes('/brands/')) {
         return intlMiddleware(req);
       }
 
-      return NextResponse.redirect(new URL(`/${locale}`, req.url));
+      return NextResponse.redirect(new URL(localizedPath(locale, '/'), req.url));
     }
 
     // Status Checks (Skip for master_admin)
@@ -138,12 +150,12 @@ async function route(auth: ClerkMiddlewareAuth, req: NextRequest): Promise<NextR
           const brandSlug = brandMatch[1];
           return isApiRoute
             ? NextResponse.json({ error: 'Account inactive' }, { status: 403 })
-            : NextResponse.redirect(new URL(`/${locale}/brands/${brandSlug}/inactive`, req.url));
+            : NextResponse.redirect(new URL(localizedPath(locale, `/brands/${brandSlug}/inactive`), req.url));
         }
 
         return isApiRoute 
           ? NextResponse.json({ error: 'Account inactive' }, { status: 403 })
-          : NextResponse.redirect(new URL(`/${locale}/inactive`, req.url));
+          : NextResponse.redirect(new URL(localizedPath(locale, '/inactive'), req.url));
       }
 
       if (!brandIsActive) {
@@ -154,12 +166,12 @@ async function route(auth: ClerkMiddlewareAuth, req: NextRequest): Promise<NextR
           const brandSlug = brandMatch[1];
           return isApiRoute
             ? NextResponse.json({ error: 'Brand suspended' }, { status: 403 })
-            : NextResponse.redirect(new URL(`/${locale}/brands/${brandSlug}/suspended`, req.url));
+            : NextResponse.redirect(new URL(localizedPath(locale, `/brands/${brandSlug}/suspended`), req.url));
         }
 
         return isApiRoute
           ? NextResponse.json({ error: 'Brand suspended' }, { status: 403 })
-          : NextResponse.redirect(new URL(`/${locale}/inactive`, req.url));
+          : NextResponse.redirect(new URL(localizedPath(locale, '/inactive'), req.url));
       }
     }
   }
@@ -183,7 +195,9 @@ export const proxy = clerkMiddleware(async (auth, req) => {
     req.headers.set('x-nonce', csp.nonce);
   }
 
-  const response = await route(auth, req);
+  // /en/… → /… before anything else, so English has exactly one URL per page.
+  const enRedirect = defaultLocaleRedirect(req.nextUrl);
+  const response = enRedirect ? NextResponse.redirect(enRedirect, 308) : await route(auth, req);
 
   if (csp) response.headers.set(csp.header, csp.value);
   if (isAdminPath(req.nextUrl.pathname)) {
@@ -197,10 +211,11 @@ export default proxy;
 export const config = {
   matcher: [
     // Skip Next.js internals and all static files, unless found in search params.
-    // robots.txt and sitemap.xml are requested by crawlers without a locale
-    // prefix, so they must skip auth + locale redirects too (the manifest is
-    // already covered by the .webmanifest extension).
-    '/((?!_next|robots\\.txt$|sitemap\\.xml$|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|otf|OTF|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // robots.txt, sitemap.xml and the site manifest live at the root for
+    // every locale, so they skip auth + locale handling. A brand's staff-app
+    // manifest (/brands/<slug>/manifest.webmanifest, /ar/… in Arabic) does run
+    // through it, so next-intl can map the English URL to its route.
+    '/((?!_next|robots\\.txt$|sitemap\\.xml$|manifest\\.webmanifest$|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|otf|OTF|ico|csv|docx?|xlsx?|zip)).*)',
     // Always run for API routes and clerk internals
     '/(api|trpc|__clerk)(.*)',
   ],

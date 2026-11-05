@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { Users, ShieldCheck, Landmark, UserCircle2, ArrowRight } from 'lucide-react';
 
 interface TeamOverviewPanelProps {

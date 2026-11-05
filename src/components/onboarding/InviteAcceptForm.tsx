@@ -18,6 +18,8 @@ import {
   type InviteAcceptFormValues,
 } from "@/lib/validations/inviteAccept";
 import { cn } from "@/lib/utils";
+import { localizedPath } from "@/i18n/paths";
+import type { Locale } from "@/i18n/routing";
 
 type ClerkErrorShape = {
   errors?: Array<{ code?: string; longMessage?: string; message?: string }>;
@@ -95,7 +97,7 @@ export default function InviteAcceptForm({
       setIsRedirecting(true);
       // Drop the ticket params and let the now-signed-in flow proceed
       // into the BrandSetup wizard.
-      window.location.replace(`/${locale}/onboarding/brand-setup`);
+      window.location.replace(localizedPath(locale as Locale, `/onboarding/brand-setup`));
       return;
     } catch (err) {
       const clerkErr = err as ClerkErrorShape;

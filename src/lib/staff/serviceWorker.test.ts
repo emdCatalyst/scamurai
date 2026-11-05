@@ -128,10 +128,12 @@ describe('service worker', () => {
     expect(await (await worker.pages()).match(SCREEN)).toBeUndefined();
   });
 
-  it('takes the locales and screens it keeps from its URL', async () => {
+  it('takes the locale prefixes and screens it keeps from its URL', async () => {
     const worker = startWorker();
     worker.fetch.mockImplementation(async () => answer(200, 'page'));
-    expect(await worker.request('/en/brands/demo/submit')).not.toBeNull();
+    // English has no prefix; /en/… is redirected, so it is never the screen.
+    expect(await worker.request('/brands/demo/submit')).not.toBeNull();
+    expect(await worker.request('/en/brands/demo/submit')).toBeNull();
     expect(await worker.request('/ar/brands/demo/submit/')).not.toBeNull();
     expect(await worker.request('/fr/brands/demo/submit')).toBeNull();
     expect(await worker.request('/ar/brands/demo/orders')).toBeNull();

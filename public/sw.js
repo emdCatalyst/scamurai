@@ -11,9 +11,9 @@
  *   place, so they come from the cache, which keeps the newest MAX_ASSETS.
  * - Everything else (APIs, other pages, other sites) goes to the network.
  *
- * The app's locales and the staff screens kept for weak connections come
- * from this script's URL (?locales=en,ar&screens=submit), so the app lists
- * them in one place.
+ * The app's prefixed locales and the staff screens kept for weak connections
+ * come from this script's URL (?prefixes=ar&screens=submit), so the app lists
+ * them in one place. English has no prefix: /brands/<brand>/submit.
  *
  * Bump VERSION to drop every cache. The copy is made for the worker who was
  * signed in: on a shared phone, every sign-out and the sign-in page delete
@@ -32,12 +32,15 @@ function listed(name) {
   const value = new URL(self.location.href).searchParams.get(name) || '';
   return value.split(',').filter((part) => /^[a-z0-9-]+$/i.test(part));
 }
-const LOCALES = listed('locales');
+/** Locales served under a /<locale> prefix; the default (English) is at the root. */
+const PREFIXES = listed('prefixes');
 const SCREENS = listed('screens');
-/** /<locale>/brands/<brand>/<screen>; none when the URL lists none. */
+/** /brands/<brand>/<screen>, or /<prefix>/brands/<brand>/<screen>; none when the URL lists no screens. */
 const STAFF_SCREEN =
-  LOCALES.length > 0 && SCREENS.length > 0
-    ? new RegExp(`^/(${LOCALES.join('|')})/brands/[^/]+/(${SCREENS.join('|')})/?$`)
+  SCREENS.length > 0
+    ? new RegExp(
+        `^${PREFIXES.length > 0 ? `(?:/(?:${PREFIXES.join('|')}))?` : ''}/brands/[^/]+/(?:${SCREENS.join('|')})/?$`
+      )
     : null;
 
 self.addEventListener('install', () => self.skipWaiting());

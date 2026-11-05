@@ -11,5 +11,8 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     // Integration tests need the local database: npm run test:integration.
     exclude: [...configDefaults.exclude, 'src/**/*.int.test.{ts,tsx}', 'src/**/*.load.test.{ts,tsx}'],
+    // next-intl's middleware imports 'next/server' without an extension, which
+    // Node's ESM loader refuses; bundled by Vite it resolves (src/proxy.test.ts).
+    server: { deps: { inline: ['next-intl'] } },
   },
 });

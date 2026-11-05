@@ -17,6 +17,8 @@ import { emailButton, emailHeading, emailKeyValue, emailParagraph, renderEmail }
 import { isApplicationRateLimited } from '@/lib/ratelimit';
 import { applicationSchema, type ApplicationData } from '@/lib/validations/application';
 import { isHoneypotFilled } from '@/components/apply/honeypot';
+import { localizedPath } from '@/i18n/paths';
+import { getAppUrl } from '@/lib/seo/site';
 
 /** Every error the form can show; each one is a key in the `apply` namespace. */
 export type ApplyErrorKey = 'errFormFix' | 'errorTooManyRequests' | 'errorEmailRegistered' | 'errorGeneral';
@@ -137,8 +139,7 @@ const LANGUAGE_NAMES = new Intl.DisplayNames(['en'], { type: 'language' });
 const INTEREST_LABEL = 'Interest registration (coming soon)';
 
 function adminApplicationsUrl(): string {
-  const appUrl = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
-  return `${appUrl}/${process.env.ADMIN_SLUG || 'admin'}/applications`;
+  return `${getAppUrl()}${localizedPath('en', `/${process.env.ADMIN_SLUG || 'admin'}/applications`)}`;
 }
 
 /** Internal notification to the team, always in English. */

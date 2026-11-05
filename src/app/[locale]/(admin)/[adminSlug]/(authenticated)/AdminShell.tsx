@@ -21,6 +21,8 @@ import { useClerk } from '@clerk/nextjs';
 import { useTranslations } from 'next-intl';
 import { Suspense } from 'react';
 import LocaleSwitcher from '@/components/ui/LocaleSwitcher';
+import { localizedPath } from "@/i18n/paths";
+import type { Locale } from "@/i18n/routing";
 
 export default function AdminShell({
   children,
@@ -61,7 +63,7 @@ export default function AdminShell({
   };
 
   // Use a more robust way to extract the path relative to the admin root
-  const baseSegment = `/${locale}/${adminSlug}`;
+  const baseSegment = localizedPath(locale as Locale, `/${adminSlug}`);
   let currentPath = '/dashboard';
   
   if (pathname.startsWith(baseSegment)) {
@@ -90,7 +92,7 @@ export default function AdminShell({
     setIsLoggingOut(true);
     // Send Clerk straight to the admin login so the user doesn't see a flash
     // of the marketing root or `/en` mid-redirect.
-    await signOut({ redirectUrl: `/${locale}/${adminSlug}/login` });
+    await signOut({ redirectUrl: localizedPath(locale as Locale, `/${adminSlug}/login`) });
   };
 
   const isAr = locale === 'ar';
@@ -176,7 +178,7 @@ export default function AdminShell({
             return (
               <Link
                 key={item.id}
-                href={`/${locale}/${adminSlug}${item.href}`}
+                href={localizedPath(locale as Locale, `/${adminSlug}${item.href}`)}
                 className={`group flex items-center px-3 py-3.5 rounded-xl transition-all duration-300 relative ${
                   isCollapsed ? 'justify-center' : ''
                 } ${

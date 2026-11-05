@@ -7,7 +7,9 @@ import { BrandLoginBackground } from "@/components/brand/BrandLoginBackground";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@clerk/nextjs/server";
 import { handleBrandLoginRedirect } from "@/actions/handleBrandLoginRedirect";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { localizedPath } from "@/i18n/paths";
+import type { Locale } from "@/i18n/routing";
 
 export default async function BrandLoginPage({
   params,
@@ -21,12 +23,12 @@ export default async function BrandLoginPage({
   if (userId) {
     const redirectRes = await handleBrandLoginRedirect(brandSlug);
     if (redirectRes.success && redirectRes.target) {
-      redirect(`/${locale}${redirectRes.target}`);
+      redirect(localizedPath(locale as Locale, redirectRes.target));
     } else if (!redirectRes.success) {
       if (redirectRes.error === "inactive") {
-        redirect(`/${locale}/brands/${brandSlug}/inactive`);
+        redirect(localizedPath(locale as Locale, `/brands/${brandSlug}/inactive`));
       } else if (redirectRes.error === "suspended") {
-        redirect(`/${locale}/brands/${brandSlug}/suspended`);
+        redirect(localizedPath(locale as Locale, `/brands/${brandSlug}/suspended`));
       }
     }
   }

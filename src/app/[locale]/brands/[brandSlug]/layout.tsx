@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { brandTokensCss, deriveBrandTokens } from "@/lib/brandTokens";
 import AppProviders from "@/components/providers/AppProviders";
 import { NO_INDEX } from "@/lib/seo/site";
+import { localizedPath } from "@/i18n/paths";
+import type { Locale } from "@/i18n/routing";
 
 /** Each brand is its own installable staff app (see manifest.webmanifest/route.ts). */
 export async function generateMetadata({
@@ -16,7 +18,7 @@ export async function generateMetadata({
   const brand = await getBrandBySlug(brandSlug);
   return {
     robots: NO_INDEX,
-    manifest: `/${locale}/brands/${brandSlug}/manifest.webmanifest`,
+    manifest: localizedPath(locale as Locale, `/brands/${brandSlug}/manifest.webmanifest`),
     // "default": the bar sits above every brand page, so sign-in and password pages need no safe-area padding.
     appleWebApp: { capable: true, title: brand?.name, statusBarStyle: "default" },
     icons: { apple: "/icons/apple-touch-icon.png" },

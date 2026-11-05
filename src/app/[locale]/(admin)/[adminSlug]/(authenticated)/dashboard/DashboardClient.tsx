@@ -25,6 +25,8 @@ import {
   type DashboardBranch,
   type DashboardOrderDay,
 } from './types';
+import { localizedPath } from "@/i18n/paths";
+import type { Locale } from "@/i18n/routing";
 
 interface DashboardClientProps {
   applicationStats: Record<ApplicationBucket, number>;
@@ -70,7 +72,7 @@ export default function DashboardClient({
   const tPlans = useTranslations('plans');
   const format = useFormatter();
   const isAr = params.locale === 'ar';
-  const applicationsHref = `/${params.locale}/${params.adminSlug}/applications`;
+  const applicationsHref = localizedPath(params.locale as Locale, `/${params.adminSlug}/applications`);
 
   const pieData = APPLICATION_BUCKETS.map((bucket) => ({
     bucket,

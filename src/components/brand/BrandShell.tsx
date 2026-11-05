@@ -22,6 +22,8 @@ import { useTranslations } from 'next-intl';
 import LocaleSwitcher from '@/components/ui/LocaleSwitcher';
 import { useToast } from '@/components/ui/Toast';
 import { signOutOfPhone } from '@/lib/staff/signOut';
+import { localizedPath } from "@/i18n/paths";
+import type { Locale } from "@/i18n/routing";
 
 export default function BrandShell({
   children,
@@ -66,7 +68,7 @@ export default function BrandShell({
     localStorage.setItem('scamurai_brand_sidebar_collapsed', String(newState));
   };
 
-  const baseSegment = `/${locale}/brands/${brandSlug}`;
+  const baseSegment = localizedPath(locale as Locale, `/brands/${brandSlug}`);
   let currentPath = '/dashboard';
   
   if (pathname.startsWith(baseSegment)) {
@@ -98,7 +100,7 @@ export default function BrandShell({
       // Pass redirectUrl directly so Clerk navigates to the brand login instead
       // of its default `/`, eliminating the homepage flash. The phone's saved
       // order screen goes first: it must not open for whoever signs in next.
-      await signOutOfPhone(() => signOut({ redirectUrl: `/${locale}/brands/${brandSlug}/login` }));
+      await signOutOfPhone(() => signOut({ redirectUrl: localizedPath(locale as Locale, `/brands/${brandSlug}/login`) }));
     } catch {
       setIsLoggingOut(false);
       toast(tSubmit('signOutError'), 'error');
@@ -205,7 +207,7 @@ export default function BrandShell({
             return (
               <Link
                 key={item.id}
-                href={`/${locale}/brands/${brandSlug}${item.href}`}
+                href={localizedPath(locale as Locale, `/brands/${brandSlug}${item.href}`)}
                 className={`group flex items-center px-3 py-3.5 rounded-xl transition-all duration-300 relative ${
                   isCollapsed ? 'justify-center' : ''
                 } ${

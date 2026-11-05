@@ -56,9 +56,9 @@ describe('the order screen', () => {
 
   it('sends the brand’s admins and finance to their own screens: the order APIs refuse them', async () => {
     state.session = { userId: 'user_b', role: 'brand_admin', brandId: 'brand-1' };
-    await expect(open()).rejects.toThrow('REDIRECT /en/brands/demo/dashboard');
+    await expect(open()).rejects.toThrow('REDIRECT /brands/demo/dashboard');
     state.session = { userId: 'user_c', role: 'finance', brandId: 'brand-1' };
-    await expect(open()).rejects.toThrow('REDIRECT /en/brands/demo/orders');
+    await expect(open()).rejects.toThrow('REDIRECT /brands/demo/orders');
   });
 
   it('is not found for another brand’s accounts', async () => {

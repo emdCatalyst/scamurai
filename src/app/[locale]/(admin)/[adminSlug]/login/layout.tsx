@@ -1,5 +1,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { localizedPath } from "@/i18n/paths";
+import type { Locale } from "@/i18n/routing";
 
 export default async function LoginLayout({
   children,
@@ -16,7 +18,7 @@ export default async function LoginLayout({
     const user = await client.users.getUser(userId);
 
     if (user.publicMetadata?.role === "master_admin") {
-      redirect(`/${locale}/${adminSlug}/dashboard`);
+      redirect(localizedPath(locale as Locale, `/${adminSlug}/dashboard`));
     }
   }
 

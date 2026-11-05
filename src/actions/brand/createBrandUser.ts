@@ -18,6 +18,8 @@ import {
   emailMutedNote,
 } from "@/lib/email-templates";
 import { isLiveBranchOf } from "@/lib/queries/branches";
+import { localizedPath } from "@/i18n/paths";
+import { getAppUrl } from "@/lib/seo/site";
 
 function generateTempPassword() {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
@@ -130,9 +132,7 @@ export async function createBrandUser(data: {
 
     // 6. Send Email via Resend
     try {
-      const appUrl = (
-        process.env.APP_URL || "http://localhost:3000"
-      ).replace(/\/$/, "");
+      const appUrl = getAppUrl();
 
       // Resolve brand slug so the sign-in link points at the brand's login,
       // not the app root.
@@ -141,7 +141,7 @@ export async function createBrandUser(data: {
         columns: { slug: true },
       });
       const loginUrl = brandRow?.slug
-        ? `${appUrl}/en/brands/${brandRow.slug}/login`
+        ? `${appUrl}${localizedPath("en", `/brands/${brandRow.slug}/login`)}`
         : appUrl;
 
       const html = renderEmail({

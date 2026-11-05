@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { routing } from "@/i18n/routing";
+import { PREFIXED_LOCALES } from "@/i18n/paths";
 
 /**
- * The service worker reads the app's locales and the staff screens it keeps
+ * The service worker reads the prefixed locales (English has none) and the staff screens it keeps
  * for weak connections from its URL, so public/sw.js lists none of its own.
  */
-export const SERVICE_WORKER_URL = `/sw.js?${new URLSearchParams({ locales: routing.locales.join(","), screens: "submit" })}`;
+export const SERVICE_WORKER_URL = `/sw.js?${new URLSearchParams({ prefixes: PREFIXED_LOCALES.join(","), screens: "submit" })}`;
 
 /**
  * Registers the staff app's service worker (public/sw.js), which opens the

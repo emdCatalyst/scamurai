@@ -15,6 +15,8 @@ import InstallAppButton from "@/components/staff/InstallAppButton";
 import ServiceWorker from "@/components/staff/ServiceWorker";
 import StaffVitals from "@/components/staff/StaffVitals";
 import LocaleSwitcher from "@/components/ui/LocaleSwitcher";
+import { localizedPath } from "@/i18n/paths";
+import type { Locale } from "@/i18n/routing";
 
 /**
  * Installed on an iPhone, the app draws under the status bar (the brand
@@ -44,7 +46,7 @@ export default async function StaffSubmitPage({
 
   // 3. Only staff send orders, and the order APIs refuse everyone else: the brand's other members go to their own screens.
   if (!ORDER_SUBMITTER_ROLES.includes(role)) {
-    redirect(`/${locale}/brands/${brandSlug}/${role === "finance" ? "orders" : "dashboard"}`);
+    redirect(localizedPath(locale as Locale, `/brands/${brandSlug}/${role === "finance" ? "orders" : "dashboard"}`));
   }
 
   const t = await getTranslations("brand.submit");
@@ -68,7 +70,7 @@ export default async function StaffSubmitPage({
           {t('noBranchDesc')}
         </p>
         <StaffSignOutButton
-          redirectUrl={`/${locale}/brands/${brandSlug}/login`}
+          redirectUrl={localizedPath(locale as Locale, `/brands/${brandSlug}/login`)}
           className="min-h-11 px-4 text-[var(--brand-primary)] font-semibold"
         >
           {t('signOut')}
@@ -122,7 +124,7 @@ export default async function StaffSubmitPage({
             <LocaleSwitcher className="min-h-11 border-[var(--brand-border)] bg-transparent px-4 text-[var(--brand-background-fg-muted)] hover:text-[var(--brand-background-fg)]" />
             {/* Set apart from the language button: signing out by mistake means typing the password again. */}
             <StaffSignOutButton
-              redirectUrl={`/${locale}/brands/${brandSlug}/login`}
+              redirectUrl={localizedPath(locale as Locale, `/brands/${brandSlug}/login`)}
               title={t('signOut')}
               className={`${HEADER_BUTTON} ms-2`}
             >

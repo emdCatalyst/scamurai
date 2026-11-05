@@ -6,6 +6,8 @@ import { db } from '@/lib/db';
 import { users, brands } from '@/lib/db/schema';
 import BrandSetup from '@/components/onboarding/BrandSetup';
 import InviteAcceptForm from '@/components/onboarding/InviteAcceptForm';
+import { localizedPath } from "@/i18n/paths";
+import type { Locale } from "@/i18n/routing";
 
 export const metadata: Metadata = {
   title: 'Brand Setup — Misdaq',
@@ -173,7 +175,7 @@ export default async function BrandSetupPage(props: {
   if (!brand) {
     redirect('/');
   }
-  const brandDashboardUrl = `/${locale}/brands/${brand.slug}/dashboard`;
+  const brandDashboardUrl = localizedPath(locale as Locale, `/brands/${brand.slug}/dashboard`);
 
   // Check if onboarding is already complete
   // We match by clerkUserId (provided by auth())

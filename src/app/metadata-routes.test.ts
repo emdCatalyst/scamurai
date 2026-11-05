@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { localizedPath } from '@/i18n/paths';
 import { routing } from '@/i18n/routing';
 import { listServices } from '@/lib/services/catalog';
 import robots from './robots';
@@ -19,12 +20,12 @@ afterEach(() => {
 describe('sitemap', () => {
   it('lists home, every catalog service and the apply page once per locale', () => {
     const urls = sitemap().map((entry) => entry.url);
-    const paths = ['', ...listServices().map((service) => `/services/${service.slug}`), '/apply'];
+    const paths = ['/', ...listServices().map((service) => `/services/${service.slug}`), '/apply'];
 
     expect(new Set(urls).size).toBe(urls.length);
     expect(urls).toHaveLength(paths.length * routing.locales.length);
     for (const locale of routing.locales) {
-      for (const path of paths) expect(urls).toContain(`${SITE}/${locale}${path}`);
+      for (const path of paths) expect(urls).toContain(new URL(localizedPath(locale, path), SITE).toString());
     }
   });
 
@@ -56,8 +57,8 @@ describe('robots', () => {
     expect(rule.allow).toBe('/');
     expect(rule.disallow).toContain('/api/');
     for (const locale of routing.locales) {
-      expect(rule.disallow).toContain(`/${locale}/brands/`);
-      expect(rule.disallow).toContain(`/${locale}/onboarding/`);
+      expect(rule.disallow).toContain(localizedPath(locale, '/brands/'));
+      expect(rule.disallow).toContain(localizedPath(locale, '/onboarding/'));
     }
     expect(sitemapUrl).toBe(`${SITE}/sitemap.xml`);
   });

@@ -22,6 +22,8 @@ import {
   type ChangePasswordFormValues,
 } from "@/lib/validations/changePassword";
 import { cn } from "@/lib/utils";
+import { localizedPath } from "@/i18n/paths";
+import type { Locale } from "@/i18n/routing";
 
 type ClerkErrorShape = {
   errors?: Array<{ code?: string; longMessage?: string; message?: string }>;
@@ -107,10 +109,10 @@ export default function ChangePasswordPage() {
       const role = user.publicMetadata.role as string | undefined;
       const dest =
         role === "finance"
-          ? `/${locale}/brands/${brandSlug}/orders`
+          ? localizedPath(locale as Locale, `/brands/${brandSlug}/orders`)
           : role === "staff"
-            ? `/${locale}/brands/${brandSlug}/submit`
-            : `/${locale}/brands/${brandSlug}/dashboard`;
+            ? localizedPath(locale as Locale, `/brands/${brandSlug}/submit`)
+            : localizedPath(locale as Locale, `/brands/${brandSlug}/dashboard`);
       router.push(dest);
     } catch (err) {
       if (isReverificationCancelledError(err)) {

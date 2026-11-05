@@ -14,6 +14,7 @@ import {
   emailButton,
   emailMutedNote,
 } from "@/lib/email-templates";
+import { getAppUrl } from "@/lib/seo/site";
 
 function generateTempPassword() {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
@@ -70,9 +71,7 @@ export async function resetBrandUserPassword({ userId }: { userId: string }) {
 
     // Send email via Resend
     try {
-      const appUrl = (
-        process.env.APP_URL || "http://localhost:3000"
-      ).replace(/\/$/, "");
+      const appUrl = getAppUrl();
 
       const html = renderEmail({
         preheader: "Your Misdaq password has been reset by an administrator.",

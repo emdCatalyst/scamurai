@@ -1,8 +1,10 @@
 'use client';
 
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Link, usePathname } from '@/i18n/navigation';
+import { usePathname } from '@/i18n/navigation';
+import { localizedPath } from '@/i18n/paths';
 import type { Locale } from '@/i18n/routing';
 import { cn } from '@/lib/cn';
 
@@ -19,6 +21,10 @@ interface LocaleSwitchProps {
  * hydration and in a new tab. The path is part of the static HTML; the query
  * string (e.g. a plan preselected on /apply) is added on the client, because
  * reading search params while prerendering would make every page dynamic.
+ *
+ * The href is built here rather than by next-intl's Link, which keeps an /en
+ * prefix when switching to English (for its locale cookie). English lives at
+ * the root, so the link must point straight at /services/x, not /en/services/x.
  */
 export default function LocaleSwitch(props: LocaleSwitchProps) {
   return (
@@ -34,12 +40,14 @@ function LocaleLinkWithQuery(props: LocaleSwitchProps) {
 }
 
 function LocaleLink({ locale, label, className, query }: LocaleSwitchProps & { query?: string }) {
+  // The current page without its locale prefix, e.g. '/services/x' on /ar/services/x.
   const pathname = usePathname();
+  const href = localizedPath(locale, pathname);
 
   return (
     <Link
-      href={query ? `${pathname}?${query}` : pathname}
-      locale={locale}
+      href={query ? `${href}?${query}` : href}
+      hrefLang={locale}
       lang={locale}
       className={cn('[&:lang(ar)]:font-arabic [&:lang(en)]:font-sans', className)}
     >

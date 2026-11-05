@@ -18,6 +18,8 @@ import {
 } from '@/lib/queries/applications';
 import { customLimitSchema } from '@/components/admin/applications/reviewRules';
 import { routing, type Locale } from '@/i18n/routing';
+import { localizedPath } from '@/i18n/paths';
+import { getAppUrl } from '@/lib/seo/site';
 
 /**
  * paid → approved: creates the brand and its brand-admin user, marks the
@@ -219,11 +221,11 @@ async function inviteBrandAdmin({
 }): Promise<boolean> {
   try {
     const clerk = await clerkClient();
-    const baseUrl = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+    const baseUrl = getAppUrl();
 
     await clerk.invitations.createInvitation({
       emailAddress: email,
-      redirectUrl: `${baseUrl}/${locale}/onboarding/brand-setup`,
+      redirectUrl: `${baseUrl}${localizedPath(locale, '/onboarding/brand-setup')}`,
       publicMetadata: {
         role: 'brand_admin',
         brandId,

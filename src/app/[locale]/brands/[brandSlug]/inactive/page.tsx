@@ -5,6 +5,8 @@ import { BrandLoginBackground } from "@/components/brand/BrandLoginBackground";
 import { getBrandBySlug } from "@/lib/queries/brands";
 import { notFound } from "next/navigation";
 import StaffSignOutButton from "@/components/staff/StaffSignOutButton";
+import { localizedPath } from "@/i18n/paths";
+import type { Locale } from "@/i18n/routing";
 
 export default async function BrandInactivePage({
   params,
@@ -46,7 +48,7 @@ export default async function BrandInactivePage({
         </a>
         
         <StaffSignOutButton
-          redirectUrl={`/${locale}/brands/${brandSlug}/login`}
+          redirectUrl={localizedPath(locale as Locale, `/brands/${brandSlug}/login`)}
           className="flex items-center justify-center gap-2 text-sm font-bold text-white/40 hover:text-white transition-colors py-2"
         >
           <LogOut size={16} />

@@ -1,7 +1,9 @@
 'use client';
 
 import { useLocale } from 'next-intl';
-import { useRouter, usePathname } from '@/i18n/navigation';
+import { useRouter } from 'next/navigation';
+import { usePathname } from '@/i18n/navigation';
+import { localizedPath } from '@/i18n/paths';
 import { useTransition } from 'react';
 import { Languages } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -14,7 +16,9 @@ interface LocaleSwitcherProps {
 }
 
 /**
- * Flips between `en` and `ar` while keeping the current path + query.
+ * Flips between `en` and `ar` while keeping the current path. The target is
+ * built with localizedPath: next-intl's router would keep an /en prefix when
+ * switching to English, which costs the phone a redirect.
  * Shared across BrandShell, AdminShell, and the staff submit header.
  */
 export default function LocaleSwitcher({
@@ -34,7 +38,7 @@ export default function LocaleSwitcher({
 
   const onClick = () => {
     startTransition(() => {
-      router.replace(pathname, { locale: nextLocale });
+      router.replace(localizedPath(nextLocale, pathname));
     });
   };
 

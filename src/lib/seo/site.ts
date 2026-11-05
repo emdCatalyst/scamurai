@@ -1,24 +1,33 @@
 import type { Metadata } from 'next';
 import { routing, type Locale } from '@/i18n/routing';
+import { localizedPath } from '@/i18n/paths';
+
+/** The production domain: the last fallback for every absolute URL the app builds. */
+export const DEFAULT_SITE_URL = 'https://misdaq.sa.com';
 
 /**
- * Canonical site origin. Set NEXT_PUBLIC_SITE_URL to the production domain
- * (e.g. https://scamurai.com); APP_URL is the fallback the app already uses.
+ * Canonical site origin, for canonical URLs, hreflang, Open Graph and the
+ * sitemap. NEXT_PUBLIC_SITE_URL is https://misdaq.sa.com on Vercel; APP_URL
+ * is the fallback the app already uses, then the production domain.
  */
 export function getSiteUrl(): URL {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL || process.env.APP_URL || 'http://localhost:3000';
+  const raw = process.env.NEXT_PUBLIC_SITE_URL || process.env.APP_URL || DEFAULT_SITE_URL;
   return new URL(raw.endsWith('/') ? raw : `${raw}/`);
+}
+
+/**
+ * Origin for links in emails and invitations, without a trailing slash.
+ * APP_URL comes first: a staging app must link to itself, not to the site.
+ */
+export function getAppUrl(): string {
+  return (process.env.APP_URL || process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL).replace(/\/+$/, '');
 }
 
 export function absoluteUrl(path: string): string {
   return new URL(path.replace(/^\//, ''), getSiteUrl()).toString();
 }
 
-/** `/` + locale + path, e.g. ('ar', '/services/x') → '/ar/services/x', ('en', '/') → '/en'. */
-export function localizedPath(locale: Locale, path: string): string {
-  const normalized = path === '/' ? '' : path.startsWith('/') ? path : `/${path}`;
-  return `/${locale}${normalized}`;
-}
+export { localizedPath };
 
 /** Canonical + hreflang alternates for a page that exists in every locale. */
 export function buildAlternates(locale: Locale, path: string): NonNullable<Metadata['alternates']> {

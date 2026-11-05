@@ -10,6 +10,8 @@ import ColorSlotPicker, { type ColorSlot } from './ColorSlotPicker';
 import { completeBrandSetup, type BrandColors } from '@/actions/completeBrandSetup';
 import { hasLowContrastText } from '@/lib/brandTokens';
 import { brandSetupSchema } from '@/lib/validations/brandSetup';
+import { localizedPath } from "@/i18n/paths";
+import type { Locale } from "@/i18n/routing";
 
 interface BrandSetupProps {
   brandId: string;
@@ -88,7 +90,7 @@ export default function BrandSetup({ brandId, brandSlug }: BrandSetupProps) {
       });
 
       if (result.success) {
-        router.push(`/${locale}/brands/${brandSlug}/dashboard`);
+        router.push(localizedPath(locale as Locale, `/brands/${brandSlug}/dashboard`));
       } else {
         setError(result.error);
       }
