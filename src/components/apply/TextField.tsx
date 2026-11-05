@@ -53,11 +53,11 @@ export default function TextField({
         aria-describedby={idList(hint && hintId, error && errorId)}
         className={cn(
           // 16px text on phones stops iOS from zooming into the field.
-          'block w-full rounded-xl border bg-white/[0.04] px-4 py-3 text-base text-white placeholder:text-white/40 transition-colors duration-200 sm:text-sm',
+          'block w-full rounded-[12px] border bg-navy px-4 py-3 text-base text-white placeholder:text-white/40 transition-colors duration-200 sm:text-sm',
           'focus:outline-none focus-visible:ring-2',
           error
             ? 'border-red-400/60 focus-visible:ring-red-400/40'
-            : 'border-white/10 hover:border-white/20 focus:border-sky/60 focus-visible:ring-sky/30',
+            : 'border-white/10 hover:border-white/20 focus:border-white/50 focus-visible:ring-sky/40',
           dir === 'ltr' && 'rtl:text-right'
         )}
         {...inputProps}

@@ -22,11 +22,11 @@ export default function SelectionSummary({ service, plan }: { service: ServiceDe
   const serviceName = tServices(`${service.key}.name`);
 
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 sm:p-5">
+    <div className="rounded-[20px] border border-white/10 bg-charcoal p-4 sm:p-5">
       <p className="text-xs font-semibold text-white/65">{t('selectionLabel')}</p>
       <div className="mt-3 flex items-center gap-4">
         <span
-          className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border', accent.soft, accent.border, accent.text)}
+          className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', accent.tile)}
         >
           <ServiceIcon name={service.icon} size={20} />
         </span>
@@ -44,8 +44,8 @@ export default function SelectionSummary({ service, plan }: { service: ServiceDe
         </div>
       </div>
       {!isLiveService(service) && (
-        <p className={cn('mt-4 flex gap-3 rounded-xl border p-3 text-sm leading-relaxed text-white/80', accent.border, accent.soft)}>
-          <Sparkles aria-hidden="true" focusable="false" size={16} className={cn('mt-0.5 shrink-0', accent.text)} />
+        <p className="mt-4 flex gap-3 rounded-xl border border-white/10 bg-navy p-3 text-sm leading-relaxed text-white/80">
+          <Sparkles aria-hidden="true" focusable="false" size={16} className={cn('mt-0.5 shrink-0', accent.marker)} />
           <span>
             {t.rich('earlyAccess', {
               service: serviceName,

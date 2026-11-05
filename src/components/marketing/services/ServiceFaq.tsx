@@ -29,11 +29,11 @@ export default async function ServiceFaq({ service }: { service: ServiceDefiniti
           {items.map((item) => (
             <details
               key={item.question}
-              className="reveal group rounded-2xl border border-white/[0.08] bg-white/[0.03] transition-colors open:border-white/15 open:bg-white/[0.05]"
+              className="reveal group rounded-[20px] border border-white/10 bg-charcoal transition-colors open:border-white/20"
             >
               <summary
                 className={cn(
-                  'flex cursor-pointer list-none items-center justify-between gap-6 rounded-2xl px-6 py-5 text-start font-semibold text-white',
+                  'flex cursor-pointer list-none items-center justify-between gap-6 rounded-[20px] px-6 py-5 text-start font-semibold text-white',
                   'focus-visible:outline-none focus-visible:ring-2 [&::-webkit-details-marker]:hidden',
                   accent.ring
                 )}

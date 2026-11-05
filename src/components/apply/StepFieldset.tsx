@@ -35,7 +35,7 @@ export default function StepFieldset({ headingRef, counter, title, description, 
     >
       <legend className="w-full">
         <h2 ref={headingRef} tabIndex={-1} className="scroll-mt-28 text-2xl font-bold leading-tight text-white outline-none sm:text-3xl">
-          <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-sky rtl:tracking-normal">
+          <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-white/60 rtl:tracking-normal">
             {counter}
           </span>
           {title}

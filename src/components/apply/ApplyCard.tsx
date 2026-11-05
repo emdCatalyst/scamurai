@@ -8,7 +8,7 @@ export default function ApplyCard({ className, children, ...rest }: React.Compon
   return (
     <div
       className={cn(
-        'rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-8 lg:p-10',
+        'rounded-[28px] border border-white/10 bg-charcoal p-5 sm:p-8 lg:p-10',
         className
       )}
       {...rest}

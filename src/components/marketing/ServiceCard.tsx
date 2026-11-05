@@ -39,7 +39,7 @@ export default function ServiceCard({
   return (
     <article
       className={cn(
-        'group relative flex h-full flex-col rounded-2xl border border-white/[0.08] bg-white/[0.03] p-7 transition-colors duration-200',
+        'group relative flex h-full flex-col rounded-[28px] border border-white/10 bg-charcoal p-7 transition-colors duration-200',
         accent.hoverBorder,
         'focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-navy-deep',
         accent.focusWithinRing,
@@ -49,10 +49,8 @@ export default function ServiceCard({
       <div className="flex items-start justify-between gap-4">
         <span
           className={cn(
-            'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border',
-            accent.soft,
-            accent.border,
-            accent.text
+            'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl',
+            accent.tile
           )}
         >
           <ServiceIcon name={service.icon} size={24} />
@@ -63,12 +61,12 @@ export default function ServiceCard({
       <Heading className="mt-6 text-xl font-bold text-white">
         <Link
           href={`/services/${service.slug}`}
-          className="after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none"
+          className="after:absolute after:inset-0 after:rounded-[28px] focus-visible:outline-none"
         >
           {name}
         </Link>
       </Heading>
-      <p className={cn('mt-2 text-sm font-semibold', accent.text)}>{tagline}</p>
+      <p className="mt-2 text-sm font-semibold text-white/80">{tagline}</p>
       <p className="mt-4 flex-1 text-sm leading-relaxed text-white/65">{summary}</p>
 
       <div className="mt-6 flex items-center justify-between gap-4 border-t border-white/[0.06] pt-5">

@@ -78,7 +78,7 @@ function ServiceOption({
     >
       <span className="flex min-w-0 flex-1 items-start gap-4 pe-8">
         <span
-          className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border', accent.soft, accent.border, accent.text)}
+          className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl', accent.tile)}
         >
           <ServiceIcon name={service.icon} size={22} />
         </span>
@@ -94,7 +94,7 @@ function ServiceOption({
           <span id={`${id}-tagline`} className="mt-1.5 block text-sm leading-relaxed text-white/70">
             {tServices(`${service.key}.tagline`)}
           </span>
-          <span id={`${id}-note`} className={cn('mt-2 block text-xs font-semibold', accent.text)}>
+          <span id={`${id}-note`} className="mt-2 block text-xs font-semibold text-white/80">
             {note}
           </span>
         </span>

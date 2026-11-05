@@ -38,8 +38,8 @@ export default function StepProgress({ label, completedLabel, steps, currentInde
               aria-hidden="true"
               className={cn(
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-colors duration-200',
-                isComplete && 'border-transparent bg-mint text-navy-deep',
-                isCurrent && 'border-sky bg-sky/15 text-sky',
+                isComplete && 'border-transparent bg-white text-navy',
+                isCurrent && 'border-transparent bg-sky text-navy',
                 !isComplete && !isCurrent && 'border-white/20 text-white/65'
               )}
             >
@@ -57,7 +57,7 @@ export default function StepProgress({ label, completedLabel, steps, currentInde
             {!isLast && (
               <span
                 aria-hidden="true"
-                className={cn('h-px min-w-4 flex-1 transition-colors duration-200', isComplete ? 'bg-mint/50' : 'bg-white/10')}
+                className={cn('h-px min-w-4 flex-1 transition-colors duration-200', isComplete ? 'bg-white/50' : 'bg-white/10')}
               />
             )}
           </li>

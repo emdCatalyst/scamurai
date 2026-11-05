@@ -12,8 +12,9 @@ export function Container({ className, children }: { className?: string; childre
 }
 
 const SECTION_TONES = {
-  deep: 'bg-[linear-gradient(180deg,#0B0B0B_0%,#0B0B0B_45%,#0a1625_100%)]',
-  navy: 'bg-navy-deep',
+  deep: 'bg-navy',
+  navy: 'bg-navy',
+  charcoal: 'bg-charcoal',
   plain: '',
 } as const;
 
@@ -62,9 +63,12 @@ export function SectionHeading({
   return (
     <div className={cn('max-w-3xl', align === 'center' ? 'mx-auto text-center' : 'text-start', className)}>
       {eyebrow && (
-        <p className="mb-4 text-xs font-bold uppercase tracking-widest text-sky/80">{eyebrow}</p>
+        <p className="mb-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/60 rtl:tracking-normal">
+          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-sky" />
+          {eyebrow}
+        </p>
       )}
-      <Heading id={id} className="text-balance text-3xl font-black leading-tight text-white sm:text-4xl lg:text-5xl">
+      <Heading id={id} className="font-heading text-balance text-3xl font-bold leading-tight text-white sm:text-4xl lg:text-5xl rtl:leading-snug">
         {title}
       </Heading>
       {description && (
@@ -76,10 +80,10 @@ export function SectionHeading({
 
 const BUTTON_VARIANTS = {
   primary:
-    'bg-gradient-cta text-navy shadow-glow-sky hover:shadow-glow-lg hover:scale-[1.02] active:scale-[0.98]',
+    'bg-sky text-navy hover:bg-sky-400 active:bg-sky-600',
   secondary:
     'border border-white/15 bg-white/[0.04] text-white/85 hover:border-white/30 hover:bg-white/[0.08] hover:text-white',
-  ghost: 'text-sky hover:text-white',
+  ghost: 'text-white/80 underline-offset-4 hover:text-white hover:underline',
 } as const;
 
 const BUTTON_SIZES = {
@@ -108,7 +112,7 @@ export function ButtonLink({
     <Link
       href={href}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200',
+        'inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors duration-200',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-deep',
         BUTTON_VARIANTS[variant],
         BUTTON_SIZES[size],
@@ -122,8 +126,8 @@ export function ButtonLink({
 }
 
 const STATUS_STYLES: Record<ServiceStatus, { pill: string; dot: string }> = {
-  live: { pill: 'border-mint/30 bg-mint/10 text-mint', dot: 'bg-mint' },
-  coming_soon: { pill: 'border-amber-300/30 bg-amber-300/10 text-amber-200', dot: 'bg-amber-300' },
+  live: { pill: 'border-white/15 text-white', dot: 'bg-sky' },
+  coming_soon: { pill: 'border-white/15 text-white/70', dot: 'bg-white/40' },
 };
 
 /** "Available now" / "Coming soon" pill. Pass the translated label in. */

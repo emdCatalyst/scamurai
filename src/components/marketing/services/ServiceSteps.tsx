@@ -1,8 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import type { ServiceDefinition } from '@/config/services';
-import { cn } from '@/lib/cn';
 import { isLiveService } from '@/lib/services/catalog';
-import { ACCENTS } from '../accents';
 import { Container, Section, SectionHeading } from '../primitives';
 import { PAGE_NAMESPACE, STEP_IDS, serviceNamespace } from './content';
 import PlannedNote from './PlannedNote';
@@ -13,7 +11,6 @@ export default async function ServiceSteps({ service }: { service: ServiceDefini
     getTranslations(serviceNamespace(service.key)),
     getTranslations(PAGE_NAMESPACE),
   ]);
-  const accent = ACCENTS[service.accent];
   const headingId = `${service.key}-steps-heading`;
 
   return (
@@ -28,14 +25,9 @@ export default async function ServiceSteps({ service }: { service: ServiceDefini
 
         <ol role="list" className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {STEP_IDS.map((id, index) => (
-            <li key={id} className="reveal rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6">
+            <li key={id} className="reveal rounded-[28px] border border-white/10 bg-charcoal p-6">
               <span
-                className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-full border text-sm font-black tabular-nums',
-                  accent.border,
-                  accent.soft,
-                  accent.text
-                )}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-bold tabular-nums text-navy"
               >
                 {index + 1}
               </span>

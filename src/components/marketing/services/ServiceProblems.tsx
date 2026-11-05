@@ -30,18 +30,18 @@ export default async function ServiceProblems({ service }: { service: ServiceDef
           {PROBLEM_IDS.map((id) => (
             <li
               key={id}
-              className="reveal flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03]"
+              className="reveal flex flex-col overflow-hidden rounded-[28px] border border-white/10 bg-charcoal"
             >
               <div className="flex-1 p-6">
                 <p className="flex items-center gap-2 text-xs font-bold text-white/65">
-                  <CircleX aria-hidden="true" focusable="false" size={16} className="shrink-0 text-rose-300" />
+                  <CircleX aria-hidden="true" focusable="false" size={16} className="shrink-0 text-white/50" />
                   {tPage('problems.problemLabel')}
                 </p>
                 <p className="mt-3 leading-relaxed text-white/80">{t(`problems.items.${id}.problem`)}</p>
               </div>
-              <div className={cn('flex-1 border-t p-6', accent.border, accent.soft)}>
-                <p className={cn('flex items-center gap-2 text-xs font-bold', accent.text)}>
-                  <CircleCheck aria-hidden="true" focusable="false" size={16} className="shrink-0" />
+              <div className={cn('flex-1 border-t border-white/10 p-6', accent.soft)}>
+                <p className="flex items-center gap-2 text-xs font-bold text-white">
+                  <CircleCheck aria-hidden="true" focusable="false" size={16} className={cn('shrink-0', accent.marker)} />
                   {solutionLabel}
                 </p>
                 <p className="mt-3 leading-relaxed text-white">{t(`problems.items.${id}.solution`)}</p>

@@ -42,12 +42,12 @@ export default function RadioCard({
   return (
     <label
       className={cn(
-        'relative flex cursor-pointer rounded-2xl border p-4 text-start transition-[border-color,background-color,box-shadow] duration-200 sm:p-5',
+        'relative flex cursor-pointer rounded-[20px] border p-4 text-start transition-[border-color,background-color] duration-200 sm:p-5',
         'has-focus-visible:ring-2 has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-navy-deep',
         styles.focusWithinRing,
         checked
-          ? cn(styles.border, styles.soft, styles.glow)
-          : cn('bg-white/[0.03] hover:bg-white/[0.05]', invalid ? 'border-red-400/50' : 'border-white/[0.08]', styles.hoverBorder),
+          ? cn(styles.border, 'bg-charcoal')
+          : cn('bg-charcoal/50 hover:bg-charcoal', invalid ? 'border-red-400/50' : 'border-white/10', styles.hoverBorder),
         className
       )}
     >
@@ -64,7 +64,7 @@ export default function RadioCard({
         aria-hidden="true"
         className={cn(
           'absolute end-4 top-4 flex h-5 w-5 items-center justify-center rounded-full border transition-colors duration-200 sm:end-5 sm:top-5',
-          checked ? cn('border-transparent text-navy-deep', styles.solid) : 'border-white/40'
+          checked ? cn('border-transparent', styles.tile) : 'border-white/40'
         )}
       >
         {checked && <Check focusable="false" size={12} strokeWidth={3} />}

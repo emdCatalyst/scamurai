@@ -83,7 +83,7 @@ function PlanOption({
         {plan.featured && (
           <span
             id={`${id}-badge`}
-            className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold', styles.border, styles.soft, styles.text)}
+            className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold', styles.tile)}
           >
             <Sparkles aria-hidden="true" focusable="false" size={11} />
             {t('recommended')}
@@ -95,12 +95,12 @@ function PlanOption({
         <span className="flex flex-col gap-2 text-sm text-white/70">
           <PlanLimit
             icon={Building2}
-            accentText={styles.text}
+            accentText={styles.marker}
             text={maxBranches === null ? t('limits.branchesUnlimited') : t('limits.branches', { count: maxBranches })}
           />
           <PlanLimit
             icon={Users}
-            accentText={styles.text}
+            accentText={styles.marker}
             text={maxUsers === null ? t('limits.usersUnlimited') : t('limits.users', { count: maxUsers })}
           />
         </span>

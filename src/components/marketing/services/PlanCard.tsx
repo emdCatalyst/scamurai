@@ -21,8 +21,8 @@ export default async function PlanCard({ service, plan }: { service: LiveService
   return (
     <li
       className={cn(
-        'reveal flex flex-col rounded-3xl border p-8 lg:row-span-4 lg:grid lg:grid-rows-subgrid lg:gap-y-0',
-        plan.featured ? cn('bg-white/[0.06]', accent.border, accent.glow) : 'border-white/[0.08] bg-white/[0.03]'
+        'reveal flex flex-col rounded-[28px] border p-8 lg:row-span-4 lg:grid lg:grid-rows-subgrid lg:gap-y-0',
+        plan.featured ? cn('bg-charcoal', accent.border) : 'border-white/10 bg-charcoal/60'
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -32,10 +32,8 @@ export default async function PlanCard({ service, plan }: { service: LiveService
         {plan.featured && (
           <span
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold',
-              accent.border,
-              accent.soft,
-              accent.text
+              'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold',
+              accent.tile
             )}
           >
             <Sparkles aria-hidden="true" focusable="false" size={12} />
@@ -58,7 +56,7 @@ export default async function PlanCard({ service, plan }: { service: LiveService
       <ul role="list" className="mt-8 space-y-3 border-t border-white/[0.08] pt-6">
         {getPlanFeatures(plan).map((feature) => (
           <li key={feature.key} className="flex gap-3 text-sm leading-relaxed text-white/80">
-            <Check aria-hidden="true" focusable="false" size={16} className={cn('mt-1 shrink-0', accent.text)} />
+            <Check aria-hidden="true" focusable="false" size={16} className={cn('mt-1 shrink-0', accent.marker)} />
             {t(feature.key, feature.values)}
           </li>
         ))}

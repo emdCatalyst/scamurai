@@ -1,7 +1,7 @@
 import { cn } from '@/lib/cn';
 
 const VARIANTS = {
-  primary: 'bg-gradient-cta text-navy shadow-glow-sky hover:shadow-glow-lg active:scale-[0.98]',
+  primary: 'bg-sky text-navy hover:bg-sky-400 active:bg-sky-600',
   secondary: 'border border-white/15 bg-white/[0.04] text-white/85 hover:border-white/30 hover:bg-white/[0.08] hover:text-white',
 } as const;
 

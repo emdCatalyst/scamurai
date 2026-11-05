@@ -119,13 +119,13 @@ function OtherServices({ current }: { current: ServiceDefinition }) {
               <Link
                 href={getServicePath(service)}
                 className={cn(
-                  'group flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 transition-colors duration-200',
+                  'group flex items-center gap-3 rounded-[20px] border border-white/10 bg-charcoal p-4 transition-colors duration-200',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-deep',
                   accent.hoverBorder,
                   accent.ring
                 )}
               >
-                <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', accent.soft, accent.text)}>
+                <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', accent.tile)}>
                   <ServiceIcon name={service.icon} size={20} />
                 </span>
                 <span className="min-w-0 flex-1 text-sm font-semibold text-white">{tServices(`${service.key}.name`)}</span>
@@ -133,7 +133,7 @@ function OtherServices({ current }: { current: ServiceDefinition }) {
                   aria-hidden="true"
                   focusable="false"
                   size={16}
-                  className={cn('shrink-0 transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5', accent.text)}
+                  className={cn('shrink-0 transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5 text-white/70')}
                 />
               </Link>
             </li>

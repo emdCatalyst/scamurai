@@ -19,8 +19,8 @@ export type PlanTier = (typeof PLAN_TIERS)[number];
 /** `live` services can be bought; `coming_soon` services only collect interest. */
 export type ServiceStatus = 'live' | 'coming_soon';
 
-/** Visual identity used to tell services apart (cards, badges, admin chips). */
-export type ServiceAccent = 'sky' | 'mint' | 'amber';
+/** Product colour from the Misdaq guide, used to tell services apart (cards, badges, admin chips). */
+export type ServiceAccent = 'orange' | 'cobalt' | 'yellow';
 export type ServiceIconName = 'shield-check' | 'clipboard-check' | 'package-check';
 export type SupportLevel = 'email' | 'priority' | 'dedicated';
 
@@ -74,7 +74,7 @@ export const SERVICES = {
     key: 'dispute_orders',
     slug: 'order-protection',
     status: 'live',
-    accent: 'sky',
+    accent: 'orange',
     icon: 'shield-check',
     plans: [
       {
@@ -103,14 +103,14 @@ export const SERVICES = {
     key: 'compliance',
     slug: 'operations-compliance',
     status: 'coming_soon',
-    accent: 'mint',
+    accent: 'cobalt',
     icon: 'clipboard-check',
   },
   receiving: {
     key: 'receiving',
     slug: 'receiving-proof',
     status: 'coming_soon',
-    accent: 'amber',
+    accent: 'yellow',
     icon: 'package-check',
   },
 } as const satisfies Record<ServiceKey, ServiceDefinition>;

@@ -50,12 +50,8 @@ export default async function ApplyPage({ params }: { params: Promise<{ locale: 
   return (
     <main
       id="main"
-      className="relative isolate overflow-hidden bg-[linear-gradient(180deg,#0B0B0B_0%,#0B0B0B_55%,#0B0B0B_100%)] pb-24 pt-28 sm:pb-32 sm:pt-36"
+      className="relative isolate overflow-hidden bg-navy pb-24 pt-28 sm:pb-32 sm:pt-36"
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[36rem] bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(79,197,223,0.16),transparent_70%)]"
-      />
       <Container className="max-w-4xl">
         <ApplyIntro headingId={HEADING_ID} />
         <div className="mt-10 sm:mt-12">

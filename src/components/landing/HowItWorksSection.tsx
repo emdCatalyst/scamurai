@@ -29,19 +29,19 @@ export default async function HowItWorksSection() {
         <div className="relative mt-16">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-[12.5%] top-14 hidden h-px bg-gradient-to-r from-sky/30 to-mint/30 lg:block"
+            className="pointer-events-none absolute inset-x-[12.5%] top-14 hidden h-px bg-white/15 lg:block"
           />
           <ol className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
             {STEPS.map(({ key, icon: Icon }, index) => (
               <li key={key} className="reveal relative flex flex-col items-center text-center">
                 <div className="relative mb-6">
-                  <div className="h-28 w-28 rounded-full border border-sky/15 bg-[radial-gradient(circle,rgba(79,197,223,0.08)_0%,transparent_70%)]" />
-                  <div className="absolute inset-4 flex items-center justify-center rounded-full border border-sky/20 bg-navy-deep">
-                    <Icon aria-hidden="true" size={28} strokeWidth={1.5} className="text-sky" />
+                  <div className="h-28 w-28 rounded-full border border-white/10 bg-navy" />
+                  <div className="absolute inset-4 flex items-center justify-center rounded-full bg-charcoal">
+                    <Icon aria-hidden="true" size={28} strokeWidth={1.75} className="text-white" />
                   </div>
                   <span
                     aria-hidden="true"
-                    className="absolute -end-1 -top-1 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-cta text-sm font-black text-navy"
+                    className="absolute -end-1 -top-1 flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm font-bold tabular-nums text-navy"
                   >
                     {index + 1}
                   </span>

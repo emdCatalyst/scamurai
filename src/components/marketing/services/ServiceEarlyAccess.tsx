@@ -25,9 +25,8 @@ export default async function ServiceEarlyAccess({ service }: { service: ComingS
       <Container>
         <div
           className={cn(
-            'mx-auto max-w-5xl rounded-3xl border bg-white/[0.04] px-6 py-12 sm:px-12 sm:py-16',
-            accent.border,
-            accent.glow
+            'mx-auto max-w-5xl rounded-[28px] border bg-charcoal px-6 py-12 sm:px-12 sm:py-16',
+            accent.border
           )}
         >
           <SectionHeading
@@ -41,9 +40,9 @@ export default async function ServiceEarlyAccess({ service }: { service: ComingS
             {EARLY_ACCESS_POINT_IDS.map((id) => (
               <li
                 key={id}
-                className="flex gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 text-sm leading-relaxed text-white/80"
+                className="flex gap-3 rounded-[20px] border border-white/10 bg-navy p-5 text-sm leading-relaxed text-white/80"
               >
-                <Check aria-hidden="true" focusable="false" size={18} className={cn('mt-0.5 shrink-0', accent.text)} />
+                <Check aria-hidden="true" focusable="false" size={18} className={cn('mt-0.5 shrink-0', accent.marker)} />
                 {tPage(`earlyAccess.points.${id}`)}
               </li>
             ))}
