@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import StaffSignOutButton from "@/components/staff/StaffSignOutButton";
 import { localizedPath } from "@/i18n/paths";
 import type { Locale } from "@/i18n/routing";
+import { SUPPORT_EMAIL } from "@/config/contact";
 
 export default async function BrandSuspendedPage({
   params,
@@ -40,7 +41,7 @@ export default async function BrandSuspendedPage({
 
       <div className="pt-8 flex flex-col gap-3">
         <a
-          href="mailto:support@scamurai.com"
+          href={`mailto:${SUPPORT_EMAIL}`}
           className="flex items-center justify-center gap-3 w-full py-3 bg-[var(--brand-primary)] text-[var(--brand-primary-fg)] rounded-full font-bold hover:brightness-110 transition-all"
         >
           <Mail size={18} />

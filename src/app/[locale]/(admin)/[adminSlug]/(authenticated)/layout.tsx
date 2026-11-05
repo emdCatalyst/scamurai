@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 import AdminShell from "./AdminShell";
+import { ADMIN_FALLBACK_EMAIL } from "@/config/contact";
 
 export default async function AuthenticatedAdminLayout({
   children,
@@ -40,7 +41,7 @@ export default async function AuthenticatedAdminLayout({
     <AdminShell 
       locale={locale} 
       adminSlug={adminSlug} 
-      adminEmail={email || "admin@scamurai.com"} 
+      adminEmail={email || ADMIN_FALLBACK_EMAIL} 
       adminAvatar={image || ""}
     >
       {children}

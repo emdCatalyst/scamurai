@@ -16,6 +16,7 @@ import { getTranslations } from "next-intl/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import { localizedPath } from "@/i18n/paths";
 import { getAppUrl } from "@/lib/seo/site";
+import { SUPPORT_EMAIL } from "@/config/contact";
 
 export async function setBrandStatus({
   brandId,
@@ -110,7 +111,7 @@ export async function setBrandStatus({
         const appUrl = getAppUrl();
         const ctaHref = isActive
           ? `${appUrl}${localizedPath("en", `/brands/${brand.slug}/login`)}`
-          : `mailto:support@scamurai.com`;
+          : `mailto:${SUPPORT_EMAIL}`;
         const ctaLabel = isActive ? "Sign in to Misdaq" : "Contact support";
 
         const html = renderEmail({

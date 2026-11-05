@@ -4,6 +4,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Shield, LayoutGrid, Users, ArrowUpRight } from 'lucide-react';
 import GradientBadge from '@/components/ui/GradientBadge';
+import { SUPPORT_EMAIL } from "@/config/contact";
 
 interface PlanLimitsPanelProps {
   plan: string;
@@ -98,7 +99,7 @@ export default function PlanLimitsPanel({
             {t('upgradeMessage')}
           </p>
           <a
-            href="mailto:support@scamurai.com"
+            href={`mailto:${SUPPORT_EMAIL}`}
             className="flex items-center gap-1 text-sm font-bold text-[var(--brand-primary)] hover:underline"
           >
             <span className={isAr ? 'font-arabic' : ''}>{useTranslations('plans')('contactUs')}</span>

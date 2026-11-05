@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { AlertCircle, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { SUPPORT_EMAIL } from "@/config/contact";
 
 export function BrandSuspensionNotice() {
   const t = useTranslations('suspended');
@@ -46,7 +47,7 @@ export function BrandSuspensionNotice() {
         className="pt-4"
       >
         <a
-          href="mailto:support@scamurai.com"
+          href={`mailto:${SUPPORT_EMAIL}`}
           className="w-full py-3 bg-[var(--brand-primary)] text-[var(--brand-primary-fg)] rounded-full font-bold hover:brightness-110 transition-all flex items-center justify-center gap-3"
         >
           <Mail size={18} />

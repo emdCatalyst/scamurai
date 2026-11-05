@@ -15,6 +15,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import { getAppUrl } from "@/lib/seo/site";
+import { SUPPORT_EMAIL } from "@/config/contact";
 
 export async function setUserStatus({
   userId,
@@ -89,7 +90,7 @@ export async function setUserStatus({
         : t("deactivationBody", { name: user.fullName });
 
       const appUrl = getAppUrl();
-      const ctaHref = isActive ? appUrl : "mailto:support@scamurai.com";
+      const ctaHref = isActive ? appUrl : `mailto:${SUPPORT_EMAIL}`;
       const ctaLabel = isActive ? "Sign in to Misdaq" : "Contact support";
 
       const html = renderEmail({
