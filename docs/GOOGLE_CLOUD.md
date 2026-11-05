@@ -1,6 +1,6 @@
 # Moving to Google Cloud
 
-The plan for running Scamurai on Google Cloud in the Dammam region (`me-central2`), fully managed, and the checklist
+The plan for running Misdaq on Google Cloud in the Dammam region (`me-central2`), fully managed, and the checklist
 of what's left. Database details are in [DATABASE.md](DATABASE.md).
 
 Status (2026-11-04): the code and the container image are ready for Cloud Run, Cloud SQL and Cloud Storage. Nothing
@@ -235,7 +235,7 @@ Create them in the console (Security → Secret Manager), so the values never pa
 | `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET` | | secret |
 | `ADMIN_SLUG` | | secret |
 | `RESEND_API_KEY` | | secret |
-| `RESEND_FROM_ADDRESS` | `Scamurai <noreply@YOUR_DOMAIN>` | env |
+| `RESEND_FROM_ADDRESS` | `Misdaq <noreply@YOUR_DOMAIN>` | env |
 | `SUPER_ADMIN_EMAIL` | Where new-application emails go | env |
 | `UPSTASH_REDIS_REST_URL` | | env |
 | `UPSTASH_REDIS_REST_TOKEN` | | secret |
