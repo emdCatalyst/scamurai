@@ -295,8 +295,7 @@ export function BrandLoginForm({ brandSlug }: BrandLoginFormProps) {
           transition={{ delay: 0.6 }}
           type="submit"
           disabled={isLoading}
-          className="w-full relative flex justify-center items-center h-12 bg-[var(--brand-primary)] rounded-lg text-[var(--brand-primary-fg)] font-bold hover:brightness-110 active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
-          style={{ boxShadow: `0 0 20px ${withOpacity(derivePrimaryHex(), 0.3)}` }}
+          className="w-full relative flex justify-center items-center h-12 bg-[var(--brand-primary)] rounded-full text-[var(--brand-primary-fg)] font-bold hover:brightness-110 active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
         >
           {isLoading ? (
             <Loader2 className="animate-spin" size={20} />
@@ -344,8 +343,7 @@ export function BrandLoginForm({ brandSlug }: BrandLoginFormProps) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full relative flex justify-center items-center h-12 bg-[var(--brand-primary)] rounded-lg text-[var(--brand-primary-fg)] font-bold hover:brightness-110 active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
-          style={{ boxShadow: `0 0 20px ${withOpacity(derivePrimaryHex(), 0.3)}` }}
+          className="w-full relative flex justify-center items-center h-12 bg-[var(--brand-primary)] rounded-full text-[var(--brand-primary-fg)] font-bold hover:brightness-110 active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
         >
           {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : t('forgot.sendCode')}
         </button>
@@ -435,8 +433,7 @@ export function BrandLoginForm({ brandSlug }: BrandLoginFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full relative flex justify-center items-center h-12 bg-[var(--brand-primary)] rounded-lg text-[var(--brand-primary-fg)] font-bold hover:brightness-110 active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
-        style={{ boxShadow: `0 0 20px ${withOpacity(derivePrimaryHex(), 0.3)}` }}
+        className="w-full relative flex justify-center items-center h-12 bg-[var(--brand-primary)] rounded-full text-[var(--brand-primary-fg)] font-bold hover:brightness-110 active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
       >
         {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : t('forgot.submit')}
       </button>
@@ -570,22 +567,4 @@ function ErrorBanner({ message }: { message: string }) {
       <span className="text-left">{message}</span>
     </motion.div>
   );
-}
-
-// Helper to read the brand primary color for the glow effect.
-function derivePrimaryHex() {
-  if (typeof window === 'undefined') return '#FF5B3A';
-  return (
-    getComputedStyle(document.documentElement)
-      .getPropertyValue('--brand-primary')
-      .trim() || '#FF5B3A'
-  );
-}
-
-function withOpacity(hex: string, opacity: number): string {
-  if (!hex.startsWith('#')) return hex;
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }

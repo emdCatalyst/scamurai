@@ -59,7 +59,7 @@ export function UserRow({ user, onViewDetails }: UserRowProps) {
           <div className="flex items-center gap-3">
             <UserAvatar name={user.fullName} className="w-10 h-10" />
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-slate-800 truncate group-hover:text-sky transition-colors">
+              <span className="text-sm font-bold text-slate-800 truncate group-hover:text-navy transition-colors">
                 {user.fullName}
               </span>
               <span className="text-[10px] text-slate-400 tabular-nums tracking-wider">
@@ -78,7 +78,7 @@ export function UserRow({ user, onViewDetails }: UserRowProps) {
             <Link 
               href={`/${adminSlug}/brands?q=${user.brandSlug}`}
               onClick={(e) => e.stopPropagation()}
-              className="text-sm font-medium text-slate-600 hover:text-sky transition-colors"
+              className="text-sm font-medium text-slate-600 hover:text-navy transition-colors"
             >
               {user.brandName}
             </Link>
@@ -133,7 +133,7 @@ export function UserRow({ user, onViewDetails }: UserRowProps) {
                 e.stopPropagation();
                 onViewDetails(user);
               }}
-              className="p-2 text-slate-400 hover:text-sky hover:bg-sky/5 rounded-lg transition-all"
+              className="p-2 text-slate-400 hover:text-navy hover:bg-slate-100 rounded-lg transition-all"
             >
               <ExternalLink size={18} />
             </button>

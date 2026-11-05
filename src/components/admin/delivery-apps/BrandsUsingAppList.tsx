@@ -41,7 +41,7 @@ export function BrandsUsingAppList({ brands }: BrandsUsingAppListProps) {
                 {brand.name}
               </span>
             </div>
-            <ChevronRight size={16} className="text-slate-300 group-hover:text-sky transition-all group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
+            <ChevronRight size={16} className="text-slate-300 group-hover:text-navy transition-all group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
           </Link>
         ))}
       </div>

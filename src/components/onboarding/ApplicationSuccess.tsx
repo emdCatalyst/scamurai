@@ -51,7 +51,7 @@ export default function ApplicationSuccess({ service: serviceKey, plan, contactN
   return (
     <ApplyCard className="enter-fade-up">
       <section aria-labelledby={headingId} className="text-center">
-        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-mint/30 bg-mint/10 text-mint">
+        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-sky text-navy">
           <CircleCheck aria-hidden="true" focusable="false" size={32} strokeWidth={1.75} />
         </span>
         <h2
@@ -69,13 +69,13 @@ export default function ApplicationSuccess({ service: serviceKey, plan, contactN
         </p>
 
         <div className="mx-auto mt-10 max-w-xl text-start">
-          <h3 className="text-sm font-bold uppercase tracking-widest text-sky rtl:tracking-normal">{t('nextStepsTitle')}</h3>
+          <h3 className="text-sm font-bold uppercase tracking-widest text-white/60 rtl:tracking-normal">{t('nextStepsTitle')}</h3>
           <ol role="list" className="mt-5 space-y-5">
             {NEXT_STEPS[steps].map((step, index) => (
               <li key={step} className="flex gap-4">
                 <span
                   aria-hidden="true"
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-sky/30 bg-sky/10 text-sm font-bold text-sky"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold tabular-nums text-navy"
                 >
                   {index + 1}
                 </span>
@@ -110,7 +110,7 @@ function OtherServices({ current }: { current: ServiceDefinition }) {
 
   return (
     <div className="mx-auto mt-10 max-w-xl border-t border-white/[0.06] pt-8 text-start">
-      <h3 className="text-sm font-bold uppercase tracking-widest text-sky rtl:tracking-normal">{t('exploreServices')}</h3>
+      <h3 className="text-sm font-bold uppercase tracking-widest text-white/60 rtl:tracking-normal">{t('exploreServices')}</h3>
       <ul role="list" className="mt-4 grid gap-3 sm:grid-cols-2">
         {others.map((service) => {
           const accent = ACCENTS[service.accent];

@@ -129,7 +129,7 @@ export function DeliveryAppFormModal({ isOpen, onClose, app }: DeliveryAppFormMo
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-4 bg-navy text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-glow-navy disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-navy text-white rounded-2xl font-bold hover:bg-slate-800 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <>

@@ -17,30 +17,15 @@ export function BrandLoginBackground({ children }: BrandLoginBackgroundProps) {
         "relative min-h-screen flex items-center justify-center overflow-hidden p-6",
         isAr ? "font-arabic" : "font-sans"
       )}
-      style={{ 
-        background: 'linear-gradient(135deg, var(--brand-background) 0%, var(--brand-background-active) 100%)' 
-      }}
+      style={{ background: 'var(--brand-background)' }}
       dir={isAr ? 'rtl' : 'ltr'}
     >
-      {/* Background glow orbs */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 0.2, scale: 1 }}
-          transition={{ duration: 2, ease: "easeOut" }}
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full blur-[120px] animate-hero-glow-pulse"
-          style={{ 
-            background: 'radial-gradient(circle, var(--brand-primary) 0%, transparent 70%)'
-          }}
-        />
-      </div>
-
       {/* Login Card */}
       <motion.div 
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-md bg-white/5 backdrop-blur-[24px] border border-white/10 rounded-2xl p-8 shadow-2xl"
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10 w-full max-w-md bg-white/5 border border-white/10 rounded-[28px] p-8"
       >
         {children}
       </motion.div>

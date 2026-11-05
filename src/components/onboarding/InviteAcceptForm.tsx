@@ -148,8 +148,8 @@ export default function InviteAcceptForm({
         </div>
       )}
 
-      <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl">
-        <div className="w-16 h-16 bg-[#FF5B3A]/15 text-[#FF5B3A] rounded-2xl flex items-center justify-center mb-6 mx-auto">
+      <div className="bg-charcoal border border-white/10 rounded-[28px] p-8">
+        <div className="w-16 h-16 bg-white/10 text-white rounded-2xl flex items-center justify-center mb-6 mx-auto">
           <ShieldCheck size={32} strokeWidth={1.5} />
         </div>
 
@@ -196,7 +196,7 @@ export default function InviteAcceptForm({
           <button
             type="submit"
             disabled={!isValid || isSubmitting}
-            className="w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-[#FF5B3A] text-[#0B0B0B] hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+            className="w-full py-3.5 rounded-full font-bold transition-colors flex items-center justify-center gap-2 bg-sky text-navy hover:bg-sky-400 active:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
           >
             {isSubmitting ? (
               <>

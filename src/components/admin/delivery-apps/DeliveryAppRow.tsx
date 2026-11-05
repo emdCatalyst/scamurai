@@ -89,7 +89,7 @@ export function DeliveryAppRow({ app, onViewDetails }: DeliveryAppRowProps) {
                 {app.name.charAt(0)}
               </div>
             )}
-            <span className="text-sm font-bold text-slate-800 truncate group-hover:text-sky transition-colors">
+            <span className="text-sm font-bold text-slate-800 truncate group-hover:text-navy transition-colors">
               {app.name}
             </span>
           </div>
@@ -120,7 +120,7 @@ export function DeliveryAppRow({ app, onViewDetails }: DeliveryAppRowProps) {
           <div className="flex justify-end items-center gap-2">
             <button
               onClick={handleEdit}
-              className="p-2 rounded-lg text-slate-400 hover:text-sky hover:bg-sky/5 transition-all"
+              className="p-2 rounded-lg text-slate-400 hover:text-navy hover:bg-slate-100 transition-all"
               title={t('actions.edit')}
             >
               <Edit2 size={18} />
@@ -150,7 +150,7 @@ export function DeliveryAppRow({ app, onViewDetails }: DeliveryAppRowProps) {
                 e.stopPropagation();
                 onViewDetails(app);
               }}
-              className="p-2 text-slate-400 hover:text-sky hover:bg-sky/5 rounded-lg transition-all"
+              className="p-2 text-slate-400 hover:text-navy hover:bg-slate-100 rounded-lg transition-all"
             >
               <ExternalLink size={18} />
             </button>

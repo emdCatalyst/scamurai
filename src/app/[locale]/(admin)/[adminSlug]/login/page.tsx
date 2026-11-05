@@ -117,7 +117,7 @@ export default function AdminLogin() {
 
   return (
     <div
-      className={`relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-hero p-6 ${isAr ? "font-arabic" : "font-sans"}`}
+      className={`relative min-h-screen flex items-center justify-center overflow-hidden bg-navy p-6 ${isAr ? "font-arabic" : "font-sans"}`}
       dir={isAr ? "rtl" : "ltr"}
     >
       {isRedirecting && (
@@ -170,7 +170,7 @@ export default function AdminLogin() {
               {...register("email")}
               placeholder={t("emailPlaceholder")}
               disabled={isLoading}
-              className={`w-full bg-white/5 border ${errors.email ? "border-red-500/50 focus:border-red-500 focus:ring-red-500" : "border-white/10 focus:border-sky/50 focus:ring-sky/50"} rounded-lg px-4 py-3 text-offwhite placeholder:text-white/40 focus:outline-none focus:ring-1 transition-colors disabled:opacity-50`}
+              className={`w-full bg-white/5 border ${errors.email ? "border-red-500/50 focus:border-red-500 focus:ring-red-500" : "border-white/10 focus:border-sky/50 focus:ring-sky/50"} rounded-[12px] px-4 py-3 text-offwhite placeholder:text-white/40 focus:outline-none focus:ring-1 transition-colors disabled:opacity-50`}
             />
             {errors.email?.message && (
               <p className="text-red-400 text-xs mt-1.5 ml-1">
@@ -190,7 +190,7 @@ export default function AdminLogin() {
                 {...register("password")}
                 placeholder={t("passwordPlaceholder")}
                 disabled={isLoading}
-                className={`w-full bg-white/5 border ${errors.password ? "border-red-500/50 focus:border-red-500 focus:ring-red-500" : "border-white/10 focus:border-sky/50 focus:ring-sky/50"} rounded-lg px-4 py-3 text-offwhite placeholder:text-white/40 focus:outline-none focus:ring-1 transition-colors disabled:opacity-50`}
+                className={`w-full bg-white/5 border ${errors.password ? "border-red-500/50 focus:border-red-500 focus:ring-red-500" : "border-white/10 focus:border-sky/50 focus:ring-sky/50"} rounded-[12px] px-4 py-3 text-offwhite placeholder:text-white/40 focus:outline-none focus:ring-1 transition-colors disabled:opacity-50`}
               />
               <button
                 type="button"
@@ -218,7 +218,7 @@ export default function AdminLogin() {
             transition={{ delay: 0.6 }}
             type="submit"
             disabled={isLoading}
-            className="w-full relative flex justify-center items-center h-12 bg-gradient-cta rounded-lg text-navy font-bold shadow-glow-sky hover:shadow-glow-lg active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
+            className="w-full relative flex justify-center items-center h-12 bg-sky rounded-full text-navy font-bold hover:bg-sky-400 active:bg-sky-600 disabled:opacity-70 disabled:active:scale-100"
           >
             {isLoading ? (
               <Loader2 className="animate-spin" size={20} />

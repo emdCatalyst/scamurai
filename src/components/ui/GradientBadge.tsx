@@ -21,7 +21,7 @@ export default function GradientBadge({
       initial={prefersReduced ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
-      className={`inline-flex items-center gap-2 rounded-full border border-sky/40 bg-sky/10 px-4 py-2 text-sm text-sky ${className}`}
+      className={`inline-flex items-center gap-2 rounded-full border border-[var(--brand-border)] px-4 py-2 text-sm font-semibold text-[var(--brand-surface-fg)] ${className}`}
     >
       {children}
     </motion.div>

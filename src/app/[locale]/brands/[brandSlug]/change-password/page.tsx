@@ -177,15 +177,7 @@ export default function ChangePasswordPage() {
         </div>
       )}
 
-      <div
-        className="absolute inset-x-0 top-0 h-72 pointer-events-none opacity-30"
-        style={{
-          background:
-            "linear-gradient(to bottom, var(--brand-primary) 0%, transparent 100%)",
-        }}
-      />
-
-      <div className="relative max-w-md w-full bg-[var(--brand-surface)] rounded-3xl p-8 shadow-2xl border border-[var(--brand-border)]">
+      <div className="relative max-w-md w-full bg-[var(--brand-surface)] rounded-[28px] p-8 border border-[var(--brand-border)]">
         <div className="w-16 h-16 bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] rounded-2xl flex items-center justify-center mb-6 mx-auto">
           <ShieldCheck size={32} strokeWidth={1.5} />
         </div>

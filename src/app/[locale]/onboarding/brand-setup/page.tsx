@@ -219,25 +219,7 @@ export default async function BrandSetupPage(props: {
   }
 
   return (
-    <main
-      className="relative min-h-screen flex items-center justify-center py-16 px-4"
-      style={{
-        background:
-          'linear-gradient(180deg, #0B0B0B 0%, #0B0B0B 50%, #0B0B0B 100%)',
-      }}
-    >
-      {/* Ambient glow */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div
-          className="absolute top-1/4 start-1/2 -translate-x-1/2 h-[400px] w-[600px] rounded-full opacity-15"
-          style={{
-            background:
-              'radial-gradient(ellipse, rgba(79,197,223,0.25) 0%, transparent 70%)',
-            filter: 'blur(80px)',
-          }}
-        />
-      </div>
-
+    <main className="relative min-h-screen flex items-center justify-center bg-navy py-16 px-4">
       <div className="relative z-10 w-full">
         <BrandSetup brandId={brandId} brandSlug={brand.slug} />
       </div>

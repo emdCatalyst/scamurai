@@ -183,7 +183,7 @@ export default function BranchDetailDrawer({
                         <p className="text-[var(--brand-surface-fg-muted)] text-[10px] truncate">{s.email}</p>
                       </div>
                     </div>
-                    <div className={`w-2 h-2 rounded-full ${s.isActive ? "bg-[var(--brand-primary)] shadow-[0_0_8px_var(--brand-primary)]" : "bg-[var(--brand-surface-fg)]/20"}`} />
+                    <div className={`w-2 h-2 rounded-full ${s.isActive ? "bg-[var(--brand-primary)]" : "bg-[var(--brand-surface-fg)]/20"}`} />
                   </div>
                 ))
               )}

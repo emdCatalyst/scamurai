@@ -60,7 +60,7 @@ export function UsersPagination({
                 onClick={() => handlePageChange(pageNum)}
                 className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
                   currentPage === pageNum
-                    ? 'bg-navy text-white shadow-glow-navy'
+                    ? 'bg-navy text-white'
                     : 'text-slate-500 hover:bg-white hover:text-navy'
                 }`}
               >

@@ -27,7 +27,7 @@ export default function ApplicationRow({ application, onOpen }: ApplicationRowPr
       className="group hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-100 last:border-0"
     >
       <td className="py-4 px-4">
-        <div className="font-bold text-slate-900 group-hover:text-sky-700 transition-colors">
+        <div className="font-bold text-slate-900 group-hover:text-navy transition-colors">
           {application.brandName}
         </div>
         {application.contactName && <div className="mt-0.5 text-xs text-slate-600">{application.contactName}</div>}

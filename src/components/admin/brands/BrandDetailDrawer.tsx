@@ -152,7 +152,7 @@ export function BrandDetailDrawer({
                 className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-sky/30 cursor-pointer transition-all"
               >
                 <code className="text-sm tabular-nums text-slate-600">/brands/{brand.slug}</code>
-                <Copy size={14} className="text-slate-400 group-hover:text-sky transition-colors" />
+                <Copy size={14} className="text-slate-400 group-hover:text-navy transition-colors" />
               </div>
             </div>
 
@@ -220,7 +220,7 @@ export function BrandDetailDrawer({
                     <div>
                       <Link 
                         href={`/${adminSlug}/users?brand=${brand.id}`}
-                        className="text-sm font-bold text-slate-900 hover:text-sky transition-colors flex items-center gap-1.5"
+                        className="text-sm font-bold text-slate-900 hover:text-navy transition-colors flex items-center gap-1.5"
                       >
                         {brand.brandAdminEmail}
                         <ExternalLink size={14} />

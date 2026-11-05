@@ -12,7 +12,7 @@ export function UserRoleBadge({ role, className = '' }: UserRoleBadgeProps) {
 
   const styles = {
     brand_admin: 'bg-navy text-white border-navy/20',
-    finance: 'bg-sky-500/10 text-sky-600 border-sky-500/20',
+    finance: 'bg-sky-50 text-navy border-sky-200',
     staff: 'bg-slate-100 text-slate-600 border-slate-200',
   };
 

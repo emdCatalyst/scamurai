@@ -150,7 +150,7 @@ export function UserDetailDrawer({
                     className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-sky/30 cursor-pointer transition-all"
                   >
                     <span className="text-sm font-medium text-slate-600 truncate mr-2">{user.email}</span>
-                    <Copy size={14} className="text-slate-400 group-hover:text-sky transition-colors shrink-0" />
+                    <Copy size={14} className="text-slate-400 group-hover:text-navy transition-colors shrink-0" />
                   </div>
                 </div>
 
@@ -186,7 +186,7 @@ export function UserDetailDrawer({
                     {user.brandName ? (
                       <Link 
                         href={`/${adminSlug}/brands?q=${user.brandSlug}`}
-                        className="text-sm font-bold text-navy hover:text-sky transition-colors flex items-center gap-1.5"
+                        className="text-sm font-bold text-navy hover:text-navy transition-colors flex items-center gap-1.5"
                       >
                         {user.brandName}
                         <ExternalLink size={14} />

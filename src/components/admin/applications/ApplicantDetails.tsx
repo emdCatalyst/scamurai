@@ -13,7 +13,7 @@ interface DetailItem {
   value: ReactNode;
 }
 
-const LINK = 'text-sky-700 hover:text-sky-900 underline-offset-2 hover:underline outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50 rounded';
+const LINK = 'text-navy hover:text-navy underline-offset-2 hover:underline outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50 rounded';
 
 /** Who applied and what they asked for. */
 export default function ApplicantDetails({ application }: { application: ApplicationListItem }) {

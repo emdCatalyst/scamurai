@@ -200,10 +200,10 @@ export default function AdminShell({
         </nav>
 
         {/* Bottom User Area */}
-        <div className="p-4 border-t border-white/5 shrink-0 relative z-10 bg-black/20 backdrop-blur-md m-3 rounded-xl">
+        <div className="p-4 border-t border-white/5 shrink-0 relative z-10 bg-white/5 m-3 rounded-xl">
           <div className={`flex items-center ${isCollapsed ? 'justify-center flex-col gap-3' : 'justify-between'}`}>
             <div className={`flex items-center ${isCollapsed ? 'justify-center' : ''}`}>
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-sky to-blue-600 p-[2px] shrink-0">
+              <div className="w-9 h-9 rounded-full bg-white/20 p-[2px] shrink-0">
                 <div className="w-full h-full rounded-full border-2 border-[#2A2A28] overflow-hidden bg-navy">
                   {adminAvatar ? (
                     <img src={adminAvatar} alt="Admin" className="w-full h-full object-cover" />
@@ -244,7 +244,7 @@ export default function AdminShell({
           <div className="flex items-center">
             <button
               onClick={toggleSidebar}
-              className="mx-2 md:mx-5 text-slate-400 hover:text-sky bg-slate-50 hover:bg-sky/10 p-2 rounded-xl transition-all duration-200"
+              className="mx-2 md:mx-5 text-slate-400 hover:text-navy bg-slate-50 hover:bg-slate-100 p-2 rounded-xl transition-all duration-200"
             >
               {isCollapsed ? <PanelLeftOpen size={20} strokeWidth={2} className={isAr ? 'rotate-180' : ''} /> : <PanelLeftClose size={20} strokeWidth={2} className={isAr ? 'rotate-180' : ''} />}
             </button>
@@ -264,7 +264,6 @@ export default function AdminShell({
 
         {/* Scrollable Content Area */}
         <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative">
-          <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-white to-transparent pointer-events-none -z-10" />
           <div className="max-w-7xl mx-auto min-w-0">
             {children}
           </div>

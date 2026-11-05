@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn';
 /** Tinted pills with AA-contrast text on the light admin background. */
 const STATUS_STYLES: Record<ApplicationStatus, string> = {
   pending: 'bg-amber-50 text-amber-800 border-amber-200',
-  quoted: 'bg-sky-50 text-sky-800 border-sky-200',
+  quoted: 'bg-sky-50 text-navy border-sky-200',
   paid: 'bg-violet-50 text-violet-800 border-violet-200',
   approved: 'bg-emerald-50 text-emerald-800 border-emerald-200',
   rejected: 'bg-red-50 text-red-700 border-red-200',

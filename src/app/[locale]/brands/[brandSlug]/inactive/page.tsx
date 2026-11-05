@@ -22,7 +22,7 @@ export default async function BrandInactivePage({
   return (
     <BrandLoginBackground>
       <div className="flex flex-col items-center text-center space-y-6">
-        <div className="w-20 h-20 bg-[var(--brand-danger)]/10 rounded-3xl flex items-center justify-center text-[var(--brand-danger)] shadow-sm border border-[var(--brand-danger)]/20">
+        <div className="w-20 h-20 bg-[var(--brand-danger)]/10 rounded-[28px] flex items-center justify-center text-[var(--brand-danger)] border border-[var(--brand-danger)]/20">
           <UserX size={40} strokeWidth={1.5} />
         </div>
         
@@ -39,10 +39,7 @@ export default async function BrandInactivePage({
       <div className="pt-8 flex flex-col gap-3">
         <a
           href="mailto:support@scamurai.com"
-          className="flex items-center justify-center gap-3 w-full py-3 bg-[var(--brand-primary)] text-[var(--brand-primary-fg)] rounded-lg font-bold hover:brightness-110 transition-all shadow-lg"
-          style={{ 
-            boxShadow: `0 0 20px rgba(79, 197, 223, 0.3)` // Fallback/base glow
-          }}
+          className="flex items-center justify-center gap-3 w-full py-3 bg-[var(--brand-primary)] text-[var(--brand-primary-fg)] rounded-full font-bold hover:brightness-110 transition-all"
         >
           <Mail size={18} />
           {t("contactSupport")}

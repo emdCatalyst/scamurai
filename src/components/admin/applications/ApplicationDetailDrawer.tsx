@@ -114,7 +114,7 @@ export default function ApplicationDetailDrawer({ application, onClose }: Applic
         <div className="flex-1 overflow-y-auto overscroll-contain p-6 md:p-8 space-y-10">
           {nextSteps.length > 0 && (
             <section aria-labelledby={nextStepId} className="space-y-3">
-              <h3 id={nextStepId} className="text-xs font-bold uppercase tracking-wider text-sky-800">
+              <h3 id={nextStepId} className="text-xs font-bold uppercase tracking-wider text-navy">
                 {t('steps.title')}
               </h3>
               {nextSteps.map((status) => {

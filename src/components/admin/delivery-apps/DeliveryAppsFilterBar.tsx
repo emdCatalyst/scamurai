@@ -123,7 +123,7 @@ export function DeliveryAppsFilterBar({
 
         <button
           onClick={onAddClick}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-navy text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-glow-navy shrink-0"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-navy text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shrink-0"
         >
           <Plus size={18} />
           {t('btnAdd')}

@@ -202,10 +202,11 @@ function DashboardLoading() {
 }
 
 const STAT_COLORS = {
-  sky: { tile: 'text-[#FF5B3A] bg-[#FF5B3A]/10 border-[#FF5B3A]/20', glow: 'bg-[#FF5B3A]/10' },
-  amber: { tile: 'text-amber-500 bg-amber-500/10 border-amber-500/20', glow: 'bg-amber-500/10' },
-  mint: { tile: 'text-[#10b981] bg-[#10b981]/10 border-[#10b981]/20', glow: 'bg-[#10b981]/10' },
-  red: { tile: 'text-red-500 bg-red-500/10 border-red-500/20', glow: 'bg-red-500/10' },
+  // Neutral tiles: the identity keeps colour for actions and status.
+  sky: { tile: 'text-white bg-navy border-navy' },
+  amber: { tile: 'text-navy bg-paper border-line' },
+  mint: { tile: 'text-white bg-mint border-mint' },
+  red: { tile: 'text-red-700 bg-red-50 border-red-200' },
 } as const;
 
 function StatCard({
@@ -225,8 +226,7 @@ function StatCard({
   const styles = STAT_COLORS[color];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
-      <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl -mr-10 -mt-10 pointer-events-none transition-opacity opacity-40 group-hover:opacity-80 ${styles.glow}`} />
+    <div className="bg-white rounded-[28px] border border-line p-6 relative overflow-hidden">
 
       <div className="flex justify-between items-start relative z-10">
         <div>
@@ -234,8 +234,8 @@ function StatCard({
           <p className="text-slate-800 text-3xl font-black tracking-tight">{value}</p>
           {hint && <p className="mt-1 text-xs font-medium text-slate-500">{hint}</p>}
         </div>
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-sm ${styles.tile}`}>
-          <Icon size={24} strokeWidth={2} aria-hidden="true" />
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${styles.tile}`}>
+          <Icon size={24} strokeWidth={1.75} aria-hidden="true" />
         </div>
       </div>
     </div>

@@ -70,7 +70,7 @@ export function BrandRow({ brand, onViewDetails }: BrandRowProps) {
               </div>
             )}
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-slate-800 truncate group-hover:text-sky transition-colors">
+              <span className="text-sm font-bold text-slate-800 truncate group-hover:text-navy transition-colors">
                 {brand.name}
               </span>
               <span className="text-[10px] text-slate-400 tabular-nums tracking-wider uppercase">
@@ -91,7 +91,7 @@ export function BrandRow({ brand, onViewDetails }: BrandRowProps) {
             <Link
               href={`/${adminSlug}/users?brand=${brand.id}`}
               onClick={(e) => e.stopPropagation()}
-              className="text-sm font-medium text-slate-600 hover:text-sky transition-colors underline decoration-slate-200 underline-offset-4"
+              className="text-sm font-medium text-slate-600 hover:text-navy transition-colors underline decoration-slate-200 underline-offset-4"
             >
               {brand.brandAdminEmail}
             </Link>
@@ -131,7 +131,7 @@ export function BrandRow({ brand, onViewDetails }: BrandRowProps) {
                 e.stopPropagation();
                 setIsLimitsOpen(true);
               }}
-              className="p-2 text-slate-400 hover:text-sky hover:bg-sky/5 rounded-lg transition-all"
+              className="p-2 text-slate-400 hover:text-navy hover:bg-slate-100 rounded-lg transition-all"
               title={t('actions.adjustLimits')}
             >
               <Settings2 size={18} />
@@ -153,7 +153,7 @@ export function BrandRow({ brand, onViewDetails }: BrandRowProps) {
                 e.stopPropagation();
                 onViewDetails(brand);
               }}
-              className="p-2 text-slate-400 hover:text-sky hover:bg-sky/5 rounded-lg transition-all"
+              className="p-2 text-slate-400 hover:text-navy hover:bg-slate-100 rounded-lg transition-all"
             >
               <ExternalLink size={18} />
             </button>

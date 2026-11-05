@@ -91,7 +91,6 @@ export default function DashboardClient({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Applications overview */}
         <section className={`${CARD} p-8 group`} aria-labelledby="applications-overview">
-          <div className={`absolute top-0 ${isAr ? 'left-0 -ml-20' : 'right-0 -mr-20'} w-64 h-64 bg-[#FF5B3A]/5 rounded-full blur-3xl -mt-20 pointer-events-none transition-opacity group-hover:opacity-100 opacity-50`} />
 
           <h3 id="applications-overview" className="text-slate-800 font-bold text-lg mb-8 relative z-10">
             {t('applicationsOverview')}
@@ -140,7 +139,6 @@ export default function DashboardClient({
 
         {/* Orders per day */}
         <section className={`${CARD} p-8 group`} aria-labelledby="order-trends">
-          <div className={`absolute top-0 ${isAr ? 'left-0 -ml-20' : 'right-0 -mr-20'} w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -mt-20 pointer-events-none transition-opacity group-hover:opacity-100 opacity-50`} />
 
           <div className="flex justify-between items-center mb-8 relative z-10">
             <h3 id="order-trends" className="text-slate-800 font-bold text-lg">{t('orderTrends')}</h3>
@@ -211,7 +209,7 @@ export default function DashboardClient({
             </div>
             <Link
               href={applicationsHref}
-              className="group/link flex items-center gap-1 text-sky-700 text-sm font-semibold hover:text-sky-800 transition-colors"
+              className="group/link flex items-center gap-1 text-navy text-sm font-semibold hover:text-navy transition-colors"
             >
               {t('viewAll')}
               <ChevronRight size={16} aria-hidden="true" className="transition-transform rtl:rotate-180 group-hover/link:translate-x-1 rtl:group-hover/link:-translate-x-1" />
@@ -246,7 +244,7 @@ export default function DashboardClient({
                           <Link
                             href={href}
                             onClick={(event) => event.stopPropagation()}
-                            className="font-bold text-slate-800 group-hover/row:text-sky-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded"
+                            className="font-bold text-slate-800 group-hover/row:text-navy transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded"
                           >
                             {app.brandName}
                           </Link>

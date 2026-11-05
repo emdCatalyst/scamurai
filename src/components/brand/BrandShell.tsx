@@ -142,16 +142,10 @@ export default function BrandShell({
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:relative flex-shrink-0 bg-[var(--brand-background)] shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col z-50 h-full ${
+        className={`fixed lg:relative flex-shrink-0 bg-[var(--brand-background)] transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col z-50 h-full ${
           isCollapsed ? (isAr ? 'translate-x-full lg:translate-x-0 lg:w-[80px]' : '-translate-x-full lg:translate-x-0 lg:w-[80px]') : 'translate-x-0 w-[280px]'
         }`}
       >
-        {/* Decorative background glow */}
-        <div 
-          className="absolute top-0 left-0 right-0 h-64 pointer-events-none opacity-20" 
-          style={{ background: `linear-gradient(to bottom, var(--brand-primary) 0%, transparent 100%)` }}
-        />
-
         {/* Logo Area */}
         <div className={`h-20 flex items-center justify-center border-b border-[var(--brand-border)] shrink-0 relative z-10 transition-all duration-300 ${isCollapsed ? 'px-0' : 'px-6'}`}>
           <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
@@ -242,12 +236,11 @@ export default function BrandShell({
         </nav>
 
         {/* Bottom User Area */}
-        <div className="p-4 border-t border-[var(--brand-border)] shrink-0 relative z-10 bg-[var(--brand-background-active)]/50 backdrop-blur-md m-3 rounded-xl">
+        <div className="p-4 border-t border-[var(--brand-border)] shrink-0 relative z-10 bg-[var(--brand-background-active)] m-3 rounded-xl">
           <div className={`flex items-center ${isCollapsed ? 'justify-center flex-col gap-3' : 'justify-between'}`}>
             <div className={`flex items-center ${isCollapsed ? 'justify-center' : ''}`}>
               <div 
-                className="w-9 h-9 rounded-full p-[2px] shrink-0 shadow-lg"
-                style={{ background: `linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-text-accent) 100%)` }}
+                className="w-9 h-9 rounded-full p-[2px] shrink-0 bg-[var(--brand-primary)]"
               >
                 <div className="w-full h-full rounded-full border-2 border-[var(--brand-background)] overflow-hidden bg-[var(--brand-background)]">
                   {userAvatar ? (
@@ -314,10 +307,6 @@ export default function BrandShell({
 
         {/* Scrollable Content Area */}
         <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative">
-          <div 
-            className="absolute top-0 left-0 w-full h-64 pointer-events-none -z-10" 
-            style={{ background: `linear-gradient(to bottom, var(--brand-surface), transparent)` }}
-          />
           <div className="max-w-7xl mx-auto min-w-0">
             {children}
           </div>

@@ -142,7 +142,7 @@ export function DeliveryAppDetailDrawer({
           </div>
           <button
             onClick={() => setShowEditModal(true)}
-            className="p-2 text-slate-400 hover:text-sky hover:bg-sky/5 rounded-xl transition-all"
+            className="p-2 text-slate-400 hover:text-navy hover:bg-slate-100 rounded-xl transition-all"
           >
             <Edit2 size={20} />
           </button>

@@ -99,7 +99,7 @@ export default function BrandSetup({ brandId, brandSlug }: BrandSetupProps) {
     <div className="mx-auto max-w-2xl">
       {/* Step indicator */}
       <div className="mb-8 flex items-center justify-center gap-4">
-        <div className="flex items-center gap-2 rounded-full bg-sky/15 px-4 py-1.5 text-sm font-semibold text-sky">
+        <div className="flex items-center gap-2 rounded-full bg-sky px-4 py-1.5 text-sm font-semibold text-navy">
           <span className="tabular-nums text-xs">1</span>
           <span className={isAr ? 'font-arabic' : ''}>{t('step1')}</span>
         </div>
@@ -117,12 +117,7 @@ export default function BrandSetup({ brandId, brandSlug }: BrandSetupProps) {
           animate: { opacity: 1, y: 0 },
           transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
         })}
-        className="rounded-2xl p-8 sm:p-10"
-        style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          backdropFilter: 'blur(24px)',
-        }}
+        className="rounded-[28px] border border-white/10 bg-charcoal p-8 sm:p-10"
       >
         <div className="mb-8 text-center">
           <h1 className={`text-3xl font-black text-white ${isAr ? 'font-arabic' : ''}`}>
@@ -238,7 +233,7 @@ export default function BrandSetup({ brandId, brandSlug }: BrandSetupProps) {
           <button
             type="submit"
             disabled={isPending}
-            className="flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-cta px-6 py-4 text-base font-bold text-navy transition-all duration-200 hover:brightness-110 hover:shadow-glow-sky active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex w-full items-center justify-center gap-3 rounded-full bg-sky px-6 py-4 text-base font-bold text-navy transition-colors duration-200 hover:bg-sky-400 active:bg-sky-600 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isPending ? (
               <>

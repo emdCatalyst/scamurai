@@ -14,7 +14,7 @@ export function BrandSuspensionNotice() {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="w-20 h-20 bg-[var(--brand-danger)]/10 rounded-3xl flex items-center justify-center text-[var(--brand-danger)] shadow-sm border border-[var(--brand-danger)]/20"
+          className="w-20 h-20 bg-[var(--brand-danger)]/10 rounded-[28px] flex items-center justify-center text-[var(--brand-danger)] border border-[var(--brand-danger)]/20"
         >
           <AlertCircle size={40} strokeWidth={1.5} />
         </motion.div>
@@ -47,10 +47,7 @@ export function BrandSuspensionNotice() {
       >
         <a
           href="mailto:support@scamurai.com"
-          className="w-full py-3 bg-[var(--brand-primary)] text-[var(--brand-primary-fg)] rounded-lg font-bold hover:brightness-110 transition-all shadow-lg flex items-center justify-center gap-3"
-          style={{ 
-            boxShadow: `0 0 20px ${withOpacity(derivePrimaryHex(), 0.3)}` 
-          }}
+          className="w-full py-3 bg-[var(--brand-primary)] text-[var(--brand-primary-fg)] rounded-full font-bold hover:brightness-110 transition-all flex items-center justify-center gap-3"
         >
           <Mail size={18} />
           {t('contactSupport')}
@@ -59,18 +56,3 @@ export function BrandSuspensionNotice() {
     </div>
   );
 }
-
-// Helper to get raw primary color for the glow effect
-function derivePrimaryHex() {
-  if (typeof window === 'undefined') return '#FF5B3A';
-  return getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim() || '#FF5B3A';
-}
-
-function withOpacity(hex: string, opacity: number): string {
-  if (!hex.startsWith('#')) return hex;
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-}
-
