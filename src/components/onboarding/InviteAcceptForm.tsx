@@ -133,12 +133,12 @@ export default function InviteAcceptForm({
     >
       {isRedirecting && (
         <div
-          className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 bg-[#0A1628]/95 backdrop-blur-sm"
+          className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 bg-[#0B0B0B]/95 backdrop-blur-sm"
           role="status"
           aria-live="polite"
         >
           <Loader2
-            className="animate-spin text-[#4fc5df]"
+            className="animate-spin text-[#FF5B3A]"
             size={36}
             strokeWidth={1.5}
           />
@@ -149,7 +149,7 @@ export default function InviteAcceptForm({
       )}
 
       <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl">
-        <div className="w-16 h-16 bg-[#4fc5df]/15 text-[#4fc5df] rounded-2xl flex items-center justify-center mb-6 mx-auto">
+        <div className="w-16 h-16 bg-[#FF5B3A]/15 text-[#FF5B3A] rounded-2xl flex items-center justify-center mb-6 mx-auto">
           <ShieldCheck size={32} strokeWidth={1.5} />
         </div>
 
@@ -196,7 +196,7 @@ export default function InviteAcceptForm({
           <button
             type="submit"
             disabled={!isValid || isSubmitting}
-            className="w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-[#4fc5df] text-[#0A1628] hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+            className="w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-[#FF5B3A] text-[#0B0B0B] hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
           >
             {isSubmitting ? (
               <>
@@ -257,7 +257,7 @@ function PasswordField({
             "w-full ps-11 pe-11 py-3 bg-white/5 border rounded-xl focus:outline-none focus:ring-2 transition-all text-sm font-medium text-white placeholder:text-white/40 disabled:opacity-50",
             error
               ? "border-[#ff7676]/40 focus:ring-[#ff7676]/20 focus:border-[#ff7676]"
-              : "border-white/10 focus:ring-[#4fc5df]/30 focus:border-[#4fc5df]/50"
+              : "border-white/10 focus:ring-[#FF5B3A]/30 focus:border-[#FF5B3A]/50"
           )}
         />
         <button

@@ -2,7 +2,7 @@ import { getResend } from "@/lib/resend";
 
 const DEV_FALLBACK = process.env.RESEND_DEV_FALLBACK_EMAIL;
 const DEFAULT_FROM =
-  process.env.RESEND_FROM_ADDRESS ?? "Scamurai <onboarding@resend.dev>";
+  process.env.RESEND_FROM_ADDRESS ?? "Misdaq <onboarding@resend.dev>";
 
 type ResendSendParams = Parameters<
   ReturnType<typeof getResend>["emails"]["send"]
@@ -15,7 +15,7 @@ type SendEmailParams = Omit<ResendSendParams, "from"> & { from?: string };
  * Sends an email via Resend.
  *
  * The sender address defaults to RESEND_FROM_ADDRESS — set this to your
- * verified domain in production (e.g. "Scamurai <noreply@yourdomain.com>").
+ * verified domain in production (e.g. "Misdaq <noreply@yourdomain.com>").
  * Until set, falls back to Resend's shared sandbox sender.
  *
  * In dev (when RESEND_DEV_FALLBACK_EMAIL is set), the recipient is rerouted to

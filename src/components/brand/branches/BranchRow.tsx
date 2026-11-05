@@ -48,7 +48,7 @@ export default function BranchRow({
         <div
           className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
             branch.isActive
-              ? "bg-[#5cbf8f]/10 text-[#5cbf8f]"
+              ? "bg-[#4E9A72]/10 text-[#4E9A72]"
               : "bg-[var(--brand-danger)]/10 text-[var(--brand-danger)]"
           }`}
         >
@@ -92,7 +92,7 @@ export default function BranchRow({
             className={`p-2 rounded-lg transition-all ${
               branch.isActive
                 ? "text-[var(--brand-surface-fg-muted)] hover:text-amber-500 hover:bg-amber-50"
-                : "text-[var(--brand-surface-fg-muted)] hover:text-[#5cbf8f] hover:bg-[#5cbf8f]/10"
+                : "text-[var(--brand-surface-fg-muted)] hover:text-[#4E9A72] hover:bg-[#4E9A72]/10"
             }`}
             title={branch.isActive ? t("actions.disable") : t("actions.enable")}
           >

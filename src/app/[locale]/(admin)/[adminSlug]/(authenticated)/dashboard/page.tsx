@@ -202,7 +202,7 @@ function DashboardLoading() {
 }
 
 const STAT_COLORS = {
-  sky: { tile: 'text-[#4fc5df] bg-[#4fc5df]/10 border-[#4fc5df]/20', glow: 'bg-[#4fc5df]/10' },
+  sky: { tile: 'text-[#FF5B3A] bg-[#FF5B3A]/10 border-[#FF5B3A]/20', glow: 'bg-[#FF5B3A]/10' },
   amber: { tile: 'text-amber-500 bg-amber-500/10 border-amber-500/20', glow: 'bg-amber-500/10' },
   mint: { tile: 'text-[#10b981] bg-[#10b981]/10 border-[#10b981]/20', glow: 'bg-[#10b981]/10' },
   red: { tile: 'text-red-500 bg-red-500/10 border-red-500/20', glow: 'bg-red-500/10' },

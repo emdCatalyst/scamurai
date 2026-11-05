@@ -62,8 +62,8 @@ export function BrandSuspensionNotice() {
 
 // Helper to get raw primary color for the glow effect
 function derivePrimaryHex() {
-  if (typeof window === 'undefined') return '#4fc5df';
-  return getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim() || '#4fc5df';
+  if (typeof window === 'undefined') return '#FF5B3A';
+  return getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim() || '#FF5B3A';
 }
 
 function withOpacity(hex: string, opacity: number): string {

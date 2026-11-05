@@ -574,11 +574,11 @@ function ErrorBanner({ message }: { message: string }) {
 
 // Helper to read the brand primary color for the glow effect.
 function derivePrimaryHex() {
-  if (typeof window === 'undefined') return '#4fc5df';
+  if (typeof window === 'undefined') return '#FF5B3A';
   return (
     getComputedStyle(document.documentElement)
       .getPropertyValue('--brand-primary')
-      .trim() || '#4fc5df'
+      .trim() || '#FF5B3A'
   );
 }
 

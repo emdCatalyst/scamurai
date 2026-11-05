@@ -11,7 +11,7 @@ export function BrandStatusBadge({ isActive, className = '' }: BrandStatusBadgeP
   const t = useTranslations('admin.brands.table');
 
   const finalStyles = {
-    active: 'bg-[#5cbf8f]/10 text-[#5cbf8f] border-[#5cbf8f]/20',
+    active: 'bg-[#4E9A72]/10 text-[#4E9A72] border-[#4E9A72]/20',
     suspended: 'bg-red-500/10 text-red-500 border-red-500/20',
   };
 

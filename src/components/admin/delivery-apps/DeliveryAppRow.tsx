@@ -99,7 +99,7 @@ export function DeliveryAppRow({ app, onViewDetails }: DeliveryAppRowProps) {
           <span className={cn(
             "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border",
             app.isActive 
-              ? "bg-[#5cbf8f]/10 text-[#5cbf8f] border-[#5cbf8f]/20"
+              ? "bg-[#4E9A72]/10 text-[#4E9A72] border-[#4E9A72]/20"
               : "bg-red-500/10 text-red-500 border-red-500/20"
           )}>
             {t(`table.status${app.isActive ? 'Active' : 'Inactive'}`)}
@@ -131,7 +131,7 @@ export function DeliveryAppRow({ app, onViewDetails }: DeliveryAppRowProps) {
                 "p-2 rounded-lg transition-all",
                 app.isActive 
                   ? "text-slate-400 hover:text-red-500 hover:bg-red-50" 
-                  : "text-slate-400 hover:text-[#5cbf8f] hover:bg-[#5cbf8f]/5"
+                  : "text-slate-400 hover:text-[#4E9A72] hover:bg-[#4E9A72]/5"
               )}
               title={app.isActive ? t('actions.deactivate') : t('actions.activate')}
             >

@@ -91,7 +91,7 @@ export async function setUserStatus({
         process.env.APP_URL || "http://localhost:3000"
       ).replace(/\/$/, "");
       const ctaHref = isActive ? appUrl : "mailto:support@scamurai.com";
-      const ctaLabel = isActive ? "Sign in to Scamurai" : "Contact support";
+      const ctaLabel = isActive ? "Sign in to Misdaq" : "Contact support";
 
       const html = renderEmail({
         preheader: subject,

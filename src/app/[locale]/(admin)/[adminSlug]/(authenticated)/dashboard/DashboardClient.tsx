@@ -91,7 +91,7 @@ export default function DashboardClient({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Applications overview */}
         <section className={`${CARD} p-8 group`} aria-labelledby="applications-overview">
-          <div className={`absolute top-0 ${isAr ? 'left-0 -ml-20' : 'right-0 -mr-20'} w-64 h-64 bg-[#4fc5df]/5 rounded-full blur-3xl -mt-20 pointer-events-none transition-opacity group-hover:opacity-100 opacity-50`} />
+          <div className={`absolute top-0 ${isAr ? 'left-0 -ml-20' : 'right-0 -mr-20'} w-64 h-64 bg-[#FF5B3A]/5 rounded-full blur-3xl -mt-20 pointer-events-none transition-opacity group-hover:opacity-100 opacity-50`} />
 
           <h3 id="applications-overview" className="text-slate-800 font-bold text-lg mb-8 relative z-10">
             {t('applicationsOverview')}
@@ -121,7 +121,7 @@ export default function DashboardClient({
                 <Tooltip
                   cursor={{ fill: 'transparent' }}
                   contentStyle={TOOLTIP_STYLE}
-                  itemStyle={{ color: '#1e293b', fontWeight: 600, fontSize: '14px' }}
+                  itemStyle={{ color: '#2A2A28', fontWeight: 600, fontSize: '14px' }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -283,7 +283,7 @@ export default function DashboardClient({
             ) : (
               topBranches.map((branch, idx) => {
                 const width = `${(branch.orderCount / maxBranchVolume) * 100}%`;
-                const colors = ['bg-[#4fc5df]', 'bg-[#3b82f6]', 'bg-[#6366f1]', 'bg-[#8b5cf6]', 'bg-[#d946ef]'];
+                const colors = ['bg-[#FF5B3A]', 'bg-[#3b82f6]', 'bg-[#6366f1]', 'bg-[#8b5cf6]', 'bg-[#d946ef]'];
                 const color = colors[idx % colors.length];
 
                 return (

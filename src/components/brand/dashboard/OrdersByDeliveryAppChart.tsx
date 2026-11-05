@@ -19,7 +19,7 @@ interface OrdersByDeliveryAppChartProps {
 
 const COLORS = [
   'var(--brand-primary)',
-  '#5cbf8f',
+  '#4E9A72',
   'var(--brand-background)',
   '#f59e0b',
   'var(--brand-text-accent)',

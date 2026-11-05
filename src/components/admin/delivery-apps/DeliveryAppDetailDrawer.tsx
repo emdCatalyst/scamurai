@@ -133,7 +133,7 @@ export function DeliveryAppDetailDrawer({
               <div className="min-w-0">
                 <h2 className="text-lg font-bold text-slate-900 leading-none truncate">{app.name}</h2>
                 <div className="flex items-center gap-2 mt-1.5">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${app.isActive ? "bg-[#5cbf8f]/10 text-[#5cbf8f] border-[#5cbf8f]/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${app.isActive ? "bg-[#4E9A72]/10 text-[#4E9A72] border-[#4E9A72]/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
                     {t(`table.status${app.isActive ? 'Active' : 'Inactive'}`)}
                   </span>
                 </div>
@@ -193,7 +193,7 @@ export function DeliveryAppDetailDrawer({
                   className={`py-4 px-4 rounded-2xl text-sm font-bold transition-all border flex items-center justify-center gap-2 ${
                     app.isActive
                       ? "border-red-200 text-red-500 hover:bg-red-50"
-                      : "border-[#5cbf8f]/20 text-[#5cbf8f] hover:bg-[#5cbf8f]/5"
+                      : "border-[#4E9A72]/20 text-[#4E9A72] hover:bg-[#4E9A72]/5"
                   } disabled:opacity-50`}
                 >
                   {isUpdating ? <Loader2 size={18} className="animate-spin" /> : (app.isActive ? <ShieldOff size={18} /> : <ShieldCheck size={18} />)}

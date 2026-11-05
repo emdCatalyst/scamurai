@@ -74,7 +74,7 @@ export default async function BrandLoginPage({
       {!isSuspended && (
         <div className="pt-8 text-center">
           <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest">
-            {t('poweredBy')} <Link href={"/"}>Scamurai</Link>
+            {t('poweredBy')} <Link href={"/"}>Misdaq</Link>
           </p>
         </div>
       )}

@@ -28,10 +28,10 @@ interface BrandIdentityFormProps {
 }
 
 const DEFAULT_COLORS = {
-  primary: '#4fc5df',
-  background: '#172b49',
-  surface: '#1e3d6b',
-  textAccent: '#4fc5df',
+  primary: '#FF5B3A',
+  background: '#0B0B0B',
+  surface: '#FFFFFF',
+  textAccent: '#FF5B3A',
 };
 
 export default function BrandIdentityForm({ brandId, initialData }: BrandIdentityFormProps) {

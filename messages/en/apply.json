@@ -1,5 +1,5 @@
 {
-  "heading": "Get started with Scamurai",
+  "heading": "Get started with Misdaq",
   "subheading": "Choose a service, pick a plan and leave your details. Our team will get back to you within 24 hours.",
   "highlights": {
     "quick": "Takes about 2 minutes",
@@ -55,7 +55,7 @@
   "errFormFix": "Please check the highlighted fields and try again.",
   "errorGeneral": "Something went wrong on our side. Please try again in a moment.",
   "errorTooManyRequests": "You've sent several requests today. Please try again tomorrow.",
-  "errorEmailRegistered": "This email already belongs to a Scamurai account. Please sign in, or use a different email.",
+  "errorEmailRegistered": "This email already belongs to a Misdaq account. Please sign in, or use a different email.",
   "errService": "Please choose a service.",
   "errPlan": "Please choose a plan.",
   "errBrandMin": "Brand name must be at least 2 characters.",

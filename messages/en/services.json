@@ -222,7 +222,7 @@
         },
         "5": {
           "question": "Will it work alongside Order Protection?",
-          "answer": "It's planned as part of the same Scamurai platform, so brands that already use Order Protection can add it when it's available."
+          "answer": "It's planned as part of the same Misdaq platform, so brands that already use Order Protection can add it when it's available."
         },
         "6": {
           "question": "What does early access include?",
@@ -394,7 +394,7 @@
       "title": "Questions about {name}"
     },
     "related": {
-      "eyebrow": "More from Scamurai",
+      "eyebrow": "More from Misdaq",
       "title": "Explore our other services"
     }
   }

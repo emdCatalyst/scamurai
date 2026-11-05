@@ -59,7 +59,7 @@ export default async function BrandSuspendedPage({
 
       <div className="pt-8 text-center border-t border-white/5 mt-4">
         <p className="text-white/20 text-[10px] font-bold uppercase tracking-widest">
-          Powered by <span className="text-white/40">Scamurai</span>
+          Powered by <span className="text-white/40">Misdaq</span>
         </p>
       </div>
     </BrandLoginBackground>

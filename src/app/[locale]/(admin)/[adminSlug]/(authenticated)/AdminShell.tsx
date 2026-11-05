@@ -190,7 +190,7 @@ export default function AdminShell({
                 }}
               >
                 {isActive && (
-                  <div className={`absolute ${isAr ? 'right-0 rounded-l-full' : 'left-0 rounded-r-full'} top-1/2 -translate-y-1/2 w-1 h-8 bg-sky shadow-[0_0_10px_rgba(79,197,223,0.6)]`} />
+                  <div className={`absolute ${isAr ? 'right-0 rounded-l-full' : 'left-0 rounded-r-full'} top-1/2 -translate-y-1/2 w-1 h-8 bg-sky`} />
                 )}
                 <Icon size={20} strokeWidth={isActive ? 2 : 1.5} className={`shrink-0 transition-colors ${isActive ? 'text-sky' : 'text-slate-400 group-hover:text-white'}`} />
                 {!isCollapsed && <span className="mx-3 font-medium text-sm">{label}</span>}
@@ -204,7 +204,7 @@ export default function AdminShell({
           <div className={`flex items-center ${isCollapsed ? 'justify-center flex-col gap-3' : 'justify-between'}`}>
             <div className={`flex items-center ${isCollapsed ? 'justify-center' : ''}`}>
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-sky to-blue-600 p-[2px] shrink-0">
-                <div className="w-full h-full rounded-full border-2 border-[#1e293b] overflow-hidden bg-navy">
+                <div className="w-full h-full rounded-full border-2 border-[#2A2A28] overflow-hidden bg-navy">
                   {adminAvatar ? (
                     <img src={adminAvatar} alt="Admin" className="w-full h-full object-cover" />
                   ) : (

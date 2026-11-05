@@ -108,7 +108,7 @@ export function OrdersOverTimeChart({ data }: OrdersOverTimeChartProps) {
               name="approved"
               type="monotone" 
               dataKey="approved" 
-              stroke="#5cbf8f" 
+              stroke="#4E9A72" 
               strokeWidth={3}
               dot={false}
               activeDot={{ r: 6, strokeWidth: 0 }}

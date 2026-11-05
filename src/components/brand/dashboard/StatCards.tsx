@@ -38,8 +38,8 @@ export function StatCards({ orderStats, branchStats }: StatCardsProps) {
       label: t('statRevenue'),
       value: orderStats.monthlyRevenue,
       icon: Banknote,
-      bg: 'bg-[#5cbf8f]/10',
-      text: 'text-[#5cbf8f]',
+      bg: 'bg-[#4E9A72]/10',
+      text: 'text-[#4E9A72]',
       suffix: ' SAR',
     },
     {

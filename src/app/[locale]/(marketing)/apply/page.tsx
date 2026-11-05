@@ -50,7 +50,7 @@ export default async function ApplyPage({ params }: { params: Promise<{ locale: 
   return (
     <main
       id="main"
-      className="relative isolate overflow-hidden bg-[linear-gradient(180deg,#0d1e35_0%,#060f1a_55%,#0d1e35_100%)] pb-24 pt-28 sm:pb-32 sm:pt-36"
+      className="relative isolate overflow-hidden bg-[linear-gradient(180deg,#0B0B0B_0%,#0B0B0B_55%,#0B0B0B_100%)] pb-24 pt-28 sm:pb-32 sm:pt-36"
     >
       <div
         aria-hidden="true"

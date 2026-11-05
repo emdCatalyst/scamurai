@@ -12,7 +12,7 @@ export function Container({ className, children }: { className?: string; childre
 }
 
 const SECTION_TONES = {
-  deep: 'bg-[linear-gradient(180deg,#060f1a_0%,#0d1e35_45%,#0a1625_100%)]',
+  deep: 'bg-[linear-gradient(180deg,#0B0B0B_0%,#0B0B0B_45%,#0a1625_100%)]',
   navy: 'bg-navy-deep',
   plain: '',
 } as const;

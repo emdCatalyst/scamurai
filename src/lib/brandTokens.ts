@@ -1,15 +1,15 @@
 import type { BrandColors } from '@/types/brand';
 
 export const DEFAULT_BRAND_COLORS: Required<BrandColors> = {
-  primary: '#4fc5df',   // Scamurai sky
-  background: '#172b49',   // Scamurai navy
-  surface: '#ffffff',
-  textAccent: '#4fc5df',
+  primary: '#FF5B3A',      // Misdaq order evidence orange
+  background: '#0B0B0B',   // Misdaq Black
+  surface: '#FFFFFF',
+  textAccent: '#FF5B3A',
   danger: '#DC2626',
 };
 
 // Text colours on brand colours
-const NAVY = '#0A1628';
+const NAVY = '#0B0B0B'; // Misdaq Black
 const WHITE = '#FFFFFF';
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
@@ -107,7 +107,7 @@ export function contrastRatio(a: string, b: string): number {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-// Returns whichever of Scamurai navy and white contrasts more with the background
+// Returns whichever of Misdaq Black and white contrasts more with the background
 export function textColorOn(bgHex: string): string {
   return contrastRatio(bgHex, NAVY) >= contrastRatio(bgHex, WHITE) ? NAVY : WHITE;
 }

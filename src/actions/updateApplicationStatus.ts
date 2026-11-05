@@ -143,13 +143,13 @@ async function sendRejectionEmail({ applicationId, brandName, contactEmail, loca
     emailHeading('Update on your application'),
     emailParagraph('Hello,'),
     emailParagraphWithHighlight({
-      before: 'Thank you for your interest in Scamurai. After reviewing your application for ',
+      before: 'Thank you for your interest in Misdaq. After reviewing your application for ',
       highlight: brandName,
       after: ', we are unable to move forward at this time.',
     }),
     emailParagraphWithHighlight({ before: 'Reason: ', highlight: rejectionNote, after: '' }),
     emailParagraph('We appreciate the time you took to apply and wish you success in your operations.'),
-    emailParagraph('— The Scamurai Team'),
+    emailParagraph('— The Misdaq Team'),
     `</div>`,
   ].join('\n');
 
@@ -158,20 +158,20 @@ async function sendRejectionEmail({ applicationId, brandName, contactEmail, loca
     emailHeading('تحديث بخصوص طلبك', 'rtl'),
     emailParagraph('مرحباً،', 'rtl'),
     emailParagraphWithHighlight({
-      before: 'شكراً لاهتمامك بسكامورائي. بعد مراجعة طلب انضمام ',
+      before: 'شكراً لاهتمامك بمصداق. بعد مراجعة طلب انضمام ',
       highlight: brandName,
       after: '، لا يمكننا المضي قدماً في الوقت الحالي.',
       dir: 'rtl',
     }),
     emailParagraphWithHighlight({ before: 'السبب: ', highlight: rejectionNote, after: '', dir: 'rtl' }),
     emailParagraph('نقدّر الوقت الذي خصصته لتقديم طلبك ونتمنى لك التوفيق في أعمالك.', 'rtl'),
-    emailParagraph('— فريق سكامورائي', 'rtl'),
+    emailParagraph('— فريق مصداق', 'rtl'),
     `</div>`,
   ].join('\n');
 
   const subjects = {
-    en: 'Update on your Scamurai application',
-    ar: 'تحديث بخصوص طلبك في سكامورائي',
+    en: 'Update on your Misdaq application',
+    ar: 'تحديث بخصوص طلبك في مصداق',
   };
 
   try {

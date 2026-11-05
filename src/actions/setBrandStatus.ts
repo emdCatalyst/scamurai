@@ -111,7 +111,7 @@ export async function setBrandStatus({
         const ctaHref = isActive
           ? `${appUrl}/brands/${brand.slug}/login`
           : `mailto:support@scamurai.com`;
-        const ctaLabel = isActive ? "Sign in to Scamurai" : "Contact support";
+        const ctaLabel = isActive ? "Sign in to Misdaq" : "Contact support";
 
         const html = renderEmail({
           preheader: subject,

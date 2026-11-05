@@ -127,7 +127,7 @@ export function UserDetailDrawer({
                 <h2 className="text-lg font-bold text-slate-900 leading-none truncate">{user.fullName}</h2>
                 <div className="flex items-center gap-2 mt-1">
                   <UserRoleBadge role={user.role} />
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${user.isActive ? "bg-[#5cbf8f]/10 text-[#5cbf8f] border-[#5cbf8f]/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${user.isActive ? "bg-[#4E9A72]/10 text-[#4E9A72] border-[#4E9A72]/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
                     {user.isActive ? t('table.statusActive') : t('table.statusInactive')}
                   </span>
                 </div>
@@ -233,7 +233,7 @@ export function UserDetailDrawer({
                 className={`w-full py-4 rounded-2xl text-sm font-bold transition-all border flex items-center justify-center gap-2 ${
                   user.isActive
                     ? "border-red-200 text-red-500 hover:bg-red-50"
-                    : "border-[#5cbf8f]/20 text-[#5cbf8f] hover:bg-[#5cbf8f]/5"
+                    : "border-[#4E9A72]/20 text-[#4E9A72] hover:bg-[#4E9A72]/5"
                 } disabled:opacity-50`}
               >
                 {isUpdating ? <Loader2 size={18} className="animate-spin" /> : (user.isActive ? <UserX size={18} /> : <UserCheck size={18} />)}

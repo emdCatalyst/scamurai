@@ -75,15 +75,15 @@ export async function resetBrandUserPassword({ userId }: { userId: string }) {
       ).replace(/\/$/, "");
 
       const html = renderEmail({
-        preheader: "Your Scamurai password has been reset by an administrator.",
+        preheader: "Your Misdaq password has been reset by an administrator.",
         bodyHtml: [
           emailHeading("Your password has been reset"),
           emailParagraph(`Hi ${user.fullName},`),
           emailParagraph(
-            "An administrator has reset your Scamurai password. Use the temporary password below to sign in. You'll be prompted to choose a new password on your next login."
+            "An administrator has reset your Misdaq password. Use the temporary password below to sign in. You'll be prompted to choose a new password on your next login."
           ),
           emailCallout("Temporary password", tempPassword),
-          emailButton(appUrl, "Sign in to Scamurai"),
+          emailButton(appUrl, "Sign in to Misdaq"),
           emailMutedNote(
             "If you didn't expect this change, contact your administrator immediately — your account may have been compromised."
           ),
@@ -92,7 +92,7 @@ export async function resetBrandUserPassword({ userId }: { userId: string }) {
 
       await sendEmail({
         to: user.email,
-        subject: "Your Scamurai password was reset",
+        subject: "Your Misdaq password was reset",
         html,
       });
       console.log(`[resetBrandUserPassword] Reset email sent to ${user.email}`);

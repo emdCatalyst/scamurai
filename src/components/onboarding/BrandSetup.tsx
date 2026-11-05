@@ -16,12 +16,12 @@ interface BrandSetupProps {
   brandSlug: string;
 }
 
-// Defaults to Scamurai navy/sky palette
+// Defaults to the Misdaq palette (black, white, order evidence orange)
 const DEFAULT_COLORS: BrandColors = {
-  primary: '#4fc5df',
-  background: '#172b49',
-  surface: '#1e3d6b',
-  textAccent: '#4fc5df',
+  primary: '#FF5B3A',
+  background: '#0B0B0B',
+  surface: '#FFFFFF',
+  textAccent: '#FF5B3A',
 };
 
 export default function BrandSetup({ brandId, brandSlug }: BrandSetupProps) {

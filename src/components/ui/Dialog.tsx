@@ -110,7 +110,7 @@ export default function Dialog({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => !isLoading && onClose()}
-            className={`absolute inset-0 bg-[#0A1628]/40 backdrop-blur-sm ${!isLoading ? 'cursor-pointer' : 'cursor-wait'}`}
+            className={`absolute inset-0 bg-[#0B0B0B]/40 backdrop-blur-sm ${!isLoading ? 'cursor-pointer' : 'cursor-wait'}`}
           />
           <motion.div
             ref={panelRef}
@@ -129,8 +129,8 @@ export default function Dialog({
                 <div 
                   className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm"
                   style={{ 
-                    backgroundColor: type === 'danger' ? 'var(--brand-danger, #ef4444)1a' : 'var(--brand-primary, #4fc5df)1a',
-                    color: type === 'danger' ? 'var(--brand-danger, #ef4444)' : 'var(--brand-primary, #4fc5df)'
+                    backgroundColor: type === 'danger' ? 'var(--brand-danger, #ef4444)1a' : 'var(--brand-primary, #FF5B3A)1a',
+                    color: type === 'danger' ? 'var(--brand-danger, #ef4444)' : 'var(--brand-primary, #FF5B3A)'
                   }}
                 >
                   {type === 'danger' ? <AlertTriangle size={28} /> : <HelpCircle size={28} />}
@@ -175,7 +175,7 @@ export default function Dialog({
                 disabled={isLoading}
                 className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 shadow-lg`}
                 style={{ 
-                  backgroundColor: type === 'danger' ? 'var(--brand-danger, #ef4444)' : 'var(--brand-primary, #172b49)',
+                  backgroundColor: type === 'danger' ? 'var(--brand-danger, #ef4444)' : 'var(--brand-primary, #0B0B0B)',
                   color: type === 'danger' ? 'var(--brand-danger-fg, #ffffff)' : 'var(--brand-primary-fg, #ffffff)'
                 }}
               >

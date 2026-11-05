@@ -8,7 +8,7 @@ import { brands } from "@/lib/db/schema";
 import { isNull, asc } from "drizzle-orm";
 
 export const metadata: Metadata = {
-  title: "Users Management | Scamurai Admin",
+  title: "Users Management | Misdaq Admin",
 };
 
 type PageProps = {

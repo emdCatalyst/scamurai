@@ -68,7 +68,7 @@
     "masterAdmin": "Master Admin"
   },
   "applications": {
-    "metaTitle": "Applications | Scamurai Admin",
+    "metaTitle": "Applications | Misdaq Admin",
     "filters": {
       "label": "Application filters",
       "statusLabel": "Filter by status",
@@ -306,10 +306,10 @@
       "showing": "Showing {start}–{end} of {total} brands"
     },
     "email": {
-      "suspensionSubject": "Important: Your Scamurai account has been suspended",
-      "activationSubject": "Your Scamurai account has been reactivated",
-      "suspensionBody": "We are writing to inform you that your Scamurai brand account ({brandName}) has been suspended. All users under this account will no longer be able to access the platform. Please contact our support team to resolve this issue.",
-      "activationBody": "Great news! Your Scamurai brand account ({brandName}) has been reactivated. You and your team can now access the platform again."
+      "suspensionSubject": "Important: Your Misdaq account has been suspended",
+      "activationSubject": "Your Misdaq account has been reactivated",
+      "suspensionBody": "We are writing to inform you that your Misdaq brand account ({brandName}) has been suspended. All users under this account will no longer be able to access the platform. Please contact our support team to resolve this issue.",
+      "activationBody": "Great news! Your Misdaq brand account ({brandName}) has been reactivated. You and your team can now access the platform again."
     }
   },
   "users": {
@@ -378,10 +378,10 @@
       "showing": "Showing {start}–{end} of {total} users"
     },
     "email": {
-      "deactivationSubject": "Your Scamurai account has been deactivated",
-      "activationSubject": "Your Scamurai account has been restored",
-      "deactivationBody": "Hi {name}, we are writing to inform you that your Scamurai account has been deactivated. You will no longer be able to access the platform. If you believe this is an error, please contact your brand administrator or our support team.",
-      "activationBody": "Hi {name}, great news! Your Scamurai account has been restored. You can now access the platform again."
+      "deactivationSubject": "Your Misdaq account has been deactivated",
+      "activationSubject": "Your Misdaq account has been restored",
+      "deactivationBody": "Hi {name}, we are writing to inform you that your Misdaq account has been deactivated. You will no longer be able to access the platform. If you believe this is an error, please contact your brand administrator or our support team.",
+      "activationBody": "Hi {name}, great news! Your Misdaq account has been restored. You can now access the platform again."
     }
   },
   "deliveryApps": {

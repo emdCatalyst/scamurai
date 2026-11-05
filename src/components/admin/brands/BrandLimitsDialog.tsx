@@ -101,7 +101,7 @@ export default function BrandLimitsDialog({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => !isSaving && onClose()}
-            className={`absolute inset-0 bg-[#0A1628]/40 backdrop-blur-sm ${
+            className={`absolute inset-0 bg-[#0B0B0B]/40 backdrop-blur-sm ${
               !isSaving ? "cursor-pointer" : "cursor-wait"
             }`}
           />

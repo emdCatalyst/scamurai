@@ -1,5 +1,5 @@
 /**
- * Service catalog — the single source of truth for every product Scamurai sells.
+ * Service catalog — the single source of truth for every product Misdaq sells.
  *
  * Adding a service = adding one entry here (plus its copy under
  * `messages/<locale>/services.json`). Every page, form, validation rule and

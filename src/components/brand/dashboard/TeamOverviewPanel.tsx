@@ -15,7 +15,7 @@ export function TeamOverviewPanel({ data, brandSlug }: TeamOverviewPanelProps) {
   const roles = [
     { key: 'brand_admin', icon: ShieldCheck, color: 'text-[var(--brand-background)]', bg: 'bg-[var(--brand-background)]/10', bar: 'bg-[var(--brand-background)]' },
     { key: 'finance', icon: Landmark, color: 'text-[var(--brand-primary)]', bg: 'bg-[var(--brand-primary)]/10', bar: 'bg-[var(--brand-primary)]' },
-    { key: 'staff', icon: UserCircle2, color: 'text-[#5cbf8f]', bg: 'bg-[#5cbf8f]/10', bar: 'bg-[#5cbf8f]' },
+    { key: 'staff', icon: UserCircle2, color: 'text-[#4E9A72]', bg: 'bg-[#4E9A72]/10', bar: 'bg-[#4E9A72]' },
   ];
 
   return (

@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 import Loading from './loading';
 
 export const metadata: Metadata = {
-  title: "Delivery Applications | Scamurai Admin",
+  title: "Delivery Applications | Misdaq Admin",
 };
 
 type PageProps = {

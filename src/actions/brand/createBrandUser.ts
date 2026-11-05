@@ -145,15 +145,15 @@ export async function createBrandUser(data: {
         : appUrl;
 
       const html = renderEmail({
-        preheader: `Your Scamurai account is ready. Temporary password inside.`,
+        preheader: `Your Misdaq account is ready. Temporary password inside.`,
         bodyHtml: [
-          emailHeading("Welcome to Scamurai"),
+          emailHeading("Welcome to Misdaq"),
           emailParagraph(`Hi ${fullName},`),
           emailParagraph(
-            "Your Scamurai account has been created. Use the temporary password below to sign in. You'll be prompted to set a permanent password on your first login."
+            "Your Misdaq account has been created. Use the temporary password below to sign in. You'll be prompted to set a permanent password on your first login."
           ),
           emailCallout("Temporary password", tempPassword),
-          emailButton(loginUrl, "Sign in to Scamurai"),
+          emailButton(loginUrl, "Sign in to Misdaq"),
           emailMutedNote(
             "If you weren't expecting this email, please contact your brand administrator. Treat this password like cash — never share it with anyone."
           ),
@@ -162,7 +162,7 @@ export async function createBrandUser(data: {
 
       await sendEmail({
         to: email,
-        subject: "Welcome to Scamurai — your account is ready",
+        subject: "Welcome to Misdaq — your account is ready",
         html,
       });
       console.log(`[createBrandUser] Welcome email sent to ${email}`);

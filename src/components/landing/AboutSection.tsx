@@ -60,10 +60,10 @@ function RecordCardIllustration({
 }) {
   return (
     <div aria-hidden="true" className="reveal relative mx-auto h-[360px] w-full max-w-[400px]">
-      <div className="absolute inset-x-8 top-0 h-[200px] translate-y-[60px] rotate-[4deg] rounded-2xl border border-navy/10 bg-white shadow-[0_4px_20px_rgba(23,43,73,0.06)]" />
-      <div className="absolute inset-x-4 top-6 h-[220px] -rotate-2 rounded-2xl border border-navy/10 bg-white shadow-[0_6px_24px_rgba(23,43,73,0.08)]" />
+      <div className="absolute inset-x-8 top-0 h-[200px] translate-y-[60px] rotate-[4deg] rounded-2xl border border-navy/10 bg-white shadow-[0_4px_20px_rgba(11,11,11,0.06)]" />
+      <div className="absolute inset-x-4 top-6 h-[220px] -rotate-2 rounded-2xl border border-navy/10 bg-white shadow-[0_6px_24px_rgba(11,11,11,0.08)]" />
 
-      <div className="absolute inset-x-0 top-12 rounded-[20px] border border-sky/15 bg-navy p-6 shadow-[0_24px_80px_rgba(23,43,73,0.25)]">
+      <div className="absolute inset-x-0 top-12 rounded-[20px] border border-sky/15 bg-navy p-6 shadow-[0_24px_80px_rgba(11,11,11,0.25)]">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-white/50">{label}</p>
@@ -90,7 +90,7 @@ function RecordCardIllustration({
         </ul>
       </div>
 
-      <div className="absolute -end-2 bottom-2 flex items-center gap-2 rounded-[14px] border border-amber-400/25 bg-navy px-4 py-3 shadow-[0_8px_24px_rgba(23,43,73,0.2)] motion-safe:animate-[float-slow_5s_ease-in-out_1s_infinite]">
+      <div className="absolute -end-2 bottom-2 flex items-center gap-2 rounded-[14px] border border-amber-400/25 bg-navy px-4 py-3 shadow-[0_8px_24px_rgba(11,11,11,0.2)] motion-safe:animate-[float-slow_5s_ease-in-out_1s_infinite]">
         <span className="h-2 w-2 rounded-full bg-amber-400" />
         <span className="text-xs font-semibold text-amber-300">{review}</span>
       </div>

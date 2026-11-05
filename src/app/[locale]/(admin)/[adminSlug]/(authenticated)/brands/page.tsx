@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 import BrandsLoading from './loading';
 
 export const metadata: Metadata = {
-  title: "Brands Management | Scamurai Admin",
+  title: "Brands Management | Misdaq Admin",
 };
 
 type PageProps = {

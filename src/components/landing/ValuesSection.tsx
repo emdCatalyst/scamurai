@@ -26,7 +26,7 @@ export default async function ValuesSection() {
           {VALUES.map(({ key, icon: Icon }, index) => (
             <li
               key={key}
-              className="reveal group relative overflow-hidden rounded-2xl border border-navy/10 bg-white p-8 shadow-[0_1px_3px_rgba(23,43,73,0.04)] transition-shadow duration-300 hover:shadow-[0_12px_40px_rgba(23,43,73,0.1)]"
+              className="reveal group relative overflow-hidden rounded-2xl border border-navy/10 bg-white p-8 shadow-[0_1px_3px_rgba(11,11,11,0.04)] transition-shadow duration-300 hover:shadow-[0_12px_40px_rgba(11,11,11,0.1)]"
             >
               <span aria-hidden="true" className="absolute end-5 top-4 tabular-nums text-6xl font-black text-navy/[0.05]">
                 {String(index + 1).padStart(2, '0')}

@@ -8,7 +8,7 @@ import BrandSetup from '@/components/onboarding/BrandSetup';
 import InviteAcceptForm from '@/components/onboarding/InviteAcceptForm';
 
 export const metadata: Metadata = {
-  title: 'Brand Setup — Scamurai',
+  title: 'Brand Setup — Misdaq',
   description: 'Set up your brand appearance with logo and colors.',
 };
 
@@ -35,7 +35,7 @@ export default async function BrandSetupPage(props: {
     return (
       <main
         className="min-h-screen flex items-center justify-center p-4"
-        style={{ background: '#060f1a' }}
+        style={{ background: '#0B0B0B' }}
       >
         <InviteAcceptForm ticket={ticket} locale={locale} />
       </main>
@@ -223,7 +223,7 @@ export default async function BrandSetupPage(props: {
       className="relative min-h-screen flex items-center justify-center py-16 px-4"
       style={{
         background:
-          'linear-gradient(180deg, #0d1e35 0%, #060f1a 50%, #0d1e35 100%)',
+          'linear-gradient(180deg, #0B0B0B 0%, #0B0B0B 50%, #0B0B0B 100%)',
       }}
     >
       {/* Ambient glow */}

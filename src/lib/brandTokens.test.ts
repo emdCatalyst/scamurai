@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { brandTokensCss, contrastRatio, DEFAULT_BRAND_COLORS, deriveBrandTokens, hasLowContrastText, textColorOn } from './brandTokens';
 
 const INJECTION = 'red}</style><meta http-equiv="refresh" content="0;url=https://evil.example/login">';
-const NAVY = '#0A1628';
+const NAVY = '#0B0B0B';
 const WHITE = '#FFFFFF';
 
 describe('deriveBrandTokens', () => {
@@ -55,8 +55,8 @@ describe('deriveBrandTokens', () => {
       '--brand-primary-soft': 'rgba(51, 102, 153, 0.2)',
       '--brand-danger-soft': 'rgba(220, 38, 38, 0.1)',
       '--brand-danger-line': 'rgba(220, 38, 38, 0.25)',
-      // Navy, the text colour on a white surface.
-      '--brand-surface-fg-soft': 'rgba(10, 22, 40, 0.1)',
+      // Black, the text colour on a white surface.
+      '--brand-surface-fg-soft': 'rgba(11, 11, 11, 0.1)',
     });
   });
 
@@ -64,7 +64,7 @@ describe('deriveBrandTokens', () => {
     expect(contrastRatio('#000000', '#FFFFFF')).toBeCloseTo(21);
     expect(contrastRatio('#FFFFFF', '#000000')).toBeCloseTo(21);
     expect(contrastRatio('#4CAF50', WHITE)).toBeCloseTo(2.78, 2);
-    expect(contrastRatio('#4CAF50', NAVY)).toBeCloseTo(6.52, 2);
+    expect(contrastRatio('#4CAF50', NAVY)).toBeCloseTo(7.08, 2);
   });
 });
 
@@ -87,7 +87,7 @@ describe('textColorOn and hasLowContrastText', () => {
   });
 
   it('flags only colours where neither navy nor white reaches 4.5:1', () => {
-    expect(hasLowContrastText('#7B7B7B')).toBe(true); // mid grey: about 4.3:1 at best
+    expect(hasLowContrastText('#777777')).toBe(true); // mid grey: about 4.48:1 at best
     expect(hasLowContrastText('#4CAF50')).toBe(false); // navy text on it
     expect(hasLowContrastText('#172b49')).toBe(false);
     expect(hasLowContrastText('#FFFFFF')).toBe(false);

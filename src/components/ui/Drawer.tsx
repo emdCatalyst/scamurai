@@ -42,7 +42,7 @@ export default function Drawer({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => canClose && onClose()}
-            className={`absolute inset-0 bg-[#0A1628]/40 backdrop-blur-sm ${canClose ? 'cursor-pointer' : 'cursor-wait'}`}
+            className={`absolute inset-0 bg-[#0B0B0B]/40 backdrop-blur-sm ${canClose ? 'cursor-pointer' : 'cursor-wait'}`}
           />
           <motion.div
             initial={{ x: '100%' }}
