@@ -31,6 +31,7 @@ vi.mock('next/navigation', () => ({
   redirect: (url: string) => {
     throw new Error(`REDIRECT ${url}`);
   },
+  useRouter: () => ({ replace: () => {} }),
 }));
 // The client parts of the screen, as far as a server render needs them.
 vi.mock('@clerk/nextjs', () => ({ useAuth: () => ({ userId: 'user_a' }), useClerk: () => ({ signOut: async () => {} }) }));
