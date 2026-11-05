@@ -41,7 +41,7 @@ export default function ColorSlotPicker({ slots, onChange, warnings }: ColorSlot
                 style={{ colorScheme: 'dark' }}
               />
             </div>
-            <span className="font-mono text-xs text-white/40 uppercase">
+            <span className="tabular-nums text-xs text-white/40 uppercase">
               {slot.value}
             </span>
           </div>

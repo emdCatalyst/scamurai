@@ -105,7 +105,7 @@ export default function OrderDetailDrawer() {
         isOpen={isOpen}
         onClose={close}
         title={
-          <h2 className="text-lg font-mono font-bold text-[var(--brand-surface-fg)]">
+          <h2 className="text-lg tabular-nums font-bold text-[var(--brand-surface-fg)]">
             {order?.orderNumber ?? t("loading")}
           </h2>
         }

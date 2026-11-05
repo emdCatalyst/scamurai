@@ -151,7 +151,7 @@ export function BrandDetailDrawer({
                 onClick={copySlug}
                 className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-sky/30 cursor-pointer transition-all"
               >
-                <code className="text-sm font-mono text-slate-600">/brands/{brand.slug}</code>
+                <code className="text-sm tabular-nums text-slate-600">/brands/{brand.slug}</code>
                 <Copy size={14} className="text-slate-400 group-hover:text-sky transition-colors" />
               </div>
             </div>

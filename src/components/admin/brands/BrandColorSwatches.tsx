@@ -29,7 +29,7 @@ export function BrandColorSwatches({ colors }: BrandColorSwatchesProps) {
             <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
               {slot.label}
             </span>
-            <span className="text-xs font-mono text-slate-700">
+            <span className="text-xs tabular-nums text-slate-700">
               {slot.value}
             </span>
           </div>

@@ -37,7 +37,7 @@ export default function OrderRow({ order }: OrderRowProps) {
       onClick={openDrawer}
       className="cursor-pointer hover:bg-[var(--brand-primary)]/5 transition-colors"
     >
-      <td className="px-6 py-4 font-mono text-sm text-[var(--brand-surface-fg)]">
+      <td className="px-6 py-4 tabular-nums text-sm text-[var(--brand-surface-fg)]">
         {order.orderNumber}
       </td>
       <td className="px-6 py-4 text-sm text-[var(--brand-surface-fg)]">

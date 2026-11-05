@@ -1,30 +1,58 @@
 import type { Config } from 'tailwindcss';
 
+/**
+ * Misdaq identity. The token names predate the rebrand and are kept so the
+ * code follows without edits: `navy` is Misdaq Black, `sky` is the order
+ * evidence product colour (orange, the action colour) and `mint` is a muted
+ * functional success green. Text on `sky` is black, never white.
+ */
 const config: Config = {
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        navy:     '#172b49',
-        sky:      '#4fc5df',
-        mint:     '#5cbf8f',
-        charcoal: '#282827',
-        offwhite: '#f2f2f2',
-        'navy-deep': '#0d1e35',
-        'sky-dim':   'rgba(79,197,223,0.15)',
-        'mint-dim':  'rgba(92,191,143,0.12)',
+        navy:     '#0B0B0B',
+        sky: {
+          DEFAULT: '#FF5B3A',
+          50:  '#FFF3F0',
+          100: '#FFE4DD',
+          200: '#FFC9BB',
+          300: '#FFA48E',
+          400: '#FF7E61',
+          500: '#FF5B3A',
+          600: '#E8431F',
+          700: '#C23315',
+          800: '#9A2B15',
+          900: '#7D2716',
+          950: '#441009',
+        },
+        mint:     '#4E9A72',
+        charcoal: '#2A2A28',
+        offwhite: '#F4F3EF',
+        'navy-deep': '#0B0B0B',
+        'sky-dim':   'rgba(255,91,58,0.15)',
+        'mint-dim':  'rgba(78,154,114,0.12)',
+        // Neutrals and the other product colours, by their names in the guide.
+        paper:    '#F4F3EF',
+        line:     '#C9C8C2',
+        stone:    '#5F5F59',
+        cobalt:   '#2D5BFF',
+        saffron:  '#FFC72C',
+        lilac:    '#A98BFF',
       },
       fontFamily: {
-        sans:   ['var(--font-poppins)', 'sans-serif'],
-        arabic: ['var(--font-qomra)',   'sans-serif'],
-        mono:   ['var(--font-mono)',    'monospace'],
+        sans:    ['var(--font-plex)', 'system-ui', 'sans-serif'],
+        arabic:  ['var(--font-plex)', 'system-ui', 'sans-serif'],
+        // Amiri in English, The Year of Handicrafts (Plex 700 until licensed) in Arabic.
+        heading: ['var(--font-heading)'],
       },
+      // Flat by design: the old gradients resolve to single colours.
       backgroundImage: {
-        'gradient-hero':      'linear-gradient(135deg, #0d1e35 0%, #172b49 45%, #0e2a3a 100%)',
-        'gradient-cta':       'linear-gradient(135deg, #4fc5df 0%, #5cbf8f 100%)',
-        'gradient-cta-r':     'linear-gradient(135deg, #5cbf8f 0%, #4fc5df 100%)',
-        'gradient-sky-radial':'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(79,197,223,0.18) 0%, transparent 60%)',
-        'gradient-shimmer':   'linear-gradient(90deg, transparent 0%, rgba(79,197,223,0.15) 50%, transparent 100%)',
+        'gradient-hero':      'linear-gradient(#0B0B0B, #0B0B0B)',
+        'gradient-cta':       'linear-gradient(#FF5B3A, #FF5B3A)',
+        'gradient-cta-r':     'linear-gradient(#FF5B3A, #FF5B3A)',
+        'gradient-sky-radial':'none',
+        'gradient-shimmer':   'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%)',
       },
       animation: {
         'float-slow':      'float-slow 6s ease-in-out infinite',
@@ -40,10 +68,15 @@ const config: Config = {
         '4xl': '80px',
         '5xl': '120px',
       },
+      // No glows in this identity.
       boxShadow: {
-        'glow-sky':  '0 0 40px rgba(79,197,223,0.4), 0 0 80px rgba(79,197,223,0.15)',
-        'glow-mint': '0 0 40px rgba(92,191,143,0.4)',
-        'glow-lg':   '0 0 60px rgba(79,197,223,0.5), 0 0 120px rgba(79,197,223,0.2)',
+        'glow-sky':  'none',
+        'glow-mint': 'none',
+        'glow-lg':   'none',
+      },
+      borderRadius: {
+        card:  '28px',
+        field: '12px',
       },
     },
   },

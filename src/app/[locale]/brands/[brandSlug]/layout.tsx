@@ -55,7 +55,7 @@ export default async function BrandLayout({
   const cssVars = brandTokensCss(deriveBrandTokens(brand.brandColors));
 
   return (
-    <div className="min-h-screen bg-[var(--brand-background)] font-poppins antialiased">
+    <div className="min-h-screen bg-[var(--brand-background)] font-sans antialiased">
       <style dangerouslySetInnerHTML={{ __html: cssVars }} />
       <AppProviders messages={isStaff ? STAFF_MESSAGES : undefined}>{children}</AppProviders>
     </div>

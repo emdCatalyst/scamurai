@@ -67,7 +67,7 @@ export default function SubmitSuccessOverlay({ isVisible, orderNumber, problem, 
       <CheckCircle2 className="h-24 w-24 text-mint mb-4 animate-[pop-in_250ms_ease-out]" aria-hidden />
       <h2 className="text-2xl font-bold mb-2">{t("orderSaved")}</h2>
       {orderNumber && (
-        <p className="text-[var(--brand-background-fg-muted)] font-mono mb-4">
+        <p className="text-[var(--brand-background-fg-muted)] tabular-nums mb-4">
           {t("reference")}: {orderNumber}
         </p>
       )}

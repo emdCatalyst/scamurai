@@ -1,15 +1,15 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
+import MisdaqLogo from '@/components/brand-identity/MisdaqLogo';
 import { cn } from '@/lib/cn';
-import { poppins } from '@/lib/fonts';
+import { fontVariables } from '@/lib/fonts';
 import { NO_INDEX } from '@/lib/seo/site';
 
 export const metadata: Metadata = {
-  title: '404 — Scamurai | سكامورائي',
+  title: '404 — Misdaq | مصداق',
   robots: NO_INDEX,
 };
 
@@ -33,12 +33,12 @@ export default async function RootNotFound() {
   return (
     <main
       className={cn(
-        poppins.variable,
+        fontVariables,
         'flex min-h-screen flex-col items-center justify-center bg-navy-deep px-6 py-24 text-center antialiased'
       )}
     >
-      <Image src="/logos/secondy logo 2.svg" alt="" width={72} height={72} />
-      <h1 className="mt-8 font-mono text-6xl font-black text-white">404</h1>
+      <MisdaqLogo variant="stacked" width={140} inverted alt="Misdaq | مصداق" priority />
+      <h1 className="mt-10 font-sans text-6xl font-bold tabular-nums text-white">404</h1>
 
       <div className="mt-8 grid max-w-3xl gap-8 sm:grid-cols-2">
         {copies.map(({ locale, t }) => (
@@ -51,7 +51,7 @@ export default async function RootNotFound() {
 
       <Link
         href="/"
-        className="mt-10 inline-flex items-center justify-center rounded-full bg-gradient-cta px-8 py-4 text-base font-semibold text-navy shadow-glow-sky focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-deep"
+        className="mt-10 inline-flex items-center justify-center rounded-full bg-sky px-8 py-4 text-base font-semibold text-navy transition-colors hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-deep"
       >
         {copies.map(({ locale, t }) => (
           <span key={locale} lang={locale} className={cn(locale === 'ar' && 'font-arabic')}>

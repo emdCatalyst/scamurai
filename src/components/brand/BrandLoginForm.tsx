@@ -381,7 +381,7 @@ export function BrandLoginForm({ brandSlug }: BrandLoginFormProps) {
           disabled={isSubmitting}
           autoFocus
           className={cn(
-            'w-full bg-white/5 border rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 transition-colors tracking-[0.4em] text-center font-mono disabled:opacity-50',
+            'w-full bg-white/5 border rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 transition-colors tracking-[0.4em] text-center tabular-nums disabled:opacity-50',
             errors.code
               ? 'border-[var(--brand-danger)]/50 focus:border-[var(--brand-danger)] focus:ring-[var(--brand-danger)]/50'
               : 'border-white/10 focus:border-[var(--brand-primary)]/50 focus:ring-[var(--brand-primary)]/50'

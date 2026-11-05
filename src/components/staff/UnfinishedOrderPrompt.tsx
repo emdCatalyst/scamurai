@@ -47,7 +47,7 @@ export default function UnfinishedOrderPrompt({ when, orderNumber, photos, onCon
           {photos.map((url) => (
             <Image key={url} src={url} alt="" width={80} height={80} className="h-20 w-20 rounded-lg object-cover" />
           ))}
-          {orderNumber && <bdi className="font-mono text-lg font-bold">{orderNumber}</bdi>}
+          {orderNumber && <bdi className="tabular-nums text-lg font-bold">{orderNumber}</bdi>}
         </div>
       )}
       <p className="text-sm">{t("draftCheck")}</p>

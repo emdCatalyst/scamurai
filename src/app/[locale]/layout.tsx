@@ -4,7 +4,7 @@ import { hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing, type Locale } from '@/i18n/routing';
-import { poppins, mono } from '@/lib/fonts';
+import { fontVariables } from '@/lib/fonts';
 import { getSiteUrl, OG_LOCALE, otherLocales } from '@/lib/seo/site';
 
 export function generateStaticParams() {
@@ -40,7 +40,7 @@ export async function generateMetadata({
 }
 
 export const viewport: Viewport = {
-  themeColor: '#0d1e35',
+  themeColor: '#0B0B0B',
 };
 
 /**
@@ -68,7 +68,7 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       dir={locale === 'ar' ? 'rtl' : 'ltr'}
-      className={`${poppins.variable} ${mono.variable} antialiased`}
+      className={`${fontVariables} antialiased`}
       data-scroll-behavior="smooth"
     >
       <body className="min-h-screen flex flex-col">

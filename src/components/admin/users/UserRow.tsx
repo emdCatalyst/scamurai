@@ -62,7 +62,7 @@ export function UserRow({ user, onViewDetails }: UserRowProps) {
               <span className="text-sm font-bold text-slate-800 truncate group-hover:text-sky transition-colors">
                 {user.fullName}
               </span>
-              <span className="text-[10px] text-slate-400 font-mono tracking-wider">
+              <span className="text-[10px] text-slate-400 tabular-nums tracking-wider">
                 {user.email}
               </span>
             </div>

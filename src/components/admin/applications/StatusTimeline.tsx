@@ -43,7 +43,7 @@ export default function StatusTimeline({ application }: { application: TimelineS
                   <p className="mt-2 inline-flex flex-wrap items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-700">
                     {t.rich('paymentReference', {
                       reference,
-                      value: (chunks) => <bdi className="font-mono font-semibold text-slate-900">{chunks}</bdi>,
+                      value: (chunks) => <bdi className="tabular-nums font-semibold text-slate-900">{chunks}</bdi>,
                     })}
                   </p>
                 )}

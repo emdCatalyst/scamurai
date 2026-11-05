@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
+import MisdaqLogo from '@/components/brand-identity/MisdaqLogo';
 import ClientIntlProvider from '@/components/providers/ClientIntlProvider';
 import { ButtonLink } from '@/components/marketing/primitives';
 import { NO_INDEX } from '@/lib/seo/site';
@@ -14,8 +14,8 @@ import { NO_INDEX } from '@/lib/seo/site';
  * "Page changed from static to dynamic".
  */
 export const metadata: Metadata = {
-  // Absolute: the marketing layout's "%s | Scamurai" template must not be appended.
-  title: { absolute: '404 — Scamurai | سكامورائي' },
+  // Absolute: the marketing layout's "%s | Misdaq" template must not be appended.
+  title: { absolute: '404 — Misdaq | مصداق' },
   robots: NO_INDEX,
 };
 
@@ -35,9 +35,8 @@ export default async function LocaleNotFound() {
         id="main"
         className="relative isolate flex min-h-screen flex-1 flex-col items-center justify-center overflow-hidden bg-navy-deep px-6 py-24 text-center"
       >
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-sky-radial" />
-        <Image src="/logos/secondy logo 2.svg" alt="" width={72} height={72} />
-        <p className="mt-8 text-sm font-bold text-sky ltr:uppercase ltr:tracking-[0.25em]">{t('eyebrow')}</p>
+        <MisdaqLogo variant="stacked" width={140} inverted alt="Misdaq | مصداق" priority />
+        <p className="mt-10 text-sm font-bold text-sky ltr:uppercase ltr:tracking-[0.25em]">{t('eyebrow')}</p>
         <h1 className="mt-4 max-w-xl text-balance text-4xl font-black leading-tight text-white sm:text-5xl">
           {t('title')}
         </h1>

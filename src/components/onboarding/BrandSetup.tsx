@@ -100,12 +100,12 @@ export default function BrandSetup({ brandId, brandSlug }: BrandSetupProps) {
       {/* Step indicator */}
       <div className="mb-8 flex items-center justify-center gap-4">
         <div className="flex items-center gap-2 rounded-full bg-sky/15 px-4 py-1.5 text-sm font-semibold text-sky">
-          <span className="font-mono text-xs">1</span>
+          <span className="tabular-nums text-xs">1</span>
           <span className={isAr ? 'font-arabic' : ''}>{t('step1')}</span>
         </div>
         <div className="h-px w-8 bg-white/10" />
         <div className="flex items-center gap-2 rounded-full bg-white/[0.04] px-4 py-1.5 text-sm text-white/30">
-          <span className="font-mono text-xs">2</span>
+          <span className="tabular-nums text-xs">2</span>
           <span className={isAr ? 'font-arabic' : ''}>{t('step2')}</span>
         </div>
       </div>

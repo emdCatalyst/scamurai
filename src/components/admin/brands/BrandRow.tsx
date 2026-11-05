@@ -73,7 +73,7 @@ export function BrandRow({ brand, onViewDetails }: BrandRowProps) {
               <span className="text-sm font-bold text-slate-800 truncate group-hover:text-sky transition-colors">
                 {brand.name}
               </span>
-              <span className="text-[10px] text-slate-400 font-mono tracking-wider uppercase">
+              <span className="text-[10px] text-slate-400 tabular-nums tracking-wider uppercase">
                 {brand.slug}
               </span>
             </div>

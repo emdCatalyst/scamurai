@@ -1,83 +1,38 @@
 @import "tailwindcss";
 @config "../../tailwind.config.ts";
 
-/* ─── Qomra Arabic (OTF — loaded via public/fonts) ─── */
-@font-face {
-  font-family: 'QomraArabic';
-  src: url('/fonts/ITFQOMRAARABIC-LIGHT.OTF') format('opentype');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'QomraArabic';
-  src: url('/fonts/ITFQOMRAARABIC-REGULAR.OTF') format('opentype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'QomraArabic';
-  src: url('/fonts/ITFQOMRAARABIC-MEDIUM.OTF') format('opentype');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'QomraArabic';
-  src: url('/fonts/ITFQOMRAARABIC-BOLD.OTF') format('opentype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'QomraArabic';
-  src: url('/fonts/ITFQOMRAARABIC-BLACK.OTF') format('opentype');
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* ─── Brand tokens ─── */
+/* ─── Misdaq identity tokens (utility names live in tailwind.config.ts) ─── */
 :root {
-  --color-navy:        #172b49;
-  --color-sky:         #4fc5df;
-  --color-mint:        #5cbf8f;
-  --color-charcoal:    #282827;
-  --color-offwhite:    #f2f2f2;
+  --color-navy:        #0B0B0B;
+  --color-sky:         #FF5B3A;
+  --color-mint:        #4E9A72;
+  --color-charcoal:    #2A2A28;
+  --color-offwhite:    #F4F3EF;
 
-  /* Gradients */
-  --gradient-hero:     linear-gradient(135deg, #0d1e35 0%, #172b49 45%, #0e2a3a 100%);
-  --gradient-cta:      linear-gradient(135deg, #4fc5df 0%, #5cbf8f 100%);
-  --gradient-sky:      linear-gradient(135deg, #4fc5df 0%, #3ab3ce 100%);
-  --gradient-glow:     radial-gradient(ellipse 80% 50% at 50% 0%, rgba(79,197,223,0.18) 0%, transparent 60%);
+  /* Calm and flat: no gradients, no glows, light shadows only. */
+  --shadow-card:       0 1px 2px rgba(11,11,11,0.06);
+  --shadow-card-hover: 0 4px 16px rgba(11,11,11,0.08);
+  --shadow-modal:      0 24px 64px rgba(0,0,0,0.3);
 
-  /* Shadows */
-  --shadow-card:       0 1px 3px rgba(23,43,73,0.08), 0 4px 16px rgba(23,43,73,0.06);
-  --shadow-card-hover: 0 8px 32px rgba(23,43,73,0.16), 0 2px 8px rgba(23,43,73,0.08);
-  --shadow-glow-sky:   0 0 40px rgba(79,197,223,0.4), 0 0 80px rgba(79,197,223,0.15);
-  --shadow-glow-mint:  0 0 40px rgba(92,191,143,0.4);
-  --shadow-modal:      0 24px 80px rgba(0,0,0,0.35);
+  /* Display headings. Arabic names The Year of Handicrafts first: adding its
+     files to public/fonts with an @font-face rule is the only change needed. */
+  --font-heading-en:   var(--font-amiri), Georgia, serif;
+  --font-heading-ar:   'The Year of Handicrafts', var(--font-plex), system-ui, sans-serif;
+  --font-heading:      var(--font-heading-en);
 }
+:root[lang="ar"] { --font-heading: var(--font-heading-ar); }
 
-/* ─── Font per locale ─── */
-:root { --font-qomra: 'QomraArabic'; }
+/* ─── Fonts: IBM Plex Sans Arabic for body, UI, numbers and buttons ─── */
+body { font-family: var(--font-plex), system-ui, sans-serif; }
+:root[lang="ar"] body { line-height: 1.8; }
 
-:root[lang="en"] body { font-family: var(--font-poppins), sans-serif; }
-:root[lang="ar"] body { font-family: 'QomraArabic', 'Cairo', sans-serif; line-height: 1.8; }
-
-/* Arabic font utility class and forced inheritance for forms */
-.font-arabic,
-:root[lang="ar"] input,
-:root[lang="ar"] button,
-:root[lang="ar"] textarea,
-:root[lang="ar"] select,
-:root[lang="ar"] label { 
-  font-family: 'QomraArabic', 'Cairo', sans-serif !important; 
+/* Page titles: Amiri Bold in English, Handicrafts 700 in Arabic. */
+@layer base {
+  h1 { font-family: var(--font-heading); }
 }
 
 html { scroll-behavior: smooth; }
-body { background: #0d1e35; color: #f2f2f2; overflow-x: hidden; }
+body { background: #0B0B0B; color: #FFFFFF; overflow-x: hidden; }
 
 /* ─── Animations ─── */
 @keyframes hero-glow-pulse {
@@ -138,38 +93,6 @@ body { background: #0d1e35; color: #f2f2f2; overflow-x: hidden; }
 @keyframes toast-in {
   from { opacity: 0; transform: translateY(20px) scale(0.9); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* ─── Utility classes ─── */
-.text-gradient-sky {
-  background: var(--gradient-cta);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.glow-sky   { box-shadow: var(--shadow-glow-sky); }
-.glow-mint  { box-shadow: var(--shadow-glow-mint); }
-
-.glass {
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.glass-strong {
-  background: rgba(255,255,255,0.07);
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(255,255,255,0.12);
-}
-
-.noise-overlay::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events: none;
-  opacity: 0.4;
 }
 
 /* ─── Scroll reveal: CSS-only progressive enhancement, zero JavaScript ───

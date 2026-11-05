@@ -28,7 +28,7 @@ export default async function ValuesSection() {
               key={key}
               className="reveal group relative overflow-hidden rounded-2xl border border-navy/10 bg-white p-8 shadow-[0_1px_3px_rgba(23,43,73,0.04)] transition-shadow duration-300 hover:shadow-[0_12px_40px_rgba(23,43,73,0.1)]"
             >
-              <span aria-hidden="true" className="absolute end-5 top-4 font-mono text-6xl font-black text-navy/[0.05]">
+              <span aria-hidden="true" className="absolute end-5 top-4 tabular-nums text-6xl font-black text-navy/[0.05]">
                 {String(index + 1).padStart(2, '0')}
               </span>
               <span className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl border border-sky/20 bg-sky/10 text-sky">
